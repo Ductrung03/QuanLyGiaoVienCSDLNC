@@ -111,6 +111,9 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
         {
             using (var connection = _context.Database.GetDbConnection())
             {
+                Console.WriteLine(">>> Connection string: " + connection.ConnectionString); // <-- THÊM DÒNG NÀY
+
+               
                 await connection.OpenAsync();
                 using (var command = connection.CreateCommand())
                 {
@@ -174,7 +177,8 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                     command.Parameters.Add(new SqlParameter("@NamHoc", namHoc ?? (object)DBNull.Value));
 
                     using (var reader = await command.ExecuteReaderAsync())
-                    {
+                    {                await connection.OpenAsync();
+
                         // Đọc kết quả đầu tiên (theo khoa)
                         var resultByKhoa = new DataTable();
                         resultByKhoa.Load(reader);

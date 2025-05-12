@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyGiaoVienCSDLNC.Data;
 using QuanLyGiaoVienCSDLNC.Models;
+using QuanLyGiaoVienCSDLNC.Models.QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
 using System.Data;
 
@@ -167,7 +168,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                         DanhSachHocVi = new List<HocVi>(),
                         DanhSachHocHam = new List<dynamic>(),
                         DanhSachChucVu = new List<dynamic>(),
-                        LyLichKhoaHoc = new dynamic()
+                        LyLichKhoaHoc = new List<LyLichKhoaHoc>(),
                     };
 
                     using (var reader = await command.ExecuteReaderAsync())

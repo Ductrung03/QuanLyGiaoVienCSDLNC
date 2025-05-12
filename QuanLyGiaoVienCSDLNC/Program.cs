@@ -1,4 +1,42 @@
+﻿// Program.cs
+using Microsoft.EntityFrameworkCore;
+using QuanLyGiaoVienCSDLNC.Data;
+using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
+using QuanLyGiaoVienCSDLNC.Repositories;
+using QuanLyGiaoVienCSDLNC.Services.Interfaces;
+using QuanLyGiaoVienCSDLNC.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($"Connection String: {connectionString}"); // Hoặc dùng logger
+// Thêm kết nối database
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Đăng ký các repository
+builder.Services.AddScoped<IGiaoVienRepository, GiaoVienRepository>();
+builder.Services.AddScoped<IBoMonRepository, BoMonRepository>();
+builder.Services.AddScoped<IKhoaRepository, KhoaRepository>();
+builder.Services.AddScoped<ITaiGiangDayRepository, TaiGiangDayRepository>();
+builder.Services.AddScoped<IThongKeRepository, ThongKeRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Đăng ký các service
+builder.Services.AddScoped<IGiaoVienService, GiaoVienService>();
+builder.Services.AddScoped<IBoMonService, BoMonService>();
+builder.Services.AddScoped<IKhoaService, KhoaService>();
+builder.Services.AddScoped<ITaiGiangDayService, TaiGiangDayService>();
+builder.Services.AddScoped<IThongKeService, ThongKeService>();
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Thêm hỗ trợ session
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -18,10 +56,12 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=SamplePage}/{action=Page1}/{id?}");
+    pattern: "{controller=Login}/{action=Index}/{id?}");
 
 app.Run();

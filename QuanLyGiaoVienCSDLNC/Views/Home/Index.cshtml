@@ -1,0 +1,228 @@
+﻿<!-- Views/Home/Index.cshtml -->
+@{
+    ViewData["Title"] = "Trang chủ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Bảng điều khiển</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">Dashboard</li>
+                        <li class="breadcrumb-item active">Tổng quan</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-6 col-xl-3 col-lg-6">
+                <div class="card o-hidden">
+                    <div class="card-body">
+                        <div class="media static-widget">
+                            <div class="media-body">
+                                <h6 class="font-roboto">Tổng giáo viên</h6>
+                                <h4 class="mb-0 counter">@ViewBag.TongSoGiaoVien</h4>
+                            </div>
+                            <svg class="fill-secondary" width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M24 48C10.7647 48 0 37.2353 0 24C0 10.7647 10.7647 0 24 0C37.2353 0 48 10.7647 48 24C48 37.2353 37.2353 48 24 48ZM24 2.82353C12.3176 2.82353 2.82353 12.3176 2.82353 24C2.82353 35.6824 12.3176 45.1765 24 45.1765C35.6824 45.1765 45.1765 35.6824 45.1765 24C45.1765 12.3176 35.6824 2.82353 24 2.82353Z" fill=""></path>
+                                <path d="M24 35.2941C19.0118 35.2941 14.7059 30.9882 14.7059 26C14.7059 25.2235 15.3176 24.7059 16.0941 24.7059C16.8706 24.7059 17.5294 25.2235 17.5294 26C17.5294 29.4118 20.5882 32.4706 24 32.4706C27.4118 32.4706 30.4706 29.4118 30.4706 26C30.4706 22.5882 27.4118 19.5294 24 19.5294C23.2235 19.5294 22.7059 18.9176 22.7059 18.1412C22.7059 17.3647 23.2235 16.7059 24 16.7059C28.9882 16.7059 33.2941 21.0118 33.2941 26C33.2941 30.9882 28.9882 35.2941 24 35.2941Z" fill=""></path>
+                                <path d="M24 35.2941C23.2235 35.2941 22.7059 34.6824 22.7059 33.9059V25.8824H20.1176C19.3412 25.8824 18.8235 25.2706 18.8235 24.4941C18.8235 23.7176 19.4353 23.0588 20.1176 23.0588H24C24.7765 23.0588 25.2941 23.6706 25.2941 24.4471V33.8588C25.2941 34.6824 24.7765 35.2941 24 35.2941Z" fill=""></path>
+                                <path d="M24 17.6471C22.7059 17.6471 21.6471 16.5882 21.6471 15.2941C21.6471 14 22.7059 12.9412 24 12.9412C25.2941 12.9412 26.3529 14 26.3529 15.2941C26.3529 16.5882 25.2941 17.6471 24 17.6471Z" fill=""></path>
+                            </svg>
+                        </div>
+                        <div class="progress-widget">
+                            <div class="progress sm-progress-bar progress-animate">
+                                <div class="progress-gradient-secondary" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"><span class="animate-circle"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3 col-lg-6">
+                <div class="card o-hidden">
+                    <div class="card-body">
+                        <div class="media static-widget">
+                            <div class="media-body">
+                                <h6 class="font-roboto">Hoàn thành định mức</h6>
+                                <h4 class="mb-0 counter">85%</h4>
+                            </div>
+                            <svg class="fill-success" width="45" height="39" viewBox="0 0 45 39" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M22.5 0C10.0747 0 0 10.0747 0 22.5C0 34.9253 10.0747 45 22.5 45C34.9253 45 45 34.9253 45 22.5C45 10.0747 34.9253 0 22.5 0ZM22.5 41.4C11.9872 41.4 3.6 33.0128 3.6 22.5C3.6 11.9872 11.9872 3.6 22.5 3.6C33.0128 3.6 41.4 11.9872 41.4 22.5C41.4 33.0128 33.0128 41.4 22.5 41.4Z" fill=""></path>
+                                <path d="M22.5 6.30001C13.5215 6.30001 6.30005 13.5215 6.30005 22.5C6.30005 31.4786 13.5215 38.7 22.5 38.7C31.4786 38.7 38.7 31.4786 38.7 22.5C38.7 13.5215 31.4786 6.30001 22.5 6.30001ZM22.5 35.1C15.5034 35.1 9.90003 29.4966 9.90003 22.5C9.90003 15.5034 15.5034 9.89998 22.5 9.89998C29.4967 9.89998 35.1 15.5034 35.1 22.5C35.1 29.4966 29.4967 35.1 22.5 35.1Z" fill=""></path>
+                                <path d="M22.5 14.4C20.8005 14.4 19.379 15.6495 19.0898 17.3693C18.9913 17.9238 19.4566 18.4499 20.0301 18.4499H24.9834C25.5486 18.4499 26.0071 17.9213 25.9164 17.3715C25.6356 15.6518 24.2039 14.4 22.5 14.4Z" fill=""></path>
+                                <path d="M28.7507 23.6255L23.8217 26.7748C23.6559 26.8763 23.5594 27.0608 23.5594 27.2587V31.95C23.5594 32.34 23.8692 32.65 24.2594 32.65H26.9594C27.3496 32.65 27.6594 32.34 27.6594 31.95V28.7849L31.2121 26.5142C31.5493 26.3057 31.6413 25.8708 31.417 25.5479L29.9061 23.454C29.7115 23.1815 29.3283 23.0583 28.9945 23.1815L28.7507 23.6255Z" fill=""></path>
+                            </svg>
+                        </div>
+                        <div class="progress-widget">
+                            <div class="progress sm-progress-bar progress-animate">
+                                <div class="progress-gradient-success" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100"><span class="animate-circle"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3 col-lg-6">
+                <div class="card o-hidden">
+                    <div class="card-body">
+                        <div class="media static-widget">
+                            <div class="media-body">
+                                <h6 class="font-roboto">Tổng môn học</h6>
+                                <h4 class="mb-0 counter">120</h4>
+                            </div>
+                            <svg class="fill-primary" width="44" height="46" viewBox="0 0 44 46" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M44 9.68615V4.5564H32V0.608475C32 0.4478 31.928 0.296925 31.8003 0.186575C31.6726 0.0771666 31.5045 0.014 31.3305 0.001125C27.4536 -0.0925 23.575 0.0395 19.7228 0.429C12.9687 1.12488 6.61908 3.58825 2 7.54275V8.02388C2 8.36563 2.26375 8.64175 2.64375 8.78825L14.3915 13.4444C15.4028 13.7683 16.4713 13.8229 17.5147 13.6046C18.5173 13.4015 19.4657 12.9952 20.3129 12.4111C21.1202 11.8496 21.8835 11.1206 22.6125 10.2316L23.2223 9.45588C25.7253 9.0955 28.2646 8.97587 30.801 9.09787L36 9.68615V22.9375C35.8418 22.9172 35.6793 22.9172 35.521 22.9375C33.3338 23.1608 31.4284 24.6032 30.6682 26.4588C29.7065 28.8244 30.8125 31.3231 32.9998 32.5266C32.4284 36.9635 31.528 41.3553 30.3076 45.6661L30.1598 46H35.4616L35.6056 45.6661C36.7332 42.2136 37.564 38.657 38.0876 35.0431C38.1168 35.0407 38.1454 35.0347 38.1747 35.0298C40.5088 34.5326 42.3339 32.8051 43.0319 30.6189C43.7276 28.4327 43.1079 26.1172 41.3929 24.5139C40.1446 23.3698 38.4087 22.778 36.6381 22.846H36.3334V10.1484L44 9.68615ZM36.6381 24.6534C39.4228 24.4962 41.5992 26.6552 41.4475 29.1658C41.3178 31.3545 39.4754 33.0507 37.2001 33.1541C37.1139 33.159 37.0271 33.1626 36.9403 33.1626C34.7497 33.1626 32.8891 31.7409 32.5621 29.784C32.1518 27.3008 34.0494 25.0359 36.6381 24.6534ZM24.3999 2.8424C27.7719 2.4528 31.1657 2.34475 34.5589 2.51925L37.9998 2.75V7.78663L31.9668 8.19825C31.9894 8.14075 32 8.082 32 8.02388V7.55688C32 6.9745 31.4883 6.5 30.8438 6.5H15.1562C14.5117 6.5 14 6.9745 14 7.55688V8.03525C14 8.09675 14.0113 8.15712 14.0352 8.2155L4.70125 4.63125C9.7775 2.09125 17.077 0.5885 24.3999 2.8424ZM16 8.02388C16 7.95262 16.0625 7.8945 16.1562 7.8945H29.8438C29.9375 7.8945 30 7.95262 30 8.02388C30 8.09513 29.9375 8.15325 29.8438 8.15325H16.1562C16.0625 8.15325 16 8.09513 16 8.02388ZM34 43.4581L33.7646 44.1475H32.2075L32.4307 43.4581C33.5051 39.7337 34.3045 35.9278 34.8238 32.0769C34.9404 31.3671 34.6868 30.6435 34.1493 30.1552C33.5851 29.6424 32.8103 29.4165 32.0354 29.5497C31.2207 29.6936 30.5474 30.2033 30.2139 30.8985C29.8788 31.5952 29.9404 32.395 30.3795 33.0389C30.8495 33.7195 31.6334 34.1078 32.4706 34.0723C32.5306 34.0694 32.5907 34.0665 32.6501 34.0621C32.2075 37.3988 31.5521 40.6849 30.6976 43.8926L30.4657 44.622H34L33.7646 43.9243C33.0971 41.2077 32.7734 38.428 32.7972 35.6409C33.855 35.5879 34.875 35.0848 35.5208 34.2172C36.2017 33.3048 36.3811 32.0998 36.0091 31.01L36.0104 31.0113C35.9823 30.9398 35.9604 30.8642 35.927 30.794C36.6498 34.5561 35.6137 39.089 34 43.4581Z" fill=""></path>
+                            </svg>
+                        </div>
+                        <div class="progress-widget">
+                            <div class="progress sm-progress-bar progress-animate">
+                                <div class="progress-gradient-primary" role="progressbar" style="width: 48%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"><span class="animate-circle"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-sm-6 col-xl-3 col-lg-6">
+                <div class="card o-hidden">
+                    <div class="card-body">
+                        <div class="media static-widget">
+                            <div class="media-body">
+                                <h6 class="font-roboto">Công trình NCKH</h6>
+                                <h4 class="mb-0 counter">50</h4>
+                            </div>
+                            <svg class="fill-danger" width="41" height="46" viewBox="0 0 41 46" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M17.5245 23.3155C24.0019 23.3152 26.3325 16.8296 26.9426 11.5022C27.6941 5.13235 23.2042 0 17.5245 0C11.8449 0 7.35495 5.13235 8.10648 11.5022C8.71659 16.8296 11.0472 23.3155 17.5245 23.3155Z" fill=""></path>
+                                <path d="M31.6878 26.0152C31.8912 26.0152 32.0979 26.0214 32.3012 26.0149C32.0481 22.9112 30.9367 20.0684 29.0162 17.9578C27.9532 18.9603 26.6238 19.5399 25.1459 19.6202C29.8066 21.8709 30.5248 25.9462 31.6878 26.0152Z" fill=""></path>
+                                <path d="M36.2992 30.1156C34.8056 27.9875 31.8073 26.3146 26.5787 26.0278C22.7542 25.8221 19.7302 27.1068 17.5243 29.1636C15.3185 27.1068 12.2944 25.8221 8.47005 26.0278C3.24159 26.3146 0.24337 27.9876 -1.25 30.1156C-2.61785 32.0832 -1.9467 34.8313 0.2731 36.738C0.38015 39.9308 1.12716 46 17.5245 46C33.9218 46 34.669 39.9308 34.776 36.738C36.9234 34.8549 37.6054 32.0822 36.2992 30.1156Z" fill=""></path>
+                                <path d="M8.21599 19.6202C6.73799 19.5399 5.40864 18.9603 4.34583 17.9578C2.42526 20.0684 1.31384 22.9112 1.06076 26.0149C1.26402 26.0214 1.47088 26.0152 1.67414 26.0152C2.83709 25.9462 3.55532 21.8709 8.21599 19.6202Z" fill=""></path>
+                            </svg>
+                        </div>
+                        <div class="progress-widget">
+                            <div class="progress sm-progress-bar progress-animate">
+                                <div class="progress-gradient-danger" role="progressbar" style="width: 48%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"><span class="animate-circle"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-8 box-col-12">
+                <div class="card">
+                    <div class="card-header card-no-border">
+                        <h5>Thống kê giờ giảng dạy theo khoa</h5>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="row m-0 overall-card">
+                            <div class="col-xl-9 col-md-12 col-sm-7 p-0">
+                                <div class="chart-right">
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="card-body p-0">
+                                                <div class="current-sale-container">
+                                                    <div id="chart-currently"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-12 col-sm-5 p-0">
+                                <div class="row g-sm-4 g-2">
+                                    <div class="col-xl-12 col-md-4">
+                                        <div class="light-card balance-card widget-hover">
+                                            <div class="svg-box">
+                                                <svg class="svg-fill">
+                                                    <use href="../assets/svg/icon-sprite.svg#income"></use>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <span class="f-light">Giảng dạy</span>
+                                                <h6 class="mt-1 mb-0">12,500</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-12 col-md-4">
+                                        <div class="light-card balance-card widget-hover">
+                                            <div class="svg-box">
+                                                <svg class="svg-fill">
+                                                    <use href="../assets/svg/icon-sprite.svg#expense"></use>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <span class="f-light">NCKH</span>
+                                                <h6 class="mt-1 mb-0">8,000</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xl-12 col-md-4">
+                                        <div class="light-card balance-card widget-hover">
+                                            <div class="svg-box">
+                                                <svg class="svg-fill">
+                                                    <use href="../assets/svg/icon-sprite.svg#doller-return"></use>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <span class="f-light">Khảo thí</span>
+                                                <h6 class="mt-1 mb-0">3,500</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-4 box-col-12">
+                <div class="card">
+                    <div class="card-header card-no-border">
+                        <div class="header-top">
+                            <h5 class="m-0">Thống kê hoàn thành định mức</h5>
+                        </div>
+                    </div>
+                    <div class="card-body pt-0">
+                        <div class="row recent-wrapper">
+                            <div class="col-xl-6">
+                                <div class="recent-chart">
+                                    <div id="recentchart"></div>
+                                </div>
+                            </div>
+                            <div class="col-xl-6">
+                                <ul class="order-content">
+                                    <li>
+                                        <span class="recent-circle bg-primary"> </span>
+                                        <div>
+                                            <span class="f-light f-w-500">Đạt định mức</span>
+                                            <h4 class="mt-1 mb-0">75%</h4>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <span class="recent-circle bg-info"></span>
+                                        <div>
+                                            <span class="f-light f-w-500">Chưa đạt</span>
+                                            <h4 class="mt-1 mb-0">25%</h4>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
