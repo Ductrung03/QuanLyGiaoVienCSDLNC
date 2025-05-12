@@ -1,0 +1,123 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.TaiGiangDay
+@{
+    ViewData["Title"] = "Chi tiết tải giảng dạy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Chi tiết tải giảng dạy</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a></li>
+                        <li class="breadcrumb-item active">Chi tiết</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin tải giảng dạy</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã tải giảng dạy</label>
+                                    <input type="text" class="form-control" value="@Model.MaTaiGiangDay" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Tên học phần</label>
+                                    <input type="text" class="form-control" value="@Model.TenHocPhan" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Sĩ số</label>
+                                    <input type="text" class="form-control" value="@Model.SiSo" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Hệ</label>
+                                    <input type="text" class="form-control" value="@Model.He" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Lớp</label>
+                                    <input type="text" class="form-control" value="@Model.Lop" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Số tín chỉ</label>
+                                    <input type="text" class="form-control" value="@Model.SoTinChi" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Năm học</label>
+                                    <input type="text" class="form-control" value="@Model.NamHoc" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã đối tượng</label>
+                                    <input type="text" class="form-control" value="@Model.MaDoiTuong" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã thời gian</label>
+                                    <input type="text" class="form-control" value="@Model.MaThoiGian" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã ngôn ngữ</label>
+                                    <input type="text" class="form-control" value="@Model.MaNgonNgu" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Ghi chú</label>
+                                    <textarea class="form-control" rows="3" readonly>@Model.GhiChu</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer text-end">
+                        <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-warning">Phân công giảng dạy</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>

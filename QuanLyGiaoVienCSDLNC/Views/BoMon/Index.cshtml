@@ -1,0 +1,88 @@
+﻿@model IEnumerable<QuanLyGiaoVienCSDLNC.Models.BoMon>
+@{
+    ViewData["Title"] = "Danh sách bộ môn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Danh sách bộ môn</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">Quản lý bộ môn</li>
+                        <li class="breadcrumb-item active">Danh sách</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                }
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between">
+                            <h5>Danh sách bộ môn</h5>
+                            <a asp-action="Create" class="btn btn-primary">Thêm mới</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Mã BM</th>
+                                        <th>Tên bộ môn</th>
+                                        <th>Khoa</th>
+                                        <th>Địa chỉ</th>
+                                        <th>Chủ nhiệm BM</th>
+                                        <th>Chức năng</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model)
+                                    {
+                                            <tr>
+                                                <td>@item.MaBM</td>
+                                                <td>@item.TenBM</td>
+                                                <td>@item.Khoa?.TenKhoa</td>
+                                                <td>@item.DiaChi</td>
+                                                <td>@item.MaChuNhiemBM</td>
+                                                <td>
+                                                    <a asp-action="Edit" asp-route-id="@item.MaBM" class="btn btn-info btn-sm">Sửa</a>
+                                                    <a asp-action="Details" asp-route-id="@item.MaBM" class="btn btn-primary btn-sm">Chi tiết</a>
+                                                    <a asp-action="Delete" asp-route-id="@item.MaBM" class="btn btn-danger btn-sm">Xóa</a>
+                                                    <a asp-action="PhanCongChuNhiem" asp-route-id="@item.MaBM" class="btn btn-warning btn-sm">Phân công</a>
+                                                </td>
+                                            </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>

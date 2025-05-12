@@ -1,0 +1,175 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.GiaoVien
+@{
+    ViewData["Title"] = "Chi tiết giáo viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Chi tiết giáo viên</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Index">Quản lý giáo viên</a></li>
+                        <li class="breadcrumb-item active">Chi tiết</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xl-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin cơ bản</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="profile-title">
+                            <div class="media">
+                                <img class="img-70 rounded-circle" alt="avatar" src="~/assets/images/dashboard/user/1.jpg">
+                                <div class="media-body">
+                                    <h3 class="mb-1 f-20 txt-primary">@Model.HoTen</h3>
+                                    <p class="f-12">@Model.BoMon?.TenBM</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Mã giáo viên:</h6>
+                            <p>@Model.MaGV</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Ngày sinh:</h6>
+                            <p>@Model.NgaySinh.ToString("dd/MM/yyyy")</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Giới tính:</h6>
+                            <p>@(Model.GioiTinh ? "Nam" : "Nữ")</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Quê quán:</h6>
+                            <p>@Model.QueQuan</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Địa chỉ:</h6>
+                            <p>@Model.DiaChi</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Số điện thoại:</h6>
+                            <p>@Model.SDT</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="mb-0">Email:</h6>
+                            <p>@Model.Email</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin học vị, học hàm</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (ViewBag.ChiTiet != null && ViewBag.ChiTiet.DanhSachHocVi != null && ViewBag.ChiTiet.DanhSachHocVi.Count > 0)
+                        {
+                            <h6 class="mb-3">Học vị</h6>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã học vị</th>
+                                            <th>Tên học vị</th>
+                                            <th>Ngày nhận</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var hocVi in ViewBag.ChiTiet.DanhSachHocVi)
+                                        {
+                                            <tr>
+                                                <td>@hocVi.MaHocVi</td>
+                                                <td>@hocVi.TenHocVi</td>
+                                                <td>@hocVi.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p>Chưa có thông tin học vị</p>
+                        }
+
+                        @if (ViewBag.ChiTiet != null && ViewBag.ChiTiet.DanhSachHocHam != null && ViewBag.ChiTiet.DanhSachHocHam.Count > 0)
+                        {
+                            <h6 class="mb-3 mt-4">Học hàm</h6>
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã học hàm</th>
+                                            <th>Tên học hàm</th>
+                                            <th>Ngày nhận</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var hocHam in ViewBag.ChiTiet.DanhSachHocHam)
+                                        {
+                                            <tr>
+                                                <td>@hocHam.MaHocHam</td>
+                                                <td>@hocHam.TenHocHam</td>
+                                                <td>@hocHam.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <p>Chưa có thông tin học hàm</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin giảng dạy</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <h6 class="mb-0">Bộ môn:</h6>
+                                    <p>@Model.BoMon?.TenBM</p>
+                                </div>
+                                <div class="mb-3">
+                                    <h6 class="mb-0">Khoa:</h6>
+                                    <p>@Model.BoMon?.Khoa?.TenKhoa</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer text-end">
+                    <a asp-action="Edit" asp-route-id="@Model.MaGV" class="btn btn-primary">Chỉnh sửa</a>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>

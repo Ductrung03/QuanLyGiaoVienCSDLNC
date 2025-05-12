@@ -1,6 +1,7 @@
 ﻿// Data/ApplicationDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using QuanLyGiaoVienCSDLNC.Models;
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 
@@ -11,6 +12,7 @@ namespace QuanLyGiaoVienCSDLNC.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
+            Console.WriteLine($"Connection string used: {this.Database.GetConnectionString()}");
         }
 
         public DbSet<GiaoVien> GiaoViens { get; set; }

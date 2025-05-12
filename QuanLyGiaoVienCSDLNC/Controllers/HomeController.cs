@@ -1,4 +1,5 @@
 ﻿// Controllers/HomeController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
@@ -16,7 +17,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             _thongKeService = thongKeService;
             _giaoVienService = giaoVienService;
         }
-
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             // Kiểm tra đăng nhập

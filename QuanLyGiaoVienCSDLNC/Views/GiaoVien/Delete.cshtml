@@ -1,0 +1,98 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.GiaoVien
+@{
+    ViewData["Title"] = "Xóa giáo viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Xóa giáo viên</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Index">Quản lý giáo viên</a></li>
+                        <li class="breadcrumb-item active">Xóa</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Xác nhận xóa giáo viên</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">Cảnh báo!</h4>
+                            <p>Bạn có chắc chắn muốn xóa giáo viên này không? Hành động này không thể hoàn tác.</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Mã giáo viên</label>
+                                    <input type="text" class="form-control" value="@Model.MaGV" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Họ tên</label>
+                                    <input type="text" class="form-control" value="@Model.HoTen" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày sinh</label>
+                                    <input type="text" class="form-control" value="@Model.NgaySinh.ToString("dd/MM/yyyy")" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Giới tính</label>
+                                    <input type="text" class="form-control" value="@(Model.GioiTinh ? "Nam" : "Nữ")" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Bộ môn</label>
+                                    <input type="text" class="form-control" value="@Model.BoMon?.TenBM" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Email</label>
+                                    <input type="text" class="form-control" value="@Model.Email" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" asp-for="MaGV" />
+                            <div class="card-footer text-end">
+                                <button type="submit" class="btn btn-danger">Xác nhận xóa</button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>

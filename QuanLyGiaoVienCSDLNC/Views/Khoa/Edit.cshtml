@@ -1,0 +1,92 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.Khoa
+@{
+    ViewData["Title"] = "Chỉnh sửa khoa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Chỉnh sửa khoa</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="Khoa" asp-action="Index">Quản lý khoa</a></li>
+                        <li class="breadcrumb-item active">Chỉnh sửa</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin khoa</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Edit" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="MaKhoa" />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="MaKhoa" class="form-label">Mã khoa</label>
+                                        <input asp-for="MaKhoa" class="form-control" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="TenKhoa" class="form-label">Tên khoa</label>
+                                        <input asp-for="TenKhoa" class="form-control" />
+                                        <span asp-validation-for="TenKhoa" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                                        <input asp-for="DiaChi" class="form-control" />
+                                        <span asp-validation-for="DiaChi" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="MaChuNhiemKhoa" class="form-label">Chủ nhiệm khoa</label>
+                                        <select asp-for="MaChuNhiemKhoa" class="form-select" asp-items="ViewBag.GiaoViens">
+                                            <option value="">-- Chọn chủ nhiệm --</option>
+                                        </select>
+                                        <span asp-validation-for="MaChuNhiemKhoa" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button type="submit" class="btn btn-primary">Cập nhật</button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
+
+@section Script {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

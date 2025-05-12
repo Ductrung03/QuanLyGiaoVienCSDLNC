@@ -34,7 +34,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 // Lưu thông tin người dùng vào session
                 HttpContext.Session.SetString("UserId", result.maLichSu);
                 HttpContext.Session.SetString("Username", username);
-
+               
                 return RedirectToAction("Index", "Home");
             }
             else
