@@ -19,7 +19,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến trang chủ
             if (HttpContext.Session.GetString("UserId") != null)
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "GiaoVien");
             }
             return View();
         }
@@ -35,7 +35,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 HttpContext.Session.SetString("UserId", result.maLichSu);
                 HttpContext.Session.SetString("Username", username);
                
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "GiaoVien");
             }
             else
             {

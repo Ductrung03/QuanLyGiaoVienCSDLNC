@@ -1,0 +1,89 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.Khoa
+@{
+    ViewData["Title"] = "Phân công chủ nhiệm khoa";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Phân công chủ nhiệm khoa</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="Khoa" asp-action="Index">Quản lý khoa</a></li>
+                        <li class="breadcrumb-item active">Phân công chủ nhiệm</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Phân công chủ nhiệm khoa: @Model.TenKhoa</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="PhanCongChuNhiem" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="MaKhoa" name="id" />
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mã khoa</label>
+                                        <input type="text" class="form-control" value="@Model.MaKhoa" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên khoa</label>
+                                        <input type="text" class="form-control" value="@Model.TenKhoa" readonly />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Chủ nhiệm khoa hiện tại</label>
+                                        <input type="text" class="form-control" value="@Model.MaChuNhiemKhoa" readonly />
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Chọn chủ nhiệm khoa mới</label>
+                                        <select name="maGV" class="form-select" asp-items="ViewBag.GiaoViens" required>
+                                            <option value="">-- Chọn giáo viên --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer text-end">
+                                <button type="submit" class="btn btn-primary">Phân công</button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
+
+@section Script {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

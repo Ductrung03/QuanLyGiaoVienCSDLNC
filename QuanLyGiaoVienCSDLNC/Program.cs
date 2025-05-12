@@ -7,6 +7,7 @@ using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 using QuanLyGiaoVienCSDLNC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseUrls("http://0.0.0.0:5100");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"Connection String: {connectionString}"); // Hoặc dùng logger
 // Thêm kết nối database
@@ -62,6 +63,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Login}/{action=Index}/{id?}");
 
 app.Run();

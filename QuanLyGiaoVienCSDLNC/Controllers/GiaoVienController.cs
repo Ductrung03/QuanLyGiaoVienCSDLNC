@@ -23,10 +23,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         public async Task<IActionResult> Index(string searchString, string maBM, string maKhoa)
         {
             // Kiểm tra đăng nhập
-            if (HttpContext.Session.GetString("UserId") == null)
-            {
-                return RedirectToAction("Index", "Login");
-            }
+        
 
             // Lấy danh sách khoa để hiển thị lọc
             var khoas = await _khoaService.GetAllKhoaAsync();

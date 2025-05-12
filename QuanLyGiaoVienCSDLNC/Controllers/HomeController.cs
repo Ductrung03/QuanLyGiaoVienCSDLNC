@@ -20,11 +20,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
-            // Kiểm tra đăng nhập
-            if (HttpContext.Session.GetString("UserId") == null)
-            {
-                return RedirectToAction("Index", "Login");
-            }
+           
 
             // Hiển thị thông tin thống kê tổng quan
             var giaoviens = await _giaoVienService.GetAllGiaoVienAsync();
