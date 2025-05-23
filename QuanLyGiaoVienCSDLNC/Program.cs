@@ -7,6 +7,10 @@ using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 using QuanLyGiaoVienCSDLNC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(5000); // Bạn có thể thay đổi cổng nếu muốn
+});
 builder.WebHost.UseUrls("http://0.0.0.0:5100");
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"Connection String: {connectionString}"); // Hoặc dùng logger
