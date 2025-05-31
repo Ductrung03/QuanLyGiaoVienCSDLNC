@@ -28,36 +28,35 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         public async Task<(bool success, string message, string maKhoa)> AddKhoaAsync(Khoa khoa)
         {
+            var maKhoaParam = new SqlParameter
+            {
+                ParameterName = "@MaKhoa",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
             var errorMessageParam = new SqlParameter
             {
                 ParameterName = "@ErrorMessage",
                 SqlDbType = SqlDbType.NVarChar,
-                Size = 200,
+                Size = 500,
                 Direction = ParameterDirection.Output
             };
 
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_ThemKhoa @TenKhoa, @DiaChi, @MaChuNhiemKhoa, @ErrorMessage OUTPUT",
+                    "EXEC sp_Khoa_ThemMoi @TenKhoa, @DiaChi, @MaChuNhiemKhoa, @MaKhoa OUTPUT, @ErrorMessage OUTPUT",
                     new SqlParameter("@TenKhoa", khoa.TenKhoa),
                     new SqlParameter("@DiaChi", khoa.DiaChi ?? (object)DBNull.Value),
                     new SqlParameter("@MaChuNhiemKhoa", khoa.MaChuNhiemKhoa ?? (object)DBNull.Value),
+                    maKhoaParam,
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !errorMessage.StartsWith("Lỗi");
-
-                // Extract MaKhoa from success message
-                string maKhoa = null;
-                if (isSuccess && errorMessage.Contains("Mã khoa:"))
-                {
-                    var parts = errorMessage.Split(':');
-                    if (parts.Length > 1)
-                    {
-                        maKhoa = parts[1].Trim();
-                    }
-                }
+                var maKhoa = maKhoaParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
 
                 return (isSuccess, errorMessage, maKhoa);
             }

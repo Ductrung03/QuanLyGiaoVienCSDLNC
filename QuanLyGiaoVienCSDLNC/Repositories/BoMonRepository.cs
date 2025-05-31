@@ -33,37 +33,36 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         public async Task<(bool success, string message, string maBM)> AddBoMonAsync(BoMon boMon)
         {
+            var maBMParam = new SqlParameter
+            {
+                ParameterName = "@MaBM",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
             var errorMessageParam = new SqlParameter
             {
                 ParameterName = "@ErrorMessage",
                 SqlDbType = SqlDbType.NVarChar,
-                Size = 200,
+                Size = 500,
                 Direction = ParameterDirection.Output
             };
 
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_ThemBoMon @TenBM, @DiaChi, @MaKhoa, @MaChuNhiemBM, @ErrorMessage OUTPUT",
+                    "EXEC sp_BoMon_ThemMoi @TenBM, @DiaChi, @MaKhoa, @MaChuNhiemBM, @MaBM OUTPUT, @ErrorMessage OUTPUT",
                     new SqlParameter("@TenBM", boMon.TenBM),
                     new SqlParameter("@DiaChi", boMon.DiaChi ?? (object)DBNull.Value),
                     new SqlParameter("@MaKhoa", boMon.MaKhoa),
                     new SqlParameter("@MaChuNhiemBM", boMon.MaChuNhiemBM ?? (object)DBNull.Value),
+                    maBMParam,
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !errorMessage.StartsWith("Lỗi");
-
-                // Extract MaBM from success message
-                string maBM = null;
-                if (isSuccess && errorMessage.Contains("Mã bộ môn:"))
-                {
-                    var parts = errorMessage.Split(':');
-                    if (parts.Length > 1)
-                    {
-                        maBM = parts[1].Trim();
-                    }
-                }
+                var maBM = maBMParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
 
                 return (isSuccess, errorMessage, maBM);
             }

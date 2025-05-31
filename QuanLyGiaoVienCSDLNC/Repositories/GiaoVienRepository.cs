@@ -45,18 +45,26 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         public async Task<(bool success, string message, string maGV)> AddGiaoVienAsync(GiaoVien giaoVien)
         {
+            var maGVParam = new SqlParameter
+            {
+                ParameterName = "@MaGV",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
             var errorMessageParam = new SqlParameter
             {
                 ParameterName = "@ErrorMessage",
                 SqlDbType = SqlDbType.NVarChar,
-                Size = 200,
+                Size = 500,
                 Direction = ParameterDirection.Output
             };
 
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_ThemGiaoVien @HoTen, @NgaySinh, @GioiTinh, @QueQuan, @DiaChi, @SDT, @Email, @MaBM, @ErrorMessage OUTPUT",
+                    "EXEC sp_GiaoVien_ThemMoi @HoTen, @NgaySinh, @GioiTinh, @QueQuan, @DiaChi, @SDT, @Email, @MaBM, @MaGV OUTPUT, @ErrorMessage OUTPUT",
                     new SqlParameter("@HoTen", giaoVien.HoTen),
                     new SqlParameter("@NgaySinh", giaoVien.NgaySinh),
                     new SqlParameter("@GioiTinh", giaoVien.GioiTinh),
@@ -65,21 +73,12 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                     new SqlParameter("@SDT", giaoVien.SDT),
                     new SqlParameter("@Email", giaoVien.Email),
                     new SqlParameter("@MaBM", giaoVien.MaBM),
+                    maGVParam,
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !errorMessage.StartsWith("Lỗi");
-
-                // Extract MaGV from success message (expected format: "Thêm giáo viên thành công. Mã giáo viên: GVxxxx")
-                string maGV = null;
-                if (isSuccess && errorMessage.Contains("Mã giáo viên:"))
-                {
-                    var parts = errorMessage.Split(':');
-                    if (parts.Length > 1)
-                    {
-                        maGV = parts[1].Trim();
-                    }
-                }
+                var maGV = maGVParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
 
                 return (isSuccess, errorMessage, maGV);
             }
@@ -88,7 +87,6 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 return (false, $"Lỗi khi thêm giáo viên: {ex.Message}", null);
             }
         }
-
         public async Task<(bool success, string message)> UpdateGiaoVienAsync(GiaoVien giaoVien)
         {
             var errorMessageParam = new SqlParameter
