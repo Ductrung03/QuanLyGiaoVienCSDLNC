@@ -1,7 +1,7 @@
 ﻿using QuanLyGiaoVienCSDLNC.Models.QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Models;
 
-namespace QuanLyGiaoVienCSDLNC.DTOs
+namespace QuanLyGiaoVienCSDLNC.DTOs.GiaoVien
 {
     public class GiaoVienDetailDto
     {

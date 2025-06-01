@@ -8,10 +8,10 @@ using System.Data;
 using OfficeOpenXml;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
-using QuanLyGiaoVienCSDLNC.DTOs;
 using System.Reflection.Metadata;
 using System.Xml.Linq;
 using DocumentFormat.OpenXml.Wordprocessing;
+using QuanLyGiaoVienCSDLNC.DTOs.GiaoVien;
 
 namespace QuanLyGiaoVienCSDLNC.Repositories
 {

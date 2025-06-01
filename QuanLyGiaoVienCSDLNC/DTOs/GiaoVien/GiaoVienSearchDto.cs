@@ -1,4 +1,4 @@
-﻿namespace QuanLyGiaoVienCSDLNC.DTOs
+﻿namespace QuanLyGiaoVienCSDLNC.DTOs.GiaoVien
 {
     public class GiaoVienSearchDto
     {

@@ -1,4 +1,4 @@
-﻿using QuanLyGiaoVienCSDLNC.DTOs;
+﻿using QuanLyGiaoVienCSDLNC.DTOs.GiaoVien;
 using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Models.QuanLyGiaoVienCSDLNC.Models;
 using System.Data;

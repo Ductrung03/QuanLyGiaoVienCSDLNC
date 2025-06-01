@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace QuanLyGiaoVienCSDLNC.DTOs
+namespace QuanLyGiaoVienCSDLNC.DTOs.GiaoVien
 {
     public class GiaoVienCreateUpdateDto
     {
