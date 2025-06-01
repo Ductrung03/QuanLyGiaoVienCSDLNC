@@ -1,0 +1,177 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo hoàn thành định mức theo khoa/bộ môn";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Báo cáo hoàn thành định mức theo khoa/bộ môn</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">Báo cáo thống kê</li>
+                        <li class="breadcrumb-item active">Hoàn thành định mức theo khoa/bộ môn</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bộ lọc báo cáo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="HoanThanhDinhMucTheoKhoaBoMon">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Năm học</label>
+                                        <select class="form-select" name="namHoc" asp-items="@ViewBag.NamHocs">
+                                            <option value="">-- Chọn năm học --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">&nbsp;</label>
+                                        <div>
+                                            <button type="submit" class="btn btn-primary">Xem báo cáo</button>
+                                            <button type="button" class="btn btn-success" onclick="exportToExcel()">Xuất Excel</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                @if (ViewBag.Data != null)
+                {
+                    <!-- Báo cáo theo khoa -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Báo cáo hoàn thành định mức theo khoa</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã khoa</th>
+                                            <th>Tên khoa</th>
+                                            <th>Tổng GV</th>
+                                            <th>GV đạt định mức</th>
+                                            <th>GV chưa đạt</th>
+                                            <th>Tỷ lệ hoàn thành</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{int stt1 = 1;}
+                                        @foreach (System.Data.DataRow row in ViewBag.Data.TheoKhoa.Rows)
+                                        {
+                                            <tr>
+                                                <td>@stt1</td>
+                                                <td>@row["MaKhoa"]</td>
+                                                <td>@row["TenKhoa"]</td>
+                                                <td>@row["TongGV"]</td>
+                                                <td>@row["GVDat"]</td>
+                                                <td>@row["GVChuaDat"]</td>
+                                                <td>
+                                                    @{
+                                                        var tyLe = Convert.ToDouble(row["TyLeHoanThanh"]);
+                                                    }
+                                                    <span class="badge @(tyLe >= 80 ? "bg-success" : tyLe >= 60 ? "bg-warning" : "bg-danger")">
+                                                        @row["TyLeHoanThanh"]%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            stt1++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Báo cáo theo bộ môn -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Báo cáo hoàn thành định mức theo bộ môn</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="reportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã bộ môn</th>
+                                            <th>Tên bộ môn</th>
+                                            <th>Khoa</th>
+                                            <th>Tổng GV</th>
+                                            <th>GV đạt định mức</th>
+                                            <th>GV chưa đạt</th>
+                                            <th>Tỷ lệ hoàn thành</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{int stt2 = 1;}
+                                        @foreach (System.Data.DataRow row in ViewBag.Data.TheoBoMon.Rows)
+                                        {
+                                            <tr>
+                                                <td>@stt2</td>
+                                                <td>@row["MaBM"]</td>
+                                                <td>@row["TenBM"]</td>
+                                                <td>@row["TenKhoa"]</td>
+                                                <td>@row["TongGV"]</td>
+                                                <td>@row["GVDat"]</td>
+                                                <td>@row["GVChuaDat"]</td>
+                                                <td>
+                                                    @{
+                                                        var tyLe2 = Convert.ToDouble(row["TyLeHoanThanh"]);
+                                                    }
+                                                    <span class="badge @(tyLe2 >= 80 ? "bg-success" : tyLe2 >= 60 ? "bg-warning" : "bg-danger")">
+                                                        @row["TyLeHoanThanh"]%
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            stt2++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
+
+@section Script {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        function exportToExcel() {
+            var table = document.getElementById("reportTable");
+            if (table) {
+                var wb = XLSX.utils.table_to_book(table, {sheet:"Báo cáo"});
+                XLSX.writeFile(wb, "BaoCaoHoanThanhDinhMuc.xlsx");
+            }
+        }
+    </script>
+}

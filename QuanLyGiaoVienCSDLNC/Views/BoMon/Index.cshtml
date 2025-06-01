@@ -9,7 +9,7 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>Danh sách bộ môn</h3>
+                    <h3>Quản lý bộ môn</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
@@ -20,8 +20,8 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item">Quản lý bộ môn</li>
-                        <li class="breadcrumb-item active">Danh sách</li>
+                        <li class="breadcrumb-item">Quản lý tổ chức</li>
+                        <li class="breadcrumb-item active">Danh sách bộ môn</li>
                     </ol>
                 </div>
             </div>
@@ -33,52 +33,189 @@
             <div class="col-sm-12">
                 @if (TempData["SuccessMessage"] != null)
                 {
-                        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i data-feather="check-circle"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
                 @if (TempData["ErrorMessage"] != null)
                 {
-                        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Count()</h4>
+                                        <p class="mb-0">Tổng bộ môn</p>
+                                    </div>
+                                    <i data-feather="briefcase" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Count(x => !string.IsNullOrEmpty(x.MaChuNhiemBM))</h4>
+                                        <p class="mb-0">Có chủ nhiệm</p>
+                                    </div>
+                                    <i data-feather="user-check" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Count(x => string.IsNullOrEmpty(x.MaChuNhiemBM))</h4>
+                                        <p class="mb-0">Chưa có chủ nhiệm</p>
+                                    </div>
+                                    <i data-feather="user-x" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.GroupBy(x => x.MaKhoa).Count()</h4>
+                                        <p class="mb-0">Số khoa</p>
+                                    </div>
+                                    <i data-feather="home" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between">
+                        <div class="d-flex justify-content-between align-items-center">
                             <h5>Danh sách bộ môn</h5>
-                            <a asp-action="Create" class="btn btn-primary">Thêm mới</a>
+                            <div>
+                                <a asp-action="Create" class="btn btn-primary me-2">
+                                    <i data-feather="plus"></i> Thêm bộ môn
+                                </a>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-success" onclick="exportToExcel()">
+                                        <i data-feather="download"></i> Xuất Excel
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info" onclick="printTable()">
+                                        <i data-feather="printer"></i> In
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover" id="boMonTable">
                                 <thead>
                                     <tr>
+                                        <th>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
                                         <th>Mã BM</th>
                                         <th>Tên bộ môn</th>
                                         <th>Khoa</th>
                                         <th>Địa chỉ</th>
-                                        <th>Chủ nhiệm BM</th>
+                                        <th>Chủ nhiệm</th>
+                                        <th>Trạng thái</th>
                                         <th>Chức năng</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach (var item in Model)
                                     {
-                                            <tr>
-                                                <td>@item.MaBM</td>
-                                                <td>@item.TenBM</td>
-                                                <td>@item.Khoa?.TenKhoa</td>
-                                                <td>@item.DiaChi</td>
-                                                <td>@item.MaChuNhiemBM</td>
-                                                <td>
-                                                    <a asp-action="Edit" asp-route-id="@item.MaBM" class="btn btn-info btn-sm">Sửa</a>
-                                                    <a asp-action="Details" asp-route-id="@item.MaBM" class="btn btn-primary btn-sm">Chi tiết</a>
-                                                    <a asp-action="Delete" asp-route-id="@item.MaBM" class="btn btn-danger btn-sm">Xóa</a>
-                                                    <a asp-action="PhanCongChuNhiem" asp-route-id="@item.MaBM" class="btn btn-warning btn-sm">Phân công</a>
-                                                </td>
-                                            </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input row-checkbox" type="checkbox" value="@item.MaBM">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@item.MaBM</span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="avatar-sm me-2">
+                                                        <div class="avatar-title bg-primary rounded">
+                                                            @item.TenBM.Substring(0, 1).ToUpper()
+                                                        </div>
+                                                    </div>
+                                                    <span class="fw-bold">@item.TenBM</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@item.Khoa?.TenKhoa</span>
+                                            </td>
+                                            <td>@item.DiaChi</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(item.MaChuNhiemBM))
+                                                {
+                                                    <span class="badge bg-success">@item.MaChuNhiemBM</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning">Chưa có</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">Hoạt động</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@item.MaBM"
+                                                       class="btn btn-primary btn-sm" title="Chi tiết">
+                                                        <i data-feather="eye"></i>
+                                                    </a>
+                                                    <a asp-action="Edit" asp-route-id="@item.MaBM"
+                                                       class="btn btn-info btn-sm" title="Chỉnh sửa">
+                                                        <i data-feather="edit"></i>
+                                                    </a>
+                                                    <a asp-action="PhanCongChuNhiem" asp-route-id="@item.MaBM"
+                                                       class="btn btn-warning btn-sm" title="Phân công chủ nhiệm">
+                                                        <i data-feather="user-plus"></i>
+                                                    </a>
+                                                    <a asp-action="Delete" asp-route-id="@item.MaBM"
+                                                       class="btn btn-danger btn-sm" title="Xóa"
+                                                       onclick="return confirm('Bạn có chắc chắn muốn xóa bộ môn này?')">
+                                                        <i data-feather="trash-2"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
+
+                        @if (!Model.Any())
+                        {
+                            <div class="text-center py-5">
+                                <img src="~/assets/images/search-not-found.png" alt="No data" class="img-fluid mb-3" style="max-width: 200px;">
+                                <h5>Chưa có bộ môn nào</h5>
+                                <p class="text-muted">Hãy <a asp-action="Create">thêm bộ môn đầu tiên</a> để bắt đầu quản lý.</p>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
@@ -86,3 +223,34 @@
     </div>
     <!-- Container-fluid Ends-->
 </div>
+
+@section Script {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Select all functionality
+            $('#selectAll').change(function() {
+                $('.row-checkbox').prop('checked', this.checked);
+            });
+
+            $('.row-checkbox').change(function() {
+                if ($('.row-checkbox:checked').length === $('.row-checkbox').length) {
+                    $('#selectAll').prop('checked', true);
+                } else {
+                    $('#selectAll').prop('checked', false);
+                }
+            });
+        });
+
+        function exportToExcel() {
+            var table = document.getElementById("boMonTable");
+            var wb = XLSX.utils.table_to_book(table, {sheet:"Danh sách bộ môn"});
+            XLSX.writeFile(wb, "DanhSachBoMon.xlsx");
+        }
+
+        function printTable() {
+            window.print();
+        }
+    </script>
+}
+

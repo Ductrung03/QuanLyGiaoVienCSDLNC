@@ -2,6 +2,83 @@
 <html lang="vi">
 <head>
     <partial name="_Style" />
+    <style>
+        .avatar-sm {
+            height: 2rem;
+            width: 2rem;
+        }
+
+        .avatar-title {
+            align-items: center;
+            background-color: #6c757d;
+            color: #fff;
+            display: flex;
+            font-size: 1rem;
+            font-weight: 600;
+            height: 100%;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .activity-timeline {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .activity-dot-primary, .activity-dot-secondary, .activity-dot-success, .activity-dot-warning {
+            position: absolute;
+            left: 0;
+            top: 0.25rem;
+            height: 0.75rem;
+            width: 0.75rem;
+            border-radius: 50%;
+        }
+
+        .activity-dot-primary {
+            background-color: #007bff;
+        }
+
+        .activity-dot-secondary {
+            background-color: #6c757d;
+        }
+
+        .activity-dot-success {
+            background-color: #28a745;
+        }
+
+        .activity-dot-warning {
+            background-color: #ffc107;
+        }
+
+        .error-page {
+            padding: 2rem;
+        }
+
+        .error-number h1 {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+
+        .error-description h5 {
+            margin-bottom: 1rem;
+        }
+
+        .error-actions {
+            margin-top: 2rem;
+        }
+
+        @@media print {
+            .btn, .card-header, .breadcrumb
+
+        {
+            display: none !important;
+        }
+
+        }
+    </style>
 </head>
 <body>
     <partial name="_Loader" />

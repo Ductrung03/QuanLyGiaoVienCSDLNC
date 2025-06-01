@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
+using System.Data;
 
 namespace QuanLyGiaoVienCSDLNC.Controllers
 {
@@ -69,6 +70,11 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
 
             // Lấy dữ liệu báo cáo
             var data = await _thongKeService.ThongKeSoGioGiangDayAsync(maGV, maBM, maKhoa, namHoc);
+            if (data is DataTable dt)
+            {
+                var columnNames = string.Join(", ", dt.Columns.Cast<DataColumn>().Select(c => c.ColumnName));
+                System.Diagnostics.Debug.WriteLine($"Columns: {columnNames}");
+            }
             ViewBag.Data = data;
 
             // Lưu các tham số lọc để hiển thị trong view

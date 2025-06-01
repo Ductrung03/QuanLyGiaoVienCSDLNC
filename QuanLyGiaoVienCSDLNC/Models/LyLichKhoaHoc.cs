@@ -7,6 +7,10 @@ namespace QuanLyGiaoVienCSDLNC.Models
     {
         public class LyLichKhoaHoc
         {
+            [Key]
+            [StringLength(15)]
+            public string MaLyLichKhoaHoc { get; set; } // Thêm primary key
+
             [Required]
             [StringLength(100)]
             [Display(Name = "Hệ đào tạo đại học")]

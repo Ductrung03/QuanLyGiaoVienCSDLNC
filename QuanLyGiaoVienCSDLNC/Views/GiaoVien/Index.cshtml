@@ -1,5 +1,4 @@
-﻿<!-- Views/GiaoVien/Index.cshtml -->
-@model IEnumerable<QuanLyGiaoVienCSDLNC.Models.GiaoVien>
+﻿@model IEnumerable<QuanLyGiaoVienCSDLNC.Models.GiaoVien>
 @{
     ViewData["Title"] = "Danh sách giáo viên";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -34,23 +33,37 @@
             <div class="col-sm-12">
                 @if (TempData["SuccessMessage"] != null)
                 {
-                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i data-feather="check-circle"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
                 @if (TempData["ErrorMessage"] != null)
                 {
-                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
+
                 <div class="card">
                     <div class="card-header">
-                        <h5>Tìm kiếm giáo viên</h5>
+                        <h5>Tìm kiếm và lọc giáo viên</h5>
                     </div>
                     <div class="card-body">
                         <form method="get" asp-action="Index">
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label">Tìm kiếm</label>
-                                        <input type="text" class="form-control" name="searchString" value="@ViewBag.CurrentSearch" placeholder="Nhập tên, email...">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="searchString" value="@ViewBag.CurrentSearch" placeholder="Nhập tên, email...">
+                                            <span class="input-group-text">
+                                                <i data-feather="search"></i>
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -69,33 +82,49 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-2 d-flex align-items-end">
+                                <div class="col-md-3 d-flex align-items-end">
                                     <div class="mb-3 w-100">
-                                        <button type="submit" class="btn btn-primary w-100">Tìm kiếm</button>
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i data-feather="search"></i> Tìm kiếm
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
+
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between">
-                            <h5>Danh sách giáo viên</h5>
-                            <a asp-action="Create" class="btn btn-primary">Thêm mới</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5>Danh sách giáo viên (@Model.Count() giáo viên)</h5>
+                            <div>
+                                <a asp-action="Create" class="btn btn-primary">
+                                    <i data-feather="plus"></i> Thêm mới
+                                </a>
+                                <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                                    <i data-feather="download"></i> Xuất Excel
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover" id="giaoVienTable">
                                 <thead>
                                     <tr>
+                                        <th>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
                                         <th>Mã GV</th>
                                         <th>Họ tên</th>
                                         <th>Email</th>
                                         <th>Số điện thoại</th>
                                         <th>Bộ môn</th>
                                         <th>Khoa</th>
+                                        <th>Trạng thái</th>
                                         <th>Chức năng</th>
                                     </tr>
                                 </thead>
@@ -103,23 +132,78 @@
                                     @foreach (var item in Model)
                                     {
                                         <tr>
-                                            <td>@item.MaGV</td>
-                                            <td>@item.HoTen</td>
-                                            <td>@item.Email</td>
-                                            <td>@item.SDT</td>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input row-checkbox" type="checkbox" value="@item.MaGV">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@item.MaGV</span>
+                                            </td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img class="img-30 me-2 rounded-circle" src="~/assets/images/dashboard/user/1.jpg" alt="avatar">
+                                                    <span class="fw-bold">@item.HoTen</span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="mailto:@item.Email">@item.Email</a>
+                                            </td>
+                                            <td>
+                                                <a href="tel:@item.SDT">@item.SDT</a>
+                                            </td>
                                             <td>@item.BoMon?.TenBM</td>
                                             <td>@item.BoMon?.Khoa?.TenKhoa</td>
                                             <td>
-                                                <a asp-action="Edit" asp-route-id="@item.MaGV" class="btn btn-info btn-sm">Sửa</a>
-                                                <a asp-action="Details" asp-route-id="@item.MaGV" class="btn btn-primary btn-sm">Chi tiết</a>
-                                                <a asp-action="Delete" asp-route-id="@item.MaGV" class="btn btn-danger btn-sm">Xóa</a>
+                                                <span class="badge bg-success">Đang hoạt động</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@item.MaGV"
+                                                       class="btn btn-primary btn-sm" title="Chi tiết">
+                                                        <i data-feather="eye"></i>
+                                                    </a>
+                                                    <a asp-action="Edit" asp-route-id="@item.MaGV"
+                                                       class="btn btn-info btn-sm" title="Chỉnh sửa">
+                                                        <i data-feather="edit"></i>
+                                                    </a>
+                                                    <a asp-action="Delete" asp-route-id="@item.MaGV"
+                                                       class="btn btn-danger btn-sm" title="Xóa"
+                                                       onclick="return confirm('Bạn có chắc chắn muốn xóa giáo viên này?')">
+                                                        <i data-feather="trash-2"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
+
+                        @if (!Model.Any())
+                        {
+                            <div class="text-center py-5">
+                                <img src="~/assets/images/search-not-found.png" alt="No data" class="img-fluid mb-3" style="max-width: 200px;">
+                                <h5>Không tìm thấy giáo viên nào</h5>
+                                <p class="text-muted">Thử thay đổi tiêu chí tìm kiếm hoặc <a asp-action="Create">thêm giáo viên mới</a></p>
+                            </div>
+                        }
                     </div>
+                    @if (Model.Any())
+                    {
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted">Hiển thị @Model.Count() giáo viên</span>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="deleteSelected" style="display: none;">
+                                        <i data-feather="trash-2"></i> Xóa đã chọn
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -128,6 +212,7 @@
 </div>
 
 @section Script {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function () {
             // Khi chọn khoa thì load lại danh sách bộ môn
@@ -150,6 +235,33 @@
                     $('#maBM').html('<option value="">-- Tất cả bộ môn --</option>');
                 }
             });
+
+            // Checkbox select all
+            $('#selectAll').change(function() {
+                $('.row-checkbox').prop('checked', this.checked);
+                toggleDeleteButton();
+            });
+
+            $('.row-checkbox').change(function() {
+                toggleDeleteButton();
+            });
+
+            function toggleDeleteButton() {
+                const checkedCount = $('.row-checkbox:checked').length;
+                if (checkedCount > 0) {
+                    $('#deleteSelected').show();
+                } else {
+                    $('#deleteSelected').hide();
+                }
+            }
+
+            // Export to Excel
+            window.exportToExcel = function() {
+                var table = document.getElementById("giaoVienTable");
+                var wb = XLSX.utils.table_to_book(table, {sheet:"Danh sách giáo viên"});
+                XLSX.writeFile(wb, "DanhSachGiaoVien.xlsx");
+            };
         });
     </script>
 }
+

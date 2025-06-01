@@ -1,22 +1,22 @@
 ﻿<div class="sidebar-wrapper" sidebar-layout="stroke-svg">
     <div>
         <div class="logo-wrapper">
-            <a asp-controller="Dashboard" asp-action="Index"><img class="img-fluid for-light" src="~/assets/images/logo/logo.png" alt=""><img class="img-fluid for-dark" src="~/assets/images/logo/logo_dark.png" alt=""></a>
+            <a asp-controller="Home" asp-action="Index"><img class="img-fluid for-light" src="~/assets/images/logo/logo.png" alt=""><img class="img-fluid for-dark" src="~/assets/images/logo/logo_dark.png" alt=""></a>
             <div class="back-btn"><i class="fa fa-angle-left"></i></div>
             <div class="toggle-sidebar"><i class="status_toggle middle sidebar-toggle" data-feather="grid"> </i></div>
         </div>
-        <div class="logo-icon-wrapper"><a asp-controller="Dashboard" asp-action="Index"><img class="img-fluid" src="~/assets/images/logo/logo-icon.png" alt=""></a></div>
+        <div class="logo-icon-wrapper"><a asp-controller="Home" asp-action="Index"><img class="img-fluid" src="~/assets/images/logo/logo-icon.png" alt=""></a></div>
         <nav class="sidebar-main">
             <div class="left-arrow" id="left-arrow"><i data-feather="arrow-left"></i></div>
             <div id="sidebar-menu">
                 <ul class="sidebar-links" id="simple-bar">
                     <li class="sidebar-main-title">
                         <div>
-                            <h6>Quản lý hệ thống</h6>
+                            <h6>Hệ thống quản lý giáo viên</h6>
                         </div>
                     </li>
                     <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title link-nav" asp-controller="Dashboard" asp-action="Index">
+                        <a class="sidebar-link sidebar-title link-nav" asp-controller="Home" asp-action="Index">
                             <svg class="stroke-icon">
                                 <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
                             </svg>
@@ -40,11 +40,13 @@
                             <svg class="stroke-icon">
                                 <use href="../assets/svg/icon-sprite.svg#stroke-learning"></use>
                             </svg>
-                            <span>Quản lý khoa/bộ môn</span>
+                            <span>Quản lý tổ chức</span>
                         </a>
                         <ul class="sidebar-submenu">
                             <li><a asp-controller="Khoa" asp-action="Index">Danh sách khoa</a></li>
                             <li><a asp-controller="BoMon" asp-action="Index">Danh sách bộ môn</a></li>
+                            <li><a asp-controller="Khoa" asp-action="Create">Thêm khoa</a></li>
+                            <li><a asp-controller="BoMon" asp-action="Create">Thêm bộ môn</a></li>
                         </ul>
                     </li>
                     <li class="sidebar-list">
@@ -55,35 +57,8 @@
                             <span>Quản lý giảng dạy</span>
                         </a>
                         <ul class="sidebar-submenu">
-                            <li><a asp-controller="GiangDay" asp-action="Index">Danh sách nhiệm vụ</a></li>
-                            <li><a asp-controller="GiangDay" asp-action="Create">Thêm nhiệm vụ</a></li>
-                            <li><a asp-controller="GiangDay" asp-action="PhanCong">Phân công giảng dạy</a></li>
-                        </ul>
-                    </li>
-                    <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title">
-                            <svg class="stroke-icon">
-                                <use href="../assets/svg/icon-sprite.svg#stroke-knowledgebase"></use>
-                            </svg>
-                            <span>Quản lý NCKH</span>
-                        </a>
-                        <ul class="sidebar-submenu">
-                            <li><a asp-controller="NCKH" asp-action="Index">Danh sách đề tài</a></li>
-                            <li><a asp-controller="NCKH" asp-action="Create">Thêm đề tài</a></li>
-                            <li><a asp-controller="NCKH" asp-action="PhanCong">Phân công NCKH</a></li>
-                        </ul>
-                    </li>
-                    <li class="sidebar-list">
-                        <a class="sidebar-link sidebar-title">
-                            <svg class="stroke-icon">
-                                <use href="../assets/svg/icon-sprite.svg#stroke-tasks"></use>
-                            </svg>
-                            <span>Quản lý khảo thí</span>
-                        </a>
-                        <ul class="sidebar-submenu">
-                            <li><a asp-controller="KhaoThi" asp-action="Index">Danh sách khảo thí</a></li>
-                            <li><a asp-controller="KhaoThi" asp-action="Create">Thêm công tác khảo thí</a></li>
-                            <li><a asp-controller="KhaoThi" asp-action="PhanCong">Phân công khảo thí</a></li>
+                            <li><a asp-controller="GiangDay" asp-action="Index">Danh sách tải GD</a></li>
+                            <li><a asp-controller="GiangDay" asp-action="Create">Thêm tải GD</a></li>
                         </ul>
                     </li>
                     <li class="sidebar-list">
@@ -94,24 +69,24 @@
                             <span>Báo cáo thống kê</span>
                         </a>
                         <ul class="sidebar-submenu">
-                            <li><a asp-controller="BaoCao" asp-action="ThongKeGiangDay">Thống kê giảng dạy</a></li>
-                            <li><a asp-controller="BaoCao" asp-action="ThongKeNCKH">Thống kê NCKH</a></li>
-                            <li><a asp-controller="BaoCao" asp-action="ThongKeKhaoThi">Thống kê khảo thí</a></li>
-                            <li><a asp-controller="BaoCao" asp-action="KiemTraDinhMuc">Kiểm tra hoàn thành định mức</a></li>
-                            <li><a asp-controller="BaoCao" asp-action="BaoCaoTongHop">Báo cáo tổng hợp</a></li>
+                            <li><a asp-controller="BaoCao" asp-action="GiangDayTheoGiaoVien">BC Giảng dạy theo GV</a></li>
+                            <li><a asp-controller="BaoCao" asp-action="NCKHTheoGiaoVien">BC NCKH theo GV</a></li>
+                            <li><a asp-controller="BaoCao" asp-action="HoanThanhDinhMuc">BC Hoàn thành định mức</a></li>
+                            <li><a asp-controller="BaoCao" asp-action="GiangDayTheoKhoaBoMon">BC theo khoa/bộ môn</a></li>
                         </ul>
                     </li>
                     <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title">
                             <svg class="stroke-icon">
-                                <use href="../assets/svg/icon-sprite.svg#stroke-users"></use>
+                                <use href="../assets/svg/icon-sprite.svg#stroke-settings"></use>
                             </svg>
-                            <span>Quản lý người dùng</span>
+                            <span>Cài đặt hệ thống</span>
                         </a>
                         <ul class="sidebar-submenu">
-                            <li><a asp-controller="User" asp-action="Index">Danh sách người dùng</a></li>
-                            <li><a asp-controller="User" asp-action="Create">Thêm người dùng</a></li>
-                            <li><a asp-controller="User" asp-action="PhanQuyen">Phân quyền</a></li>
+                            <li><a href="#">Quản lý người dùng</a></li>
+                            <li><a href="#">Phân quyền</a></li>
+                            <li><a href="#">Sao lưu dữ liệu</a></li>
+                            <li><a asp-controller="Login" asp-action="Logout">Đăng xuất</a></li>
                         </ul>
                     </li>
                 </ul>

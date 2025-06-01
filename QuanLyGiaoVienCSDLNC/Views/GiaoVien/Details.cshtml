@@ -34,142 +34,391 @@
                 <div class="card">
                     <div class="card-header">
                         <h5>Thông tin cơ bản</h5>
+                        <div class="card-header-right">
+                            <div class="btn-group" role="group">
+                                <a asp-action="Edit" asp-route-id="@Model.MaGV" class="btn btn-sm btn-primary">
+                                    <i data-feather="edit-2"></i> Chỉnh sửa
+                                </a>
+                                <button type="button" class="btn btn-sm btn-success" onclick="exportProfile()">
+                                    <i data-feather="download"></i> Xuất PDF
+                                </button>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="profile-title">
+                        <div class="profile-title text-center">
                             <div class="media">
-                                <img class="img-70 rounded-circle" alt="avatar" src="~/assets/images/dashboard/user/1.jpg">
-                                <div class="media-body">
+                                <img class="img-100 rounded-circle mx-auto d-block" alt="avatar" src="~/assets/images/dashboard/user/1.jpg">
+                                <div class="media-body mt-3">
                                     <h3 class="mb-1 f-20 txt-primary">@Model.HoTen</h3>
-                                    <p class="f-12">@Model.BoMon?.TenBM</p>
+                                    <p class="f-12 mb-1">@Model.BoMon?.TenBM</p>
+                                    <p class="f-10 text-muted">@Model.BoMon?.Khoa?.TenKhoa</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Mã giáo viên:</h6>
-                            <p>@Model.MaGV</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Ngày sinh:</h6>
-                            <p>@Model.NgaySinh.ToString("dd/MM/yyyy")</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Giới tính:</h6>
-                            <p>@(Model.GioiTinh ? "Nam" : "Nữ")</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Quê quán:</h6>
-                            <p>@Model.QueQuan</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Địa chỉ:</h6>
-                            <p>@Model.DiaChi</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Số điện thoại:</h6>
-                            <p>@Model.SDT</p>
-                        </div>
-                        <div class="mb-3">
-                            <h6 class="mb-0">Email:</h6>
-                            <p>@Model.Email</p>
+
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="credit-card" class="me-2"></i>Mã giáo viên:</h6>
+                                    <span class="badge bg-primary">@Model.MaGV</span>
+                                </div>
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="calendar" class="me-2"></i>Ngày sinh:</h6>
+                                    <p>@Model.NgaySinh.ToString("dd/MM/yyyy")</p>
+                                </div>
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="user" class="me-2"></i>Giới tính:</h6>
+                                    <span class="badge @(Model.GioiTinh ? "bg-info" : "bg-warning")">
+                                        @(Model.GioiTinh ? "Nam" : "Nữ")
+                                    </span>
+                                </div>
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="map-pin" class="me-2"></i>Quê quán:</h6>
+                                    <p>@Model.QueQuan</p>
+                                </div>
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="home" class="me-2"></i>Địa chỉ:</h6>
+                                    <p>@Model.DiaChi</p>
+                                </div>
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="phone" class="me-2"></i>Số điện thoại:</h6>
+                                    <a href="tel:@Model.SDT" class="text-decoration-none">@Model.SDT</a>
+                                </div>
+                                <div class="info-item mb-3">
+                                    <h6 class="mb-1"><i data-feather="mail" class="me-2"></i>Email:</h6>
+                                    <a href="mailto:@Model.Email" class="text-decoration-none">@Model.Email</a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
             <div class="col-xl-8">
+                <!-- Tab Navigation -->
                 <div class="card">
                     <div class="card-header">
-                        <h5>Thông tin học vị, học hàm</h5>
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" data-bs-toggle="tab" href="#hocvi-tab" role="tab">
+                                    <i data-feather="award"></i> Học vị & Học hàm
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#giangday-tab" role="tab">
+                                    <i data-feather="book-open"></i> Giảng dạy
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#nghiencuu-tab" role="tab">
+                                    <i data-feather="search"></i> Nghiên cứu
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" data-bs-toggle="tab" href="#thongke-tab" role="tab">
+                                    <i data-feather="bar-chart-2"></i> Thống kê
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                     <div class="card-body">
-                        @if (ViewBag.ChiTiet != null && ViewBag.ChiTiet.DanhSachHocVi != null && ViewBag.ChiTiet.DanhSachHocVi.Count > 0)
-                        {
-                            <h6 class="mb-3">Học vị</h6>
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Mã học vị</th>
-                                            <th>Tên học vị</th>
-                                            <th>Ngày nhận</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var hocVi in ViewBag.ChiTiet.DanhSachHocVi)
-                                        {
-                                            <tr>
-                                                <td>@hocVi.MaHocVi</td>
-                                                <td>@hocVi.TenHocVi</td>
-                                                <td>@hocVi.NgayNhan.ToString("dd/MM/yyyy")</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
-                            </div>
-                        }
-                        else
-                        {
-                            <p>Chưa có thông tin học vị</p>
-                        }
+                        <div class="tab-content">
+                            <!-- Học vị & Học hàm Tab -->
+                            <div class="tab-pane fade show active" id="hocvi-tab" role="tabpanel">
+                                @if (ViewBag.ChiTiet?.DanhSachHocVi != null && ViewBag.ChiTiet.DanhSachHocVi.Count > 0)
+                                {
+                                    <h6 class="mb-3">Danh sách học vị</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-primary">
+                                                <tr>
+                                                    <th>Mã học vị</th>
+                                                    <th>Tên học vị</th>
+                                                    <th>Ngày nhận</th>
+                                                    <th>Trạng thái</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var hocVi in ViewBag.ChiTiet.DanhSachHocVi)
+                                                {
+                                                    <tr>
+                                                        <td><span class="badge bg-info">@hocVi.MaHocVi</span></td>
+                                                        <td>@hocVi.TenHocVi</td>
+                                                        <td>@hocVi.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                                        <td><span class="badge bg-success">Đã cấp</span></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4">
+                                        <i data-feather="award" size="48" class="text-muted mb-3"></i>
+                                        <h6 class="text-muted">Chưa có thông tin học vị</h6>
+                                        <button class="btn btn-primary btn-sm">Thêm học vị</button>
+                                    </div>
+                                }
 
-                        @if (ViewBag.ChiTiet != null && ViewBag.ChiTiet.DanhSachHocHam != null && ViewBag.ChiTiet.DanhSachHocHam.Count > 0)
-                        {
-                            <h6 class="mb-3 mt-4">Học hàm</h6>
-                            <div class="table-responsive">
-                                <table class="table table-bordered">
-                                    <thead>
-                                        <tr>
-                                            <th>Mã học hàm</th>
-                                            <th>Tên học hàm</th>
-                                            <th>Ngày nhận</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach (var hocHam in ViewBag.ChiTiet.DanhSachHocHam)
-                                        {
-                                            <tr>
-                                                <td>@hocHam.MaHocHam</td>
-                                                <td>@hocHam.TenHocHam</td>
-                                                <td>@hocHam.NgayNhan.ToString("dd/MM/yyyy")</td>
-                                            </tr>
-                                        }
-                                    </tbody>
-                                </table>
+                                @if (ViewBag.ChiTiet?.DanhSachHocHam != null && ViewBag.ChiTiet.DanhSachHocHam.Count > 0)
+                                {
+                                    <h6 class="mb-3 mt-4">Danh sách học hàm</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-striped">
+                                            <thead class="table-success">
+                                                <tr>
+                                                    <th>Mã học hàm</th>
+                                                    <th>Tên học hàm</th>
+                                                    <th>Ngày nhận</th>
+                                                    <th>Trạng thái</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var hocHam in ViewBag.ChiTiet.DanhSachHocHam)
+                                                {
+                                                    <tr>
+                                                        <td><span class="badge bg-success">@hocHam.MaHocHam</span></td>
+                                                        <td>@hocHam.TenHocHam</td>
+                                                        <td>@hocHam.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                                        <td><span class="badge bg-success">Đã cấp</span></td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="text-center py-4">
+                                        <i data-feather="award" size="48" class="text-muted mb-3"></i>
+                                        <h6 class="text-muted">Chưa có thông tin học hàm</h6>
+                                        <button class="btn btn-success btn-sm">Thêm học hàm</button>
+                                    </div>
+                                }
                             </div>
-                        }
-                        else
-                        {
-                            <p>Chưa có thông tin học hàm</p>
-                        }
-                    </div>
-                </div>
 
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Thông tin giảng dạy</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <h6 class="mb-0">Bộ môn:</h6>
-                                    <p>@Model.BoMon?.TenBM</p>
+                            <!-- Giảng dạy Tab -->
+                            <div class="tab-pane fade" id="giangday-tab" role="tabpanel">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6>Thông tin giảng dạy</h6>
+                                    <div>
+                                        <select class="form-select form-select-sm" style="width: auto;">
+                                            <option>2023-2024</option>
+                                            <option>2022-2023</option>
+                                            <option>2024-2025</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <h6 class="mb-0">Khoa:</h6>
-                                    <p>@Model.BoMon?.Khoa?.TenKhoa</p>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body text-center">
+                                                <h4>120</h4>
+                                                <p class="mb-0">Tổng giờ giảng dạy</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-success text-white">
+                                            <div class="card-body text-center">
+                                                <h4>8</h4>
+                                                <p class="mb-0">Số môn học</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card bg-warning text-white">
+                                            <div class="card-body text-center">
+                                                <h4>85%</h4>
+                                                <p class="mb-0">Hoàn thành định mức</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Học phần</th>
+                                                <th>Lớp</th>
+                                                <th>Số tiết</th>
+                                                <th>Hệ</th>
+                                                <th>Năm học</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Lập trình Web</td>
+                                                <td>IT01</td>
+                                                <td>45</td>
+                                                <td>Đại học</td>
+                                                <td>2023-2024</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Cơ sở dữ liệu</td>
+                                                <td>IT02</td>
+                                                <td>30</td>
+                                                <td>Đại học</td>
+                                                <td>2023-2024</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Cấu trúc dữ liệu</td>
+                                                <td>IT03</td>
+                                                <td>45</td>
+                                                <td>Đại học</td>
+                                                <td>2023-2024</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Nghiên cứu Tab -->
+                            <div class="tab-pane fade" id="nghiencuu-tab" role="tabpanel">
+                                <h6 class="mb-3">Hoạt động nghiên cứu khoa học</h6>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="card bg-info text-white">
+                                            <div class="card-body text-center">
+                                                <h4>5</h4>
+                                                <p class="mb-0">Đề tài nghiên cứu</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-secondary text-white">
+                                            <div class="card-body text-center">
+                                                <h4>12</h4>
+                                                <p class="mb-0">Bài báo đã xuất bản</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive mt-3">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Tên đề tài</th>
+                                                <th>Cấp độ</th>
+                                                <th>Vai trò</th>
+                                                <th>Trạng thái</th>
+                                                <th>Năm</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Ứng dụng AI trong giáo dục</td>
+                                                <td><span class="badge bg-primary">Cấp trường</span></td>
+                                                <td>Chủ nhiệm</td>
+                                                <td><span class="badge bg-success">Hoàn thành</span></td>
+                                                <td>2023</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Phát triển hệ thống quản lý</td>
+                                                <td><span class="badge bg-info">Cấp bộ</span></td>
+                                                <td>Thành viên</td>
+                                                <td><span class="badge bg-warning">Đang thực hiện</span></td>
+                                                <td>2024</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Thống kê Tab -->
+                            <div class="tab-pane fade" id="thongke-tab" role="tabpanel">
+                                <h6 class="mb-3">Thống kê tổng quan</h6>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <canvas id="workloadChart" width="400" height="200"></canvas>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="progress-container">
+                                            <h6>Tiến độ hoàn thành định mức</h6>
+                                            <div class="progress mb-3">
+                                                <div class="progress-bar bg-primary" style="width: 85%">85%</div>
+                                            </div>
+
+                                            <h6>Chất lượng giảng dạy</h6>
+                                            <div class="progress mb-3">
+                                                <div class="progress-bar bg-success" style="width: 92%">92%</div>
+                                            </div>
+
+                                            <h6>Hoạt động NCKH</h6>
+                                            <div class="progress mb-3">
+                                                <div class="progress-bar bg-info" style="width: 78%">78%</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="card-footer text-end">
-                    <a asp-action="Edit" asp-route-id="@Model.MaGV" class="btn btn-primary">Chỉnh sửa</a>
-                    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+        <!-- Action Buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-footer text-center">
+                        <a asp-action="Edit" asp-route-id="@Model.MaGV" class="btn btn-primary me-2">
+                            <i data-feather="edit"></i> Chỉnh sửa thông tin
+                        </a>
+                        <a asp-controller="BaoCao" asp-action="GiangDayTheoGiaoVien" asp-route-maGV="@Model.MaGV" class="btn btn-info me-2">
+                            <i data-feather="bar-chart"></i> Xem báo cáo
+                        </a>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            <i data-feather="arrow-left"></i> Quay lại danh sách
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- Container-fluid Ends-->
 </div>
+
+@section Script {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Workload Chart
+        const ctx = document.getElementById('workloadChart');
+        if (ctx) {
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    datasets: [{
+                        label: 'Giờ giảng dạy',
+                        data: [12, 15, 18, 14, 16, 20, 22, 18, 16, 14, 12, 10],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Khối lượng công việc theo tháng'
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportProfile() {
+            // Implement PDF export functionality
+            alert('Chức năng xuất PDF sẽ được triển khai');
+        }
+    </script>
+}

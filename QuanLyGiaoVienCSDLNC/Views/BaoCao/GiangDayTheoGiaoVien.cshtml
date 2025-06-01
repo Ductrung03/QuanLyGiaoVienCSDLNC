@@ -1,0 +1,143 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo giảng dạy theo giáo viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Báo cáo giảng dạy theo giáo viên</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">Báo cáo thống kê</li>
+                        <li class="breadcrumb-item active">Giảng dạy theo giáo viên</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid starts-->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bộ lọc báo cáo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="GiangDayTheoGiaoVien">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Khoa</label>
+                                        <select class="form-select" name="maKhoa" asp-items="@ViewBag.Khoas">
+                                            <option value="">-- Tất cả khoa --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Bộ môn</label>
+                                        <select class="form-select" name="maBM" asp-items="@ViewBag.BoMons">
+                                            <option value="">-- Tất cả bộ môn --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Giáo viên</label>
+                                        <select class="form-select" name="maGV" asp-items="@ViewBag.GiaoViens">
+                                            <option value="">-- Tất cả giáo viên --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Năm học</label>
+                                        <select class="form-select" name="namHoc" asp-items="@ViewBag.NamHocs">
+                                            <option value="">-- Chọn năm học --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <button type="submit" class="btn btn-primary">Xem báo cáo</button>
+                                    <button type="button" class="btn btn-success" onclick="exportToExcel()">Xuất Excel</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                @if (ViewBag.Data != null)
+                {
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Kết quả báo cáo</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="reportTable">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Bộ môn</th>
+                                            <th>Khoa</th>
+                                            <th>Tổng số tiết</th>
+                                            <th>Tổng số tiêt quy đổi</th>
+                                            <th>Số lượng học phần</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int stt = 1;
+                                        }
+                                        @foreach (System.Data.DataRow row in ViewBag.Data.Rows)
+                                        {
+                                            <tr>
+                                                <td>@stt</td>
+                                                <td>@row["MaGV"]</td>
+                                                <td>@row["HoTen"]</td>
+                                                <td>@row["TenBM"]</td>
+                                                <td>@row["TenKhoa"]</td>
+                                                <td>@row["TongSoTiet"]</td>
+                                                <td>@row["TongSoTietQuyDoi"]</td>
+                                                <td>@row["SoLuongHocPhan"]</td>
+                                            </tr>
+                                            stt++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends-->
+</div>
+
+@section Script {
+    <script>
+        function exportToExcel() {
+            var table = document.getElementById("reportTable");
+            var wb = XLSX.utils.table_to_book(table, {sheet:"Báo cáo giảng dạy"});
+            XLSX.writeFile(wb, "BaoCaoGiangDay.xlsx");
+        }
+    </script>
+}
+

@@ -9,7 +9,7 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>Danh sách tải giảng dạy</h3>
+                    <h3>Quản lý tải giảng dạy</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
@@ -21,7 +21,7 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item">Quản lý giảng dạy</li>
-                        <li class="breadcrumb-item active">Danh sách</li>
+                        <li class="breadcrumb-item active">Danh sách tải GD</li>
                     </ol>
                 </div>
             </div>
@@ -33,31 +33,169 @@
             <div class="col-sm-12">
                 @if (TempData["SuccessMessage"] != null)
                 {
-                    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i data-feather="check-circle"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
                 @if (TempData["ErrorMessage"] != null)
                 {
-                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
+
+                <!-- Filter Card -->
                 <div class="card">
                     <div class="card-header">
-                        <div class="d-flex justify-content-between">
+                        <h5>Bộ lọc tìm kiếm</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="Index">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Năm học</label>
+                                        <select class="form-select" name="namHoc">
+                                            <option value="">-- Tất cả năm học --</option>
+                                            <option value="2022-2023">2022-2023</option>
+                                            <option value="2023-2024">2023-2024</option>
+                                            <option value="2024-2025">2024-2025</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Hệ đào tạo</label>
+                                        <select class="form-select" name="he">
+                                            <option value="">-- Tất cả hệ --</option>
+                                            <option value="Đại học">Đại học</option>
+                                            <option value="Cao học">Cao học</option>
+                                            <option value="Liên thông">Liên thông</option>
+                                            <option value="Từ xa">Từ xa</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tên học phần</label>
+                                        <input type="text" class="form-control" name="tenHocPhan" placeholder="Nhập tên học phần...">
+                                    </div>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <div class="mb-3 w-100">
+                                        <button type="submit" class="btn btn-primary w-100">
+                                            <i data-feather="search"></i> Tìm kiếm
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Count()</h4>
+                                        <p class="mb-0">Tổng tải GD</p>
+                                    </div>
+                                    <i data-feather="book-open" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Where(x => x.NamHoc == "2023-2024").Count()</h4>
+                                        <p class="mb-0">Năm hiện tại</p>
+                                    </div>
+                                    <i data-feather="calendar" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-info text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Sum(x => x.SoTinChi)</h4>
+                                        <p class="mb-0">Tổng tín chỉ</p>
+                                    </div>
+                                    <i data-feather="award" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-3 col-md-6">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">@Model.Sum(x => x.SiSo)</h4>
+                                        <p class="mb-0">Tổng sinh viên</p>
+                                    </div>
+                                    <i data-feather="users" size="48"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
                             <h5>Danh sách tải giảng dạy</h5>
-                            <a asp-action="Create" class="btn btn-primary">Thêm mới</a>
+                            <div>
+                                <a asp-action="Create" class="btn btn-primary me-2">
+                                    <i data-feather="plus"></i> Thêm tải GD
+                                </a>
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-success" onclick="exportToExcel()">
+                                        <i data-feather="download"></i> Xuất Excel
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info dropdown-toggle" data-bs-toggle="dropdown">
+                                        <i data-feather="more-horizontal"></i> Thêm
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="bulkAssign()">Phân công hàng loạt</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="importFromExcel()">Nhập từ Excel</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="#" onclick="viewStatistics()">Xem thống kê</a></li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
-                            <table class="table table-hover">
+                            <table class="table table-hover" id="giangDayTable">
                                 <thead>
                                     <tr>
+                                        <th>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="selectAll">
+                                            </div>
+                                        </th>
                                         <th>Mã tải GD</th>
                                         <th>Tên học phần</th>
-                                        <th>Sĩ số</th>
                                         <th>Lớp</th>
                                         <th>Hệ</th>
+                                        <th>Sĩ số</th>
                                         <th>Số tín chỉ</th>
                                         <th>Năm học</th>
+                                        <th>Trạng thái</th>
                                         <th>Chức năng</th>
                                     </tr>
                                 </thead>
@@ -65,26 +203,141 @@
                                     @foreach (var item in Model)
                                     {
                                         <tr>
-                                            <td>@item.MaTaiGiangDay</td>
-                                            <td>@item.TenHocPhan</td>
-                                            <td>@item.SiSo</td>
-                                            <td>@item.Lop</td>
-                                            <td>@item.He</td>
-                                            <td>@item.SoTinChi</td>
+                                            <td>
+                                                <div class="form-check">
+                                                    <input class="form-check-input row-checkbox" type="checkbox" value="@item.MaTaiGiangDay">
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">@item.MaTaiGiangDay</span>
+                                            </td>
+                                            <td>
+                                                <div>
+                                                    <h6 class="mb-0">@item.TenHocPhan</h6>
+                                                    <small class="text-muted">@item.GhiChu</small>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary">@item.Lop</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-primary">@item.He</span>
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold">@item.SiSo</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success">@item.SoTinChi TC</span>
+                                            </td>
                                             <td>@item.NamHoc</td>
                                             <td>
-                                                <a asp-action="Details" asp-route-id="@item.MaTaiGiangDay" class="btn btn-primary btn-sm">Chi tiết</a>
-                                                <a asp-action="PhanCong" asp-route-id="@item.MaTaiGiangDay" class="btn btn-warning btn-sm">Phân công</a>
+                                                @{
+                                                    // Logic để xác định trạng thái (có thể dựa vào việc đã được phân công hay chưa)
+                                                    var status = "Chưa phân công"; // Placeholder
+                                                    var statusClass = "bg-warning";
+                                                }
+                                                <span class="badge @statusClass">@status</span>
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    <a asp-action="Details" asp-route-id="@item.MaTaiGiangDay"
+                                                       class="btn btn-primary btn-sm" title="Chi tiết">
+                                                        <i data-feather="eye"></i>
+                                                    </a>
+                                                    <a asp-action="PhanCong" asp-route-id="@item.MaTaiGiangDay"
+                                                       class="btn btn-warning btn-sm" title="Phân công">
+                                                        <i data-feather="user-plus"></i>
+                                                    </a>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
+                                                            <i data-feather="more-horizontal"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+                                                            <li><a class="dropdown-item" asp-action="Edit" asp-route-id="@item.MaTaiGiangDay">Chỉnh sửa</a></li>
+                                                            <li><a class="dropdown-item" href="#">Sao chép</a></li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li><a class="dropdown-item text-danger" asp-action="Delete" asp-route-id="@item.MaTaiGiangDay">Xóa</a></li>
+                                                        </ul>
+                                                    </div>
+                                                </div>
                                             </td>
                                         </tr>
                                     }
                                 </tbody>
                             </table>
                         </div>
+
+                        @if (!Model.Any())
+                        {
+                            <div class="text-center py-5">
+                                <i data-feather="book-open" size="48" class="text-muted mb-3"></i>
+                                <h5>Chưa có tải giảng dạy nào</h5>
+                                <p class="text-muted">Hãy <a asp-action="Create">thêm tải giảng dạy đầu tiên</a> để bắt đầu quản lý.</p>
+                            </div>
+                        }
                     </div>
+                    @if (Model.Any())
+                    {
+                        <div class="card-footer">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted">Hiển thị @Model.Count() tải giảng dạy</span>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="deleteSelected" style="display: none;">
+                                        <i data-feather="trash-2"></i> Xóa đã chọn
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
     <!-- Container-fluid Ends-->
 </div>
+
+@section Script {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Select all functionality
+            $('#selectAll').change(function() {
+                $('.row-checkbox').prop('checked', this.checked);
+                toggleDeleteButton();
+            });
+
+            $('.row-checkbox').change(function() {
+                toggleDeleteButton();
+            });
+
+            function toggleDeleteButton() {
+                const checkedCount = $('.row-checkbox:checked').length;
+                if (checkedCount > 0) {
+                    $('#deleteSelected').show();
+                } else {
+                    $('#deleteSelected').hide();
+                }
+            }
+        });
+
+        function exportToExcel() {
+            var table = document.getElementById("giangDayTable");
+            var wb = XLSX.utils.table_to_book(table, {sheet:"Danh sách tải giảng dạy"});
+            XLSX.writeFile(wb, "DanhSachTaiGiangDay.xlsx");
+        }
+
+        function bulkAssign() {
+            alert('Chức năng phân công hàng loạt sẽ được triển khai');
+        }
+
+        function importFromExcel() {
+            alert('Chức năng nhập từ Excel sẽ được triển khai');
+        }
+
+        function viewStatistics() {
+            alert('Chức năng xem thống kê sẽ được triển khai');
+        }
+    </script>
+}
