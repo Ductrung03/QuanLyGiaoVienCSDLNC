@@ -94,4 +94,4 @@ namespace QuanLyGiaoVienCSDLNC.Models
             return ValidationResult.Success;
         }
     }
-    }
+}

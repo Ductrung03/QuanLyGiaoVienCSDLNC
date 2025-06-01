@@ -1,7 +1,8 @@
-﻿@model IEnumerable<QuanLyGiaoVienCSDLNC.Models.GiaoVien>
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.Common.PagedResultDto<QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.GiaoVienListItemDto>
 @{
     ViewData["Title"] = "Danh sách giáo viên";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var searchDto = ViewBag.SearchDto as QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.GiaoVienSearchDto;
 }
 
 <div class="page-body">
@@ -9,7 +10,7 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>Danh sách giáo viên</h3>
+                    <h3>Quản lý giáo viên</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
@@ -20,17 +21,17 @@
                                 </svg>
                             </a>
                         </li>
-                        <li class="breadcrumb-item">Quản lý giáo viên</li>
-                        <li class="breadcrumb-item active">Danh sách</li>
+                        <li class="breadcrumb-item active">Danh sách giáo viên</li>
                     </ol>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Container-fluid starts-->
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
+                <!-- Thông báo -->
                 @if (TempData["SuccessMessage"] != null)
                 {
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -48,18 +49,25 @@
                     </div>
                 }
 
+                <!-- Bộ lọc và tìm kiếm nâng cao -->
                 <div class="card">
                     <div class="card-header">
                         <h5>Tìm kiếm và lọc giáo viên</h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-outline-info btn-sm" id="toggleAdvancedSearch">
+                                <i data-feather="settings"></i> Tìm kiếm nâng cao
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <form method="get" asp-action="Index">
+                        <form method="get" asp-action="Index" id="searchForm">
                             <div class="row">
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label class="form-label">Tìm kiếm</label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control" name="searchString" value="@ViewBag.CurrentSearch" placeholder="Nhập tên, email...">
+                                            <input type="text" class="form-control" name="SearchText" 
+                                                   value="@(searchDto?.SearchText)" placeholder="Nhập tên, email, mã GV...">
                                             <span class="input-group-text">
                                                 <i data-feather="search"></i>
                                             </span>
@@ -69,7 +77,7 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label">Khoa</label>
-                                        <select class="form-select" name="maKhoa" id="maKhoa" asp-items="@ViewBag.Khoas">
+                                        <select class="form-select" name="MaKhoa" id="maKhoa" asp-items="@ViewBag.Khoas">
                                             <option value="">-- Tất cả khoa --</option>
                                         </select>
                                     </div>
@@ -77,12 +85,12 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label class="form-label">Bộ môn</label>
-                                        <select class="form-select" name="maBM" id="maBM" asp-items="@ViewBag.BoMons">
+                                        <select class="form-select" name="MaBM" id="maBM" asp-items="@ViewBag.BoMons">
                                             <option value="">-- Tất cả bộ môn --</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-end">
+                                <div class="col-md-2 d-flex align-items-end">
                                     <div class="mb-3 w-100">
                                         <button type="submit" class="btn btn-primary w-100">
                                             <i data-feather="search"></i> Tìm kiếm
@@ -90,116 +98,254 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Tìm kiếm nâng cao -->
+                            <div id="advancedSearch" class="row" style="display: none;">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Học vị</label>
+                                        <select class="form-select" name="HocVi" asp-items="@ViewBag.HocViList">
+                                            <option value="">-- Tất cả học vị --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Học hàm</label>
+                                        <select class="form-select" name="HocHam" asp-items="@ViewBag.HocHamList">
+                                            <option value="">-- Tất cả học hàm --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">Sắp xếp theo</label>
+                                        <select class="form-select" name="SortBy">
+                                            <option value="HoTen">Họ tên</option>
+                                            <option value="NgaySinh">Ngày sinh</option>
+                                            <option value="Email">Email</option>
+                                            <option value="MaGV">Mã GV</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="mb-3">
+                                        <label class="form-label">Số bản ghi</label>
+                                        <select class="form-select" name="PageSize">
+                                            <option value="10" selected="@(searchDto?.PageSize == 10)">10</option>
+                                            <option value="20" selected="@(searchDto?.PageSize == 20)">20</option>
+                                            <option value="50" selected="@(searchDto?.PageSize == 50)">50</option>
+                                            <option value="100" selected="@(searchDto?.PageSize == 100)">100</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <div class="mb-3 w-100">
+                                        <button type="button" class="btn btn-outline-secondary w-100" id="clearSearch">
+                                            <i data-feather="x"></i> Xóa bộ lọc
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="PageNumber" value="1">
                         </form>
                     </div>
                 </div>
 
+                <!-- Danh sách giáo viên -->
                 <div class="card">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5>Danh sách giáo viên (@Model.Count() giáo viên)</h5>
-                            <div>
+                            <h5>
+                                Danh sách giáo viên 
+                                <span class="badge bg-primary">@Model.TotalRecords</span>
+                            </h5>
+                            <div class="btn-group" role="group">
                                 <a asp-action="Create" class="btn btn-primary">
                                     <i data-feather="plus"></i> Thêm mới
                                 </a>
                                 <button type="button" class="btn btn-success" onclick="exportToExcel()">
                                     <i data-feather="download"></i> Xuất Excel
                                 </button>
+                                <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="display: none;">
+                                    <i data-feather="trash-2"></i> Xóa đã chọn
+                                </button>
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="giaoVienTable">
-                                <thead>
-                                    <tr>
-                                        <th>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="checkbox" id="selectAll">
-                                            </div>
-                                        </th>
-                                        <th>Mã GV</th>
-                                        <th>Họ tên</th>
-                                        <th>Email</th>
-                                        <th>Số điện thoại</th>
-                                        <th>Bộ môn</th>
-                                        <th>Khoa</th>
-                                        <th>Trạng thái</th>
-                                        <th>Chức năng</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model)
-                                    {
+                        @if (Model.Data?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="giaoVienTable">
+                                    <thead>
                                         <tr>
-                                            <td>
+                                            <th>
                                                 <div class="form-check">
-                                                    <input class="form-check-input row-checkbox" type="checkbox" value="@item.MaGV">
+                                                    <input class="form-check-input" type="checkbox" id="selectAll">
                                                 </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">@item.MaGV</span>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <img class="img-30 me-2 rounded-circle" src="~/assets/images/dashboard/user/1.jpg" alt="avatar">
-                                                    <span class="fw-bold">@item.HoTen</span>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <a href="mailto:@item.Email">@item.Email</a>
-                                            </td>
-                                            <td>
-                                                <a href="tel:@item.SDT">@item.SDT</a>
-                                            </td>
-                                            <td>@item.BoMon?.TenBM</td>
-                                            <td>@item.BoMon?.Khoa?.TenKhoa</td>
-                                            <td>
-                                                <span class="badge bg-success">Đang hoạt động</span>
-                                            </td>
-                                            <td>
-                                                <div class="btn-group" role="group">
-                                                    <a asp-action="Details" asp-route-id="@item.MaGV"
-                                                       class="btn btn-primary btn-sm" title="Chi tiết">
-                                                        <i data-feather="eye"></i>
-                                                    </a>
-                                                    <a asp-action="Edit" asp-route-id="@item.MaGV"
-                                                       class="btn btn-info btn-sm" title="Chỉnh sửa">
-                                                        <i data-feather="edit"></i>
-                                                    </a>
-                                                    <a asp-action="Delete" asp-route-id="@item.MaGV"
-                                                       class="btn btn-danger btn-sm" title="Xóa"
-                                                       onclick="return confirm('Bạn có chắc chắn muốn xóa giáo viên này?')">
-                                                        <i data-feather="trash-2"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
+                                            </th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Tuổi</th>
+                                            <th>Email</th>
+                                            <th>Số điện thoại</th>                                            
+                                            <th>Bộ môn</th>
+                                            <th>Khoa</th>
+                                            <th>Học vị</th>
+                                            <th>Trạng thái</th>
+                                            <th>Chức năng</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Data)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input row-checkbox" type="checkbox" value="@item.MaGV">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">@item.MaGV</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar avatar-sm me-2">
+                                                            <div class="avatar-title bg-primary rounded-circle">
+                                                                @item.HoTen?.FirstOrDefault()
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <span class="fw-bold">@item.HoTen</span>
+                                                            <br>
+                                                            <small class="text-muted">@item.GioiTinh</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark">@item.Tuoi tuổi</span>
+                                                </td>
+                                                <td>
+                                                    <a href="mailto:@item.Email" class="text-decoration-none">@item.Email</a>
+                                                </td>
+                                                <td>
+                                                    <a href="tel:@item.SDT" class="text-decoration-none">@item.SDT</a>
+                                                </td>
+                                                <td>
+                                                    <span class="text-primary">@item.TenBM</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-success">@item.TenKhoa</span>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(item.DanhSachHocVi))
+                                                    {
+                                                        <span class="badge bg-warning text-dark">@item.DanhSachHocVi</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">Chưa có</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success">@item.TrangThai</span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a asp-action="Details" asp-route-id="@item.MaGV"
+                                                           class="btn btn-primary btn-sm" title="Chi tiết">
+                                                            <i data-feather="eye"></i>
+                                                        </a>
+                                                        <a asp-action="Edit" asp-route-id="@item.MaGV"
+                                                           class="btn btn-info btn-sm" title="Chỉnh sửa">
+                                                            <i data-feather="edit"></i>
+                                                        </a>
+                                                        <a asp-action="Statistics" asp-route-id="@item.MaGV"
+                                                           class="btn btn-success btn-sm" title="Thống kê">
+                                                            <i data-feather="bar-chart-2"></i>
+                                                        </a>
+                                                        <a asp-action="Delete" asp-route-id="@item.MaGV"
+                                                           class="btn btn-danger btn-sm" title="Xóa"
+                                                           onclick="return confirm('Bạn có chắc chắn muốn xóa giáo viên này?')">
+                                                            <i data-feather="trash-2"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
 
-                        @if (!Model.Any())
+                            <!-- Phân trang -->
+                            @if (Model.TotalPages > 1)
+                            {
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination justify-content-center">
+                                        @if (Model.HasPreviousPage)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("Index", GetSearchParams(searchDto, 1))">
+                                                    <i data-feather="chevron-left"></i> Đầu
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("Index", GetSearchParams(searchDto, Model.PageNumber - 1))">
+                                                    <i data-feather="chevron-left"></i>
+                                                </a>
+                                            </li>
+                                        }
+
+                                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                                        {
+                                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                                <a class="page-link" href="@Url.Action("Index", GetSearchParams(searchDto, i))">@i</a>
+                                            </li>
+                                        }
+
+                                        @if (Model.HasNextPage)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("Index", GetSearchParams(searchDto, Model.PageNumber + 1))">
+                                                    <i data-feather="chevron-right"></i>
+                                                </a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="@Url.Action("Index", GetSearchParams(searchDto, Model.TotalPages))">
+                                                    Cuối <i data-feather="chevron-right"></i>
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+                            }
+                        }
+                        else
                         {
                             <div class="text-center py-5">
-                                <img src="~/assets/images/search-not-found.png" alt="No data" class="img-fluid mb-3" style="max-width: 200px;">
-                                <h5>Không tìm thấy giáo viên nào</h5>
-                                <p class="text-muted">Thử thay đổi tiêu chí tìm kiếm hoặc <a asp-action="Create">thêm giáo viên mới</a></p>
+                                <div class="empty-state">
+                                    <i data-feather="users" size="64" class="text-muted mb-3"></i>
+                                    <h5>Không tìm thấy giáo viên nào</h5>
+                                    <p class="text-muted">Thử thay đổi tiêu chí tìm kiếm hoặc <a asp-action="Create">thêm giáo viên mới</a></p>
+                                </div>
                             </div>
                         }
                     </div>
-                    @if (Model.Any())
+                    @if (Model.Data?.Any() == true)
                     {
                         <div class="card-footer">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <span class="text-muted">Hiển thị @Model.Count() giáo viên</span>
+                                    <span class="text-muted">
+                                        Hiển thị @((Model.PageNumber - 1) * Model.PageSize + 1) - 
+                                        @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords) 
+                                        trong tổng số @Model.TotalRecords giáo viên
+                                    </span>
                                 </div>
                                 <div>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" id="deleteSelected" style="display: none;">
-                                        <i data-feather="trash-2"></i> Xóa đã chọn
-                                    </button>
+                                    <small class="text-muted">Trang @Model.PageNumber / @Model.TotalPages</small>
                                 </div>
                             </div>
                         </div>
@@ -208,59 +354,153 @@
             </div>
         </div>
     </div>
-    <!-- Container-fluid Ends-->
 </div>
+
+@functions {
+    private object GetSearchParams(QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.GiaoVienSearchDto searchDto, int pageNumber)
+    {
+        return new
+        {
+            SearchText = searchDto?.SearchText,
+            MaKhoa = searchDto?.MaKhoa,
+            MaBM = searchDto?.MaBM,
+            HocVi = searchDto?.HocVi,
+            HocHam = searchDto?.HocHam,
+            PageNumber = pageNumber,
+            PageSize = searchDto?.PageSize ?? 20,
+            SortBy = searchDto?.SortBy,
+            SortDesc = searchDto?.SortDesc
+        };
+    }
+}
 
 @section Script {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function () {
-            // Khi chọn khoa thì load lại danh sách bộ môn
-            $('#maKhoa').change(function () {
-                var maKhoa = $(this).val();
-                if (maKhoa) {
-                    $.ajax({
-                        url: '/BoMon/GetBoMonByKhoa',
-                        type: 'GET',
-                        data: { maKhoa: maKhoa },
-                        success: function (data) {
-                            var html = '<option value="">-- Tất cả bộ môn --</option>';
-                            $.each(data, function (key, item) {
-                                html += '<option value="' + item.maBM + '">' + item.tenBM + '</option>';
-                            });
-                            $('#maBM').html(html);
-                        }
-                    });
+            // Toggle advanced search
+            $('#toggleAdvancedSearch').click(function() {
+                $('#advancedSearch').toggle();
+                var icon = $(this).find('i');
+                if ($('#advancedSearch').is(':visible')) {
+                    $(this).addClass('btn-info').removeClass('btn-outline-info');
                 } else {
-                    $('#maBM').html('<option value="">-- Tất cả bộ môn --</option>');
+                    $(this).removeClass('btn-info').addClass('btn-outline-info');
                 }
             });
+
+            // Clear search
+            $('#clearSearch').click(function() {
+                $('#searchForm')[0].reset();
+                window.location.href = '@Url.Action("Index")';
+            });
+
+            // Khoa thay đổi -> load bộ môn
+            $('#maKhoa').change(function () {
+                var maKhoa = $(this).val();
+                loadBoMon(maKhoa);
+            });
+
+            function loadBoMon(maKhoa) {
+                $.ajax({
+                    url: '@Url.Action("GetBoMonByKhoa")',
+                    type: 'GET',
+                    data: { maKhoa: maKhoa },
+                    success: function (data) {
+                        var html = '<option value="">-- Tất cả bộ môn --</option>';
+                        $.each(data, function (key, item) {
+                            html += '<option value="' + item.maBM + '">' + item.tenBM + '</option>';
+                        });
+                        $('#maBM').html(html);
+                    },
+                    error: function() {
+                        console.log('Error loading bo mon');
+                    }
+                });
+            }
 
             // Checkbox select all
             $('#selectAll').change(function() {
                 $('.row-checkbox').prop('checked', this.checked);
-                toggleDeleteButton();
+                toggleBulkActions();
             });
 
             $('.row-checkbox').change(function() {
-                toggleDeleteButton();
+                var totalCheckboxes = $('.row-checkbox').length;
+                var checkedCheckboxes = $('.row-checkbox:checked').length;
+                
+                $('#selectAll').prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+                $('#selectAll').prop('checked', checkedCheckboxes === totalCheckboxes);
+                
+                toggleBulkActions();
             });
 
-            function toggleDeleteButton() {
+            function toggleBulkActions() {
                 const checkedCount = $('.row-checkbox:checked').length;
                 if (checkedCount > 0) {
-                    $('#deleteSelected').show();
+                    $('#bulkDeleteBtn').show();
                 } else {
-                    $('#deleteSelected').hide();
+                    $('#bulkDeleteBtn').hide();
                 }
+            }
+
+            // Bulk delete
+            $('#bulkDeleteBtn').click(function() {
+                var selectedIds = [];
+                $('.row-checkbox:checked').each(function() {
+                    selectedIds.push($(this).val());
+                });
+
+                if (selectedIds.length > 0) {
+                    if (confirm('Bạn có chắc chắn muốn xóa ' + selectedIds.length + ' giáo viên đã chọn?')) {
+                        bulkDelete(selectedIds);
+                    }
+                }
+            });
+
+            function bulkDelete(selectedIds) {
+                var form = $('<form>').attr({
+                    method: 'POST',
+                    action: '@Url.Action("BulkDelete")'
+                });
+
+                form.append($('<input>').attr({
+                    type: 'hidden',
+                    name: '__RequestVerificationToken',
+                    value: $('[name=__RequestVerificationToken]').val()
+                }));
+
+                $.each(selectedIds, function(i, id) {
+                    form.append($('<input>').attr({
+                        type: 'hidden',
+                        name: 'selectedIds[' + i + ']',
+                        value: id
+                    }));
+                });
+
+                $('body').append(form);
+                form.submit();
             }
 
             // Export to Excel
             window.exportToExcel = function() {
-                var table = document.getElementById("giaoVienTable");
-                var wb = XLSX.utils.table_to_book(table, {sheet:"Danh sách giáo viên"});
-                XLSX.writeFile(wb, "DanhSachGiaoVien.xlsx");
+                var searchData = {
+                    SearchText: $('[name="SearchText"]').val(),
+                    MaKhoa: $('[name="MaKhoa"]').val(),
+                    MaBM: $('[name="MaBM"]').val(),
+                    HocVi: $('[name="HocVi"]').val(),
+                    HocHam: $('[name="HocHam"]').val(),
+                    PageSize: 10000
+                };
+
+                var url = '@Url.Action("ExportExcel")' + '?searchData=' + encodeURIComponent(JSON.stringify(searchData));
+                window.location.href = url;
             };
+
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
         });
     </script>
 }

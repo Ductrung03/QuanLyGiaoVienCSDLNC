@@ -52,11 +52,11 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             List<GiaoVien> giaoViens;
             if (!string.IsNullOrEmpty(maBM))
             {
-                giaoViens = await _giaoVienService.SearchGiaoVienAsync(null, maBM, null);
+                giaoViens = await _giaoVienService.SearchGiaoVienSimpleAsync(null, maBM, null);
             }
             else if (!string.IsNullOrEmpty(maKhoa))
             {
-                giaoViens = await _giaoVienService.SearchGiaoVienAsync(null, null, maKhoa);
+                giaoViens = await _giaoVienService.SearchGiaoVienSimpleAsync(null, null, maKhoa);
             }
             else
             {

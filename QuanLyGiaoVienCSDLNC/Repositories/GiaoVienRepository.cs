@@ -2,16 +2,15 @@
 using Microsoft.EntityFrameworkCore;
 using QuanLyGiaoVienCSDLNC.Data;
 using QuanLyGiaoVienCSDLNC.Models;
-using QuanLyGiaoVienCSDLNC.Models.QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
+using QuanLyGiaoVienCSDLNC.DTOs.GiaoVien;
+using QuanLyGiaoVienCSDLNC.DTOs.Common;
+using QuanLyGiaoVienCSDLNC.DTOs.HocVi;
+using QuanLyGiaoVienCSDLNC.DTOs.LyLichKhoaHoc;
 using System.Data;
-using OfficeOpenXml;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
-using System.Reflection.Metadata;
-using System.Xml.Linq;
-using DocumentFormat.OpenXml.Wordprocessing;
-using QuanLyGiaoVienCSDLNC.DTOs.GiaoVien;
+using OfficeOpenXml;
 
 namespace QuanLyGiaoVienCSDLNC.Repositories
 {
@@ -26,7 +25,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             _logger = logger;
         }
 
-        #region Basic CRUD Operations
+        #region CRUD Operations
 
         public async Task<List<GiaoVien>> GetAllGiaoVienAsync()
         {
@@ -61,7 +60,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        public async Task<(bool success, string message, string maGV)> AddGiaoVienAsync(GiaoVien giaoVien)
+        public async Task<(bool success, string message, string maGV)> AddGiaoVienAsync(GiaoVienCreateDto dto)
         {
             var maGVParam = new SqlParameter
             {
@@ -83,14 +82,14 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_GiaoVien_ThemMoi @HoTen, @NgaySinh, @GioiTinh, @QueQuan, @DiaChi, @SDT, @Email, @MaBM, @MaGV OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@HoTen", giaoVien.HoTen),
-                    new SqlParameter("@NgaySinh", giaoVien.NgaySinh),
-                    new SqlParameter("@GioiTinh", giaoVien.GioiTinh),
-                    new SqlParameter("@QueQuan", giaoVien.QueQuan ?? (object)DBNull.Value),
-                    new SqlParameter("@DiaChi", giaoVien.DiaChi ?? (object)DBNull.Value),
-                    new SqlParameter("@SDT", giaoVien.SDT),
-                    new SqlParameter("@Email", giaoVien.Email),
-                    new SqlParameter("@MaBM", giaoVien.MaBM),
+                    new SqlParameter("@HoTen", dto.HoTen),
+                    new SqlParameter("@NgaySinh", dto.NgaySinh),
+                    new SqlParameter("@GioiTinh", dto.GioiTinh),
+                    new SqlParameter("@QueQuan", dto.QueQuan ?? (object)DBNull.Value),
+                    new SqlParameter("@DiaChi", dto.DiaChi ?? (object)DBNull.Value),
+                    new SqlParameter("@SDT", dto.SDT),
+                    new SqlParameter("@Email", dto.Email),
+                    new SqlParameter("@MaBM", dto.MaBM),
                     maGVParam,
                     errorMessageParam);
 
@@ -103,12 +102,12 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error adding giao vien: {@GiaoVien}", giaoVien);
+                _logger.LogError(ex, "Error adding giao vien: {@GiaoVien}", dto);
                 return (false, $"Lỗi khi thêm giáo viên: {ex.Message}", null);
             }
         }
 
-        public async Task<(bool success, string message)> UpdateGiaoVienAsync(GiaoVien giaoVien)
+        public async Task<(bool success, string message)> UpdateGiaoVienAsync(GiaoVienUpdateDto dto)
         {
             var errorMessageParam = new SqlParameter
             {
@@ -122,26 +121,25 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_GiaoVien_CapNhat @MaGV, @HoTen, @NgaySinh, @GioiTinh, @QueQuan, @DiaChi, @SDT, @Email, @MaBM, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", giaoVien.MaGV),
-                    new SqlParameter("@HoTen", giaoVien.HoTen),
-                    new SqlParameter("@NgaySinh", giaoVien.NgaySinh),
-                    new SqlParameter("@GioiTinh", giaoVien.GioiTinh),
-                    new SqlParameter("@QueQuan", giaoVien.QueQuan ?? (object)DBNull.Value),
-                    new SqlParameter("@DiaChi", giaoVien.DiaChi ?? (object)DBNull.Value),
-                    new SqlParameter("@SDT", giaoVien.SDT),
-                    new SqlParameter("@Email", giaoVien.Email),
-                    new SqlParameter("@MaBM", giaoVien.MaBM),
+                    new SqlParameter("@MaGV", dto.MaGV),
+                    new SqlParameter("@HoTen", dto.HoTen),
+                    new SqlParameter("@NgaySinh", dto.NgaySinh),
+                    new SqlParameter("@GioiTinh", dto.GioiTinh),
+                    new SqlParameter("@QueQuan", dto.QueQuan ?? (object)DBNull.Value),
+                    new SqlParameter("@DiaChi", dto.DiaChi ?? (object)DBNull.Value),
+                    new SqlParameter("@SDT", dto.SDT),
+                    new SqlParameter("@Email", dto.Email),
+                    new SqlParameter("@MaBM", dto.MaBM),
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
                 var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
 
-                _logger.LogInformation("Update giao vien result: {Success}, {Message}", isSuccess, errorMessage);
                 return (isSuccess, errorMessage);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating giao vien: {MaGV}", giaoVien.MaGV);
+                _logger.LogError(ex, "Error updating giao vien: {MaGV}", dto.MaGV);
                 return (false, $"Lỗi khi cập nhật giáo viên: {ex.Message}");
             }
         }
@@ -167,7 +165,6 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 var errorMessage = errorMessageParam.Value?.ToString();
                 var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
 
-                _logger.LogInformation("Delete giao vien result: {Success}, {Message}", isSuccess, errorMessage);
                 return (isSuccess, errorMessage);
             }
             catch (Exception ex)
@@ -179,9 +176,9 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         #endregion
 
-        #region Search and Filtering
+        #region Advanced Search and Filtering
 
-        public async Task<(List<GiaoVien> data, int totalRecords)> SearchGiaoVienAsync(GiaoVienSearchDto searchDto)
+        public async Task<PagedResultDto<GiaoVienListItemDto>> SearchGiaoVienAsync(GiaoVienSearchDto searchDto)
         {
             var totalRecordsParam = new SqlParameter
             {
@@ -211,34 +208,36 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
                         using (var reader = await command.ExecuteReaderAsync())
                         {
-                            var giaoviens = new List<GiaoVien>();
+                            var giaoviens = new List<GiaoVienListItemDto>();
                             while (await reader.ReadAsync())
                             {
-                                giaoviens.Add(new GiaoVien
+                                giaoviens.Add(new GiaoVienListItemDto
                                 {
                                     MaGV = reader["MaGV"].ToString(),
                                     HoTen = reader["HoTen"].ToString(),
                                     NgaySinh = Convert.ToDateTime(reader["NgaySinh"]),
-                                    GioiTinh = reader["GioiTinh"].ToString() == "Nam",
+                                    GioiTinh = reader["GioiTinh"].ToString(),
                                     Email = reader["Email"].ToString(),
                                     SDT = Convert.ToInt32(reader["SDT"]),
-                                    DiaChi = reader["DiaChi"].ToString(),
-                                    QueQuan = reader["QueQuan"].ToString(),
-                                    MaBM = reader["MaBM"].ToString(),
-                                    BoMon = new BoMon
-                                    {
-                                        MaBM = reader["MaBM"].ToString(),
-                                        TenBM = reader["TenBM"].ToString(),
-                                        Khoa = new Khoa
-                                        {
-                                            TenKhoa = reader["TenKhoa"].ToString()
-                                        }
-                                    }
+                                    DiaChi = reader["DiaChi"]?.ToString(),
+                                    TenBM = reader["TenBM"].ToString(),
+                                    TenKhoa = reader["TenKhoa"].ToString(),
+                                    DanhSachHocVi = reader["DanhSachHocVi"]?.ToString(),
+                                    HocHamCaoNhat = reader["HocHamCaoNhat"]?.ToString()
                                 });
                             }
+                            await reader.CloseAsync();
 
-                            var totalRecords = (int)totalRecordsParam.Value;
-                            return (giaoviens, totalRecords);
+                            int totalRecords = 0;
+                            if (totalRecordsParam?.Value != DBNull.Value && totalRecordsParam?.Value != null)
+                            {
+                                totalRecords = (int)totalRecordsParam.Value;
+                            }
+
+                            return new PagedResultDto<GiaoVienListItemDto>(
+                                giaoviens, totalRecords, searchDto.PageNumber, searchDto.PageSize
+                            );
+
                         }
                     }
                 }
@@ -261,8 +260,34 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 PageSize = 1000
             };
 
-            var (data, _) = await SearchGiaoVienAsync(searchDto);
-            return data;
+            var result = await SearchGiaoVienAsync(searchDto);
+
+            // Convert to GiaoVien entities
+            var giaoviens = new List<GiaoVien>();
+            foreach (var item in result.Data)
+            {
+                giaoviens.Add(new GiaoVien
+                {
+                    MaGV = item.MaGV,
+                    HoTen = item.HoTen,
+                    NgaySinh = item.NgaySinh,
+                    GioiTinh = item.GioiTinh == "Nam",
+                    Email = item.Email,
+                    SDT = item.SDT,
+                    DiaChi = item.DiaChi,
+                    QueQuan = item.QueQuan,
+                    BoMon = new BoMon
+                    {
+                        TenBM = item.TenBM,
+                        Khoa = new Khoa
+                        {
+                            TenKhoa = item.TenKhoa
+                        }
+                    }
+                });
+            }
+
+            return giaoviens;
         }
 
         #endregion
@@ -295,8 +320,8 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                                     HoTen = reader["HoTen"].ToString(),
                                     NgaySinh = Convert.ToDateTime(reader["NgaySinh"]),
                                     GioiTinh = reader["GioiTinh"].ToString() == "Nam",
-                                    QueQuan = reader["QueQuan"].ToString(),
-                                    DiaChi = reader["DiaChi"].ToString(),
+                                    QueQuan = reader["QueQuan"]?.ToString(),
+                                    DiaChi = reader["DiaChi"]?.ToString(),
                                     SDT = Convert.ToInt32(reader["SDT"]),
                                     Email = reader["Email"].ToString(),
                                     MaBM = reader["MaBM"].ToString(),
@@ -339,23 +364,21 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                                         TenHocHam = reader["TenHocHam"].ToString(),
                                         NgayNhan = Convert.ToDateTime(reader["NgayNhan"]),
                                         MaGV = maGV,
-                                        MaHocHam = reader["MaHocHam"].ToString()
+                                        MaHocHam = reader["MaHocHam"]?.ToString()
                                     });
                                 }
                             }
 
-                            // Đọc chức vụ (Result Set 4)
+                            // Đọc chức vụ hiện tại (Result Set 4)
                             if (await reader.NextResultAsync())
                             {
                                 while (await reader.ReadAsync())
                                 {
                                     result.DanhSachChucVu.Add(new LichSuChucVu
                                     {
-                                        MaLichSuChucVu = reader["MaLichSuChucVu"].ToString(),
-                                        NgayNhan = Convert.ToDateTime(reader["NgayNhan"]),
-                                        NgayKetThuc = reader["NgayKetThuc"] as DateTime?,
-                                        MaGV = maGV,
                                         MaChucVu = reader["MaChucVu"].ToString(),
+                                        NgayNhan = Convert.ToDateTime(reader["NgayNhan"]),
+                                        MaGV = maGV,
                                         ChucVu = new ChucVu
                                         {
                                             MaChucVu = reader["MaChucVu"].ToString(),
@@ -372,19 +395,18 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                                 {
                                     result.LyLichKhoaHoc = new LyLichKhoaHoc
                                     {
-                                        MaLyLichKhoaHoc = reader["MaLyLichKhoaHoc"].ToString(),
-                                        HeDaoTaoDH = reader["HeDaoTaoDH"].ToString(),
-                                        NoiDaoTaoDH = reader["NoiDaoTaoDH"].ToString(),
-                                        NganhHocDH = reader["NganhHocDH"].ToString(),
+                                        HeDaoTaoDH = reader["HeDaoTaoDH"]?.ToString(),
+                                        NoiDaoTaoDH = reader["NoiDaoTaoDH"]?.ToString(),
+                                        NganhHocDH = reader["NganhHocDH"]?.ToString(),
                                         NamTotNghiepDH = reader["NamTotNghiepDH"] as int?,
-                                        ThacSiChuyenNganh = reader["ThacSiChuyenNganh"].ToString(),
+                                        ThacSiChuyenNganh = reader["ThacSiChuyenNganh"]?.ToString(),
                                         NamCapBangTS = reader["NamCapBangTS"] as int?,
-                                        NoiDaoTaoTS = reader["NoiDaoTaoTS"].ToString(),
-                                        TenLuanVanTotNghiep = reader["TenLuanVanTotNghiep"].ToString(),
-                                        TienSiChuyenNganh = reader["TienSiChuyenNganh"].ToString(),
+                                        NoiDaoTaoTS = reader["NoiDaoTaoTS"]?.ToString(),
+                                        TenLuanVanTotNghiep = reader["TenLuanVanTotNghiep"]?.ToString(),
+                                        TienSiChuyenNganh = reader["TienSiChuyenNganh"]?.ToString(),
                                         NamCapBangSauDH = reader["NamCapBangSauDH"] as int?,
-                                        NoiDaoTaoSauDH = reader["NoiDaoTaoSauDH"].ToString(),
-                                        TenLuanAnSauDH = reader["TenLuanAnSauDH"].ToString(),
+                                        NoiDaoTaoSauDH = reader["NoiDaoTaoSauDH"]?.ToString(),
+                                        TenLuanAnSauDH = reader["TenLuanAnSauDH"]?.ToString(),
                                         NgayKhai = reader["NgayKhai"] as DateTime?,
                                         MaGV = maGV
                                     };
@@ -400,6 +422,200 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 _logger.LogError(ex, "Error getting chi tiet giao vien: {MaGV}", maGV);
                 throw;
+            }
+        }
+
+        #endregion
+
+        #region Academic Information Management
+
+        public async Task<(bool success, string message)> CapNhatHocViAsync(HocViCreateDto dto)
+        {
+            var maHocViParam = new SqlParameter
+            {
+                ParameterName = "@MaHocVi",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_HocVi_CapNhat @MaGV, @TenHocVi, @NgayNhan, @MaHocVi OUTPUT, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", dto.MaGV),
+                    new SqlParameter("@TenHocVi", dto.TenHocVi),
+                    new SqlParameter("@NgayNhan", dto.NgayNhan),
+                    maHocViParam,
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating hoc vi: {MaGV}", dto.MaGV);
+                return (false, $"Lỗi khi cập nhật học vị: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> CapNhatHocHamAsync(string maGV, string maHocHam, DateTime ngayNhan)
+        {
+            var maLSHocHamParam = new SqlParameter
+            {
+                ParameterName = "@MaLSHocHam",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_HocHam_CapNhat @MaGV, @MaHocHam, @NgayNhan, @MaLSHocHam OUTPUT, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", maGV),
+                    new SqlParameter("@MaHocHam", maHocHam),
+                    new SqlParameter("@NgayNhan", ngayNhan),
+                    maLSHocHamParam,
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating hoc ham: {MaGV}", maGV);
+                return (false, $"Lỗi khi cập nhật học hàm: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> CapNhatLyLichKhoaHocAsync(LyLichKhoaHocDto dto)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    @"EXEC sp_LyLichKhoaHoc_CapNhat @MaGV, @HeDaoTaoDH, @NoiDaoTaoDH, @NganhHocDH, @NuocDaoTaoDH, @NamTotNghiepDH, 
+                      @ThacSiChuyenNganh, @NamCapBangTS, @NoiDaoTaoTS, @TenLuanVanTotNghiep, @TienSiChuyenNganh, 
+                      @NamCapBangSauDH, @NoiDaoTaoSauDH, @TenLuanAnSauDH, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", dto.MaGV),
+                    new SqlParameter("@HeDaoTaoDH", dto.HeDaoTaoDH),
+                    new SqlParameter("@NoiDaoTaoDH", dto.NoiDaoTaoDH),
+                    new SqlParameter("@NganhHocDH", dto.NganhHocDH),
+                    new SqlParameter("@NuocDaoTaoDH", dto.NuocDaoTaoDH ?? (object)DBNull.Value),
+                    new SqlParameter("@NamTotNghiepDH", dto.NamTotNghiepDH ?? (object)DBNull.Value),
+                    new SqlParameter("@ThacSiChuyenNganh", dto.ThacSiChuyenNganh ?? (object)DBNull.Value),
+                    new SqlParameter("@NamCapBangTS", dto.NamCapBangTS ?? (object)DBNull.Value),
+                    new SqlParameter("@NoiDaoTaoTS", dto.NoiDaoTaoTS ?? (object)DBNull.Value),
+                    new SqlParameter("@TenLuanVanTotNghiep", dto.TenLuanVanTotNghiep ?? (object)DBNull.Value),
+                    new SqlParameter("@TienSiChuyenNganh", dto.TienSiChuyenNganh ?? (object)DBNull.Value),
+                    new SqlParameter("@NamCapBangSauDH", dto.NamCapBangSauDH ?? (object)DBNull.Value),
+                    new SqlParameter("@NoiDaoTaoSauDH", dto.NoiDaoTaoSauDH ?? (object)DBNull.Value),
+                    new SqlParameter("@TenLuanAnSauDH", dto.TenLuanAnSauDH ?? (object)DBNull.Value),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating ly lich khoa hoc: {MaGV}", dto.MaGV);
+                return (false, $"Lỗi khi cập nhật lý lịch khoa học: {ex.Message}");
+            }
+        }
+
+        #endregion
+
+        #region Position Management
+
+        public async Task<(bool success, string message)> PhanCongChucVuAsync(string maGV, string maChucVu, DateTime? ngayNhan = null)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_ChucVu_PhanCong @MaGV, @MaChucVu, @NgayNhan, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", maGV),
+                    new SqlParameter("@MaChucVu", maChucVu),
+                    new SqlParameter("@NgayNhan", ngayNhan ?? DateTime.Now),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error phan cong chuc vu: {MaGV}, {MaChucVu}", maGV, maChucVu);
+                return (false, $"Lỗi khi phân công chức vụ: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> KetThucChucVuAsync(string maGV, string maChucVu, DateTime? ngayKetThuc = null)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_ChucVu_KetThuc @MaGV, @MaChucVu, @NgayKetThuc, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", maGV),
+                    new SqlParameter("@MaChucVu", maChucVu),
+                    new SqlParameter("@NgayKetThuc", ngayKetThuc ?? DateTime.Now),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error ket thuc chuc vu: {MaGV}, {MaChucVu}", maGV, maChucVu);
+                return (false, $"Lỗi khi kết thúc chức vụ: {ex.Message}");
             }
         }
 
@@ -520,197 +736,35 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        #endregion
-
-        #region Academic Information Management
-
-        public async Task<(bool success, string message)> CapNhatHocViAsync(string maGV, string tenHocVi, DateTime ngayNhan)
+        public async Task<DataTable> GetBaoCaoTongHopAsync(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null)
         {
-            var maHocViParam = new SqlParameter
-            {
-                ParameterName = "@MaHocVi",
-                SqlDbType = SqlDbType.Char,
-                Size = 15,
-                Direction = ParameterDirection.Output
-            };
-
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
             try
             {
-                await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_HocVi_CapNhat @MaGV, @TenHocVi, @NgayNhan, @MaHocVi OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", maGV),
-                    new SqlParameter("@TenHocVi", tenHocVi),
-                    new SqlParameter("@NgayNhan", ngayNhan),
-                    maHocViParam,
-                    errorMessageParam);
+                using (var connection = _context.Database.GetDbConnection())
+                {
+                    await connection.OpenAsync();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "sp_BaoCao_TongHopKhoiLuongCongTac";
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.Add(new SqlParameter("@MaGV", maGV ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@MaBM", maBM ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@MaKhoa", maKhoa ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@NamHoc", namHoc ?? (object)DBNull.Value));
 
-                var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
-
-                return (isSuccess, errorMessage);
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var dataTable = new DataTable();
+                            dataTable.Load(reader);
+                            return dataTable;
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating hoc vi: {MaGV}", maGV);
-                return (false, $"Lỗi khi cập nhật học vị: {ex.Message}");
-            }
-        }
-
-        public async Task<(bool success, string message)> CapNhatHocHamAsync(string maGV, string maHocHam, DateTime ngayNhan)
-        {
-            var maLSHocHamParam = new SqlParameter
-            {
-                ParameterName = "@MaLSHocHam",
-                SqlDbType = SqlDbType.Char,
-                Size = 15,
-                Direction = ParameterDirection.Output
-            };
-
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
-            try
-            {
-                await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_HocHam_CapNhat @MaGV, @MaHocHam, @NgayNhan, @MaLSHocHam OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", maGV),
-                    new SqlParameter("@MaHocHam", maHocHam),
-                    new SqlParameter("@NgayNhan", ngayNhan),
-                    maLSHocHamParam,
-                    errorMessageParam);
-
-                var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
-
-                return (isSuccess, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating hoc ham: {MaGV}", maGV);
-                return (false, $"Lỗi khi cập nhật học hàm: {ex.Message}");
-            }
-        }
-
-        public async Task<(bool success, string message)> CapNhatLyLichKhoaHocAsync(string maGV, LyLichKhoaHoc lyLichKhoaHoc)
-        {
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
-            try
-            {
-                await _context.Database.ExecuteSqlRawAsync(
-                    @"EXEC sp_LyLichKhoaHoc_CapNhat @MaGV, @HeDaoTaoDH, @NoiDaoTaoDH, @NganhHocDH, @NuocDaoTaoDH, @NamTotNghiepDH, 
-                      @ThacSiChuyenNganh, @NamCapBangTS, @NoiDaoTaoTS, @TenLuanVanTotNghiep, @TienSiChuyenNganh, 
-                      @NamCapBangSauDH, @NoiDaoTaoSauDH, @TenLuanAnSauDH, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", maGV),
-                    new SqlParameter("@HeDaoTaoDH", lyLichKhoaHoc.HeDaoTaoDH),
-                    new SqlParameter("@NoiDaoTaoDH", lyLichKhoaHoc.NoiDaoTaoDH),
-                    new SqlParameter("@NganhHocDH", lyLichKhoaHoc.NganhHocDH),
-                    new SqlParameter("@NuocDaoTaoDH", lyLichKhoaHoc.NuocDaoTaoDH ?? (object)DBNull.Value),
-                    new SqlParameter("@NamTotNghiepDH", lyLichKhoaHoc.NamTotNghiepDH ?? (object)DBNull.Value),
-                    new SqlParameter("@ThacSiChuyenNganh", lyLichKhoaHoc.ThacSiChuyenNganh ?? (object)DBNull.Value),
-                    new SqlParameter("@NamCapBangTS", lyLichKhoaHoc.NamCapBangTS ?? (object)DBNull.Value),
-                    new SqlParameter("@NoiDaoTaoTS", lyLichKhoaHoc.NoiDaoTaoTS ?? (object)DBNull.Value),
-                    new SqlParameter("@TenLuanVanTotNghiep", lyLichKhoaHoc.TenLuanVanTotNghiep ?? (object)DBNull.Value),
-                    new SqlParameter("@TienSiChuyenNganh", lyLichKhoaHoc.TienSiChuyenNganh ?? (object)DBNull.Value),
-                    new SqlParameter("@NamCapBangSauDH", lyLichKhoaHoc.NamCapBangSauDH ?? (object)DBNull.Value),
-                    new SqlParameter("@NoiDaoTaoSauDH", lyLichKhoaHoc.NoiDaoTaoSauDH ?? (object)DBNull.Value),
-                    new SqlParameter("@TenLuanAnSauDH", lyLichKhoaHoc.TenLuanAnSauDH ?? (object)DBNull.Value),
-                    errorMessageParam);
-
-                var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
-
-                return (isSuccess, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating ly lich khoa hoc: {MaGV}", maGV);
-                return (false, $"Lỗi khi cập nhật lý lịch khoa học: {ex.Message}");
-            }
-        }
-
-        #endregion
-
-        #region Position Management
-
-        public async Task<(bool success, string message)> PhanCongChucVuAsync(string maGV, string maChucVu, DateTime? ngayNhan = null)
-        {
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
-            try
-            {
-                await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_ChucVu_PhanCong @MaGV, @MaChucVu, @NgayNhan, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", maGV),
-                    new SqlParameter("@MaChucVu", maChucVu),
-                    new SqlParameter("@NgayNhan", ngayNhan ?? DateTime.Now),
-                    errorMessageParam);
-
-                var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
-
-                return (isSuccess, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error phan cong chuc vu: {MaGV}, {MaChucVu}", maGV, maChucVu);
-                return (false, $"Lỗi khi phân công chức vụ: {ex.Message}");
-            }
-        }
-
-        public async Task<(bool success, string message)> KetThucChucVuAsync(string maGV, string maChucVu, DateTime? ngayKetThuc = null)
-        {
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
-            try
-            {
-                await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_ChucVu_KetThuc @MaGV, @MaChucVu, @NgayKetThuc, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", maGV),
-                    new SqlParameter("@MaChucVu", maChucVu),
-                    new SqlParameter("@NgayKetThuc", ngayKetThuc ?? DateTime.Now),
-                    errorMessageParam);
-
-                var errorMessage = errorMessageParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
-
-                return (isSuccess, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error ket thuc chuc vu: {MaGV}, {MaChucVu}", maGV, maChucVu);
-                return (false, $"Lỗi khi kết thúc chức vụ: {ex.Message}");
+                _logger.LogError(ex, "Error getting bao cao tong hop");
+                throw;
             }
         }
 
@@ -958,7 +1012,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 searchDto ??= new GiaoVienSearchDto { PageNumber = 1, PageSize = 10000 };
 
-                var (data, _) = await SearchGiaoVienAsync(searchDto);
+                var result = await SearchGiaoVienAsync(searchDto);
                 var dataTable = new DataTable();
 
                 // Define columns
@@ -974,19 +1028,19 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 dataTable.Columns.Add("Khoa", typeof(string));
 
                 // Add rows
-                foreach (var gv in data)
+                foreach (var gv in result.Data)
                 {
                     dataTable.Rows.Add(
                         gv.MaGV,
                         gv.HoTen,
                         gv.NgaySinh.ToString("dd/MM/yyyy"),
-                        gv.GioiTinhText,
+                        gv.GioiTinh,
                         gv.QueQuan,
                         gv.DiaChi,
                         gv.SDT.ToString(),
                         gv.Email,
-                        gv.BoMon?.TenBM,
-                        gv.BoMon?.Khoa?.TenKhoa
+                        gv.TenBM,
+                        gv.TenKhoa
                     );
                 }
 

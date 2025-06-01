@@ -1,7 +1,6 @@
 ﻿// Data/ApplicationDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using QuanLyGiaoVienCSDLNC.Models;
-using QuanLyGiaoVienCSDLNC.Models.QuanLyGiaoVienCSDLNC.Models;
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;

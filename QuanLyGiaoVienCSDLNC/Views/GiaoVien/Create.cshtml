@@ -1,4 +1,4 @@
-﻿@model QuanLyGiaoVienCSDLNC.Models.GiaoVien
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.GiaoVienCreateDto
 @{
     ViewData["Title"] = "Thêm giáo viên";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -9,7 +9,7 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>Thêm giáo viên</h3>
+                    <h3>Thêm giáo viên mới</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
@@ -27,93 +27,121 @@
             </div>
         </div>
     </div>
-    <!-- Container-fluid starts-->
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
                         <h5>Thông tin giáo viên</h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-outline-info btn-sm" data-bs-toggle="tooltip" title="Hướng dẫn">
+                                <i data-feather="help-circle"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Create" method="post">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <form asp-action="Create" method="post" id="createForm" novalidate>
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                            <!-- Thông tin cơ bản -->
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="HoTen" class="form-label">Họ tên</label>
-                                        <input asp-for="HoTen" class="form-control" />
+                                        <label asp-for="HoTen" class="form-label required">Họ tên</label>
+                                        <input asp-for="HoTen" class="form-control" placeholder="Nhập họ tên đầy đủ" />
                                         <span asp-validation-for="HoTen" class="text-danger"></span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="NgaySinh" class="form-label">Ngày sinh</label>
+                                        <label asp-for="NgaySinh" class="form-label required">Ngày sinh</label>
                                         <input asp-for="NgaySinh" class="form-control" type="date" />
                                         <span asp-validation-for="NgaySinh" class="text-danger"></span>
+                                        <div class="form-text">Giáo viên phải từ 22 tuổi trở lên</div>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="GioiTinh" class="form-label">Giới tính</label>
-                                        <div class="form-check">
-                                            <input asp-for="GioiTinh" class="form-check-input" type="radio" value="true" checked>
-                                            <label class="form-check-label">Nam</label>
-                                        </div>
-                                        <div class="form-check">
-                                            <input asp-for="GioiTinh" class="form-check-input" type="radio" value="false">
-                                            <label class="form-check-label">Nữ</label>
+                                        <label asp-for="GioiTinh" class="form-label required">Giới tính</label>
+                                        <div class="form-check-container">
+                                            <div class="form-check form-check-inline">
+                                                <input asp-for="GioiTinh" class="form-check-input" type="radio" value="true" checked>
+                                                <label class="form-check-label">Nam</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input asp-for="GioiTinh" class="form-check-input" type="radio" value="false">
+                                                <label class="form-check-label">Nữ</label>
+                                            </div>
                                         </div>
                                         <span asp-validation-for="GioiTinh" class="text-danger"></span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="MaBM" class="form-label">Bộ môn</label>
-                                        <select asp-for="MaBM" class="form-select" asp-items="ViewBag.BoMons">
+                                        <label asp-for="MaBM" class="form-label required">Bộ môn</label>
+                                        <select asp-for="MaBM" class="form-select" asp-items="ViewBag.BoMons" id="maBM">
                                             <option value="">-- Chọn bộ môn --</option>
                                         </select>
                                         <span asp-validation-for="MaBM" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Thông tin liên hệ -->
+                            <h6 class="mt-4 mb-3 text-primary">
+                                <i data-feather="phone"></i> Thông tin liên hệ
+                            </h6>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="QueQuan" class="form-label">Quê quán</label>
-                                        <input asp-for="QueQuan" class="form-control" />
+                                        <input asp-for="QueQuan" class="form-control" placeholder="Tỉnh/Thành phố" />
                                         <span asp-validation-for="QueQuan" class="text-danger"></span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
-                                        <input asp-for="DiaChi" class="form-control" />
+                                        <label asp-for="DiaChi" class="form-label">Địa chỉ hiện tại</label>
+                                        <input asp-for="DiaChi" class="form-control" placeholder="Địa chỉ chi tiết" />
                                         <span asp-validation-for="DiaChi" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="SDT" class="form-label">Số điện thoại</label>
-                                        <input asp-for="SDT" class="form-control" />
+                                        <label asp-for="SDT" class="form-label required">Số điện thoại</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">+84</span>
+                                            <input asp-for="SDT" class="form-control" placeholder="Nhập 9 chữ số"
+                                                   pattern="[0-9]{9}" title="Số điện thoại phải có 9 chữ số" />
+                                        </div>
                                         <span asp-validation-for="SDT" class="text-danger"></span>
+                                        <div class="form-text" id="sdt-validation"></div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="Email" class="form-label">Email</label>
-                                        <input asp-for="Email" class="form-control" type="email" />
+                                        <label asp-for="Email" class="form-label required">Email</label>
+                                        <input asp-for="Email" class="form-control" type="email" placeholder="example@domain.com" />
                                         <span asp-validation-for="Email" class="text-danger"></span>
+                                        <div class="form-text" id="email-validation"></div>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="card-footer text-end">
-                                <button type="submit" class="btn btn-primary">Lưu</button>
-                                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i data-feather="save"></i> Lưu thông tin
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i data-feather="arrow-left"></i> Quay lại
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -121,11 +149,129 @@
             </div>
         </div>
     </div>
-    <!-- Container-fluid Ends-->
 </div>
 
 @section Script {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+
+    <script>
+        $(document).ready(function () {
+            // Real-time validation
+            $('#Email').on('blur', function() {
+                var email = $(this).val();
+                if (email) {
+                    checkEmailExists(email);
+                }
+            });
+
+            $('#SDT').on('blur', function() {
+                var sdt = $(this).val();
+                if (sdt && sdt.length === 9) {
+                    checkSDTExists(parseInt(sdt));
+                }
+            });
+
+            function checkEmailExists(email) {
+                $.post('@Url.Action("CheckEmailExists")', { email: email })
+                    .done(function(response) {
+                        if (response.exists) {
+                            $('#email-validation').html('<span class="text-danger">Email đã tồn tại trong hệ thống</span>');
+                            $('#Email').addClass('is-invalid');
+                        } else {
+                            $('#email-validation').html('<span class="text-success">Email có thể sử dụng</span>');
+                            $('#Email').removeClass('is-invalid').addClass('is-valid');
+                        }
+                    })
+                    .fail(function() {
+                        $('#email-validation').html('<span class="text-warning">Không thể kiểm tra email</span>');
+                    });
+            }
+
+            function checkSDTExists(sdt) {
+                $.post('@Url.Action("CheckSDTExists")', { sdt: sdt })
+                    .done(function(response) {
+                        if (response.exists) {
+                            $('#sdt-validation').html('<span class="text-danger">Số điện thoại đã tồn tại trong hệ thống</span>');
+                            $('#SDT').addClass('is-invalid');
+                        } else {
+                            $('#sdt-validation').html('<span class="text-success">Số điện thoại có thể sử dụng</span>');
+                            $('#SDT').removeClass('is-invalid').addClass('is-valid');
+                        }
+                    })
+                    .fail(function() {
+                        $('#sdt-validation').html('<span class="text-warning">Không thể kiểm tra số điện thoại</span>');
+                    });
+            }
+
+            // Age validation
+            $('#NgaySinh').on('change', function() {
+                var birthDate = new Date($(this).val());
+                var today = new Date();
+                var age = today.getFullYear() - birthDate.getFullYear();
+                var monthDiff = today.getMonth() - birthDate.getMonth();
+
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+
+                if (age < 22) {
+                    $(this).addClass('is-invalid');
+                    $(this).next('.text-danger').html('Giáo viên phải từ 22 tuổi trở lên');
+                } else if (age > 70) {
+                    $(this).addClass('is-invalid');
+                    $(this).next('.text-danger').html('Giáo viên không thể trên 70 tuổi');
+                } else {
+                    $(this).removeClass('is-invalid').addClass('is-valid');
+                    $(this).next('.text-danger').html('');
+                }
+            });
+
+            // Form submission
+            $('#createForm').on('submit', function(e) {
+                var isValid = true;
+
+                // Check for invalid fields
+                if ($('.is-invalid').length > 0) {
+                    e.preventDefault();
+                    isValid = false;
+                    alert('Vui lòng kiểm tra lại thông tin đã nhập');
+                }
+
+                if (isValid) {
+                    $('#submitBtn').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...');
+                }
+            });
+
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    </script>
 }
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+
+    .form-check-container {
+        display: flex;
+        gap: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .is-valid {
+        border-color: #28a745;
+    }
+
+    .is-invalid {
+        border-color: #dc3545;
+    }
+</style>

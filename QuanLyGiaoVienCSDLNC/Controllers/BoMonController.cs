@@ -200,7 +200,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             }
 
             // Lấy danh sách giáo viên thuộc bộ môn để hiển thị trong dropdown
-            var giaoViens = await _giaoVienService.SearchGiaoVienAsync(null, id, null);
+            var giaoViens = await _giaoVienService.SearchGiaoVienSimpleAsync(null, id, null);
             ViewBag.GiaoViens = new SelectList(giaoViens, "MaGV", "HoTen", boMon.MaChuNhiemBM);
 
             return View(boMon);

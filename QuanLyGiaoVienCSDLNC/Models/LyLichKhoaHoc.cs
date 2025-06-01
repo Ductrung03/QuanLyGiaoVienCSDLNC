@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace QuanLyGiaoVienCSDLNC.Models
-{
-    namespace QuanLyGiaoVienCSDLNC.Models
-    {
+namespace QuanLyGiaoVienCSDLNC.Models { 
+
         public class LyLichKhoaHoc
         {
             [Key]
@@ -74,4 +72,4 @@ namespace QuanLyGiaoVienCSDLNC.Models
             public virtual GiaoVien GiaoVien { get; set; }
         }
     }
-   }
+

@@ -2,36 +2,42 @@
 
 namespace QuanLyGiaoVienCSDLNC.DTOs.GiaoVien
 {
-    public class GiaoVienCreateUpdateDto
+    public class GiaoVienCreateDto
     {
-        public string MaGV { get; set; }
-
         [Required(ErrorMessage = "Họ tên không được để trống")]
-        [StringLength(100)]
+        [StringLength(100, ErrorMessage = "Họ tên không được vượt quá 100 ký tự")]
+        [Display(Name = "Họ tên")]
         public string HoTen { get; set; }
 
         [Required(ErrorMessage = "Ngày sinh không được để trống")]
         [DataType(DataType.Date)]
+        [Display(Name = "Ngày sinh")]
         public DateTime NgaySinh { get; set; }
 
+        [Display(Name = "Giới tính")]
         public bool GioiTinh { get; set; }
 
         [StringLength(100)]
+        [Display(Name = "Quê quán")]
         public string QueQuan { get; set; }
 
         [StringLength(100)]
+        [Display(Name = "Địa chỉ")]
         public string DiaChi { get; set; }
 
         [Required(ErrorMessage = "Số điện thoại không được để trống")]
-        [Range(100000000, 999999999)]
+        [Range(100000000, 999999999, ErrorMessage = "Số điện thoại phải có 9 chữ số")]
+        [Display(Name = "Số điện thoại")]
         public int SDT { get; set; }
 
         [Required(ErrorMessage = "Email không được để trống")]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Email không đúng định dạng")]
         [StringLength(100)]
+        [Display(Name = "Email")]
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Bộ môn không được để trống")]
+        [Display(Name = "Mã bộ môn")]
         public string MaBM { get; set; }
     }
 }
