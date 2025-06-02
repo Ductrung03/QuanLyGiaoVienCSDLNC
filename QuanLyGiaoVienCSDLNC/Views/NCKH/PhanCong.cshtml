@@ -1,0 +1,287 @@
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.NCKH.ChiTietNCKHCreateDto
+@{
+    ViewData["Title"] = "Phân công NCKH";
+    var taiNCKH = ViewBag.TaiNCKH as QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHDetailDto;
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">Quản lý NCKH</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Details" asp-route-id="@Model.MaTaiNCKH">Chi tiết</a></li>
+                        <li class="breadcrumb-item active">Phân công</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Thông tin tài NCKH -->
+            <div class="col-md-4">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Thông tin tài NCKH</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (taiNCKH != null)
+                        {
+                            <div class="mb-2">
+                                <strong>Mã:</strong> @taiNCKH.ThongTinCoBan.MaTaiNCKH
+                            </div>
+                            <div class="mb-2">
+                                <strong>Tên công trình:</strong><br>
+                                <small>@taiNCKH.ThongTinCoBan.TenCongTrinhKhoaHoc</small>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Năm học:</strong>
+                                <span class="badge bg-primary">@taiNCKH.ThongTinCoBan.NamHoc</span>
+                            </div>
+                            <div class="mb-2">
+                                <strong>Loại NCKH:</strong><br>
+                                <span class="badge bg-success">@taiNCKH.LoaiNCKH?.TenLoaiNCKH</span>
+                            </div>
+                            <hr>
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <h4 class="text-primary">@taiNCKH.SoTacGiaHienTai</h4>
+                                    <small>Hiện tại</small>
+                                </div>
+                                <div class="col-6">
+                                    <h4 class="text-success">@taiNCKH.ThongTinCoBan.SoTacGia</h4>
+                                    <small>Tối đa</small>
+                                </div>
+                            </div>
+
+                            @if (taiNCKH.DayDuTacGia)
+                            {
+                                <div class="alert alert-warning mt-3">
+                                    <small><strong>Lưu ý:</strong> Đã đủ số tác giả theo quy định!</small>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <!-- Danh sách tác giả hiện tại -->
+                @if (taiNCKH?.DanhSachTacGia.Any() == true)
+                {
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Tác giả hiện tại</h6>
+                        </div>
+                        <div class="card-body">
+                            @foreach (var tacGia in taiNCKH.DanhSachTacGia)
+                            {
+                                <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
+                                    <div>
+                                        <strong>@tacGia.GiaoVien?.HoTen</strong><br>
+                                        <small class="text-muted">@tacGia.MaGV</small>
+                                    </div>
+                                    <div class="text-end">
+                                        @if (tacGia.VaiTro == "Chủ nhiệm")
+                                        {
+                                            <span class="badge bg-danger">@tacGia.VaiTro</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">@tacGia.VaiTro</span>
+                                        }
+                                        <br><small>@tacGia.SoGio giờ</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Form phân công -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thêm tác giả mới</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="PhanCong" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <input type="hidden" asp-for="MaTaiNCKH" />
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="MaGV" class="form-label required">Giáo viên</label>
+                                        <select asp-for="MaGV" class="form-control" asp-items="ViewBag.GiaoVienList as SelectList">
+                                            <option value="">-- Chọn giáo viên --</option>
+                                        </select>
+                                        <span asp-validation-for="MaGV" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="VaiTro" class="form-label required">Vai trò</label>
+                                        <select asp-for="VaiTro" class="form-control">
+                                            <option value="">-- Chọn vai trò --</option>
+                                            @foreach (var vaiTro in ViewBag.AvailableVaiTro as List<string> ?? new List<string>())
+                                            {
+                                                <option value="@vaiTro">@vaiTro</option>
+                                            }
+                                        </select>
+                                        <span asp-validation-for="VaiTro" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="SoGio" class="form-label required">Số giờ</label>
+                                        <input asp-for="SoGio" class="form-control" type="number" min="1" max="500" step="0.5" />
+                                        <span asp-validation-for="SoGio" class="text-danger"></span>
+                                        <small class="form-text text-muted">Số giờ từ 1 đến 500</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Quy đổi giờ chuẩn</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="quyDoiGioChuan" readonly placeholder="Sẽ tính tự động" />
+                                            <span class="input-group-text">giờ</span>
+                                        </div>
+                                        <small class="form-text text-muted">Dựa trên loại NCKH và số giờ</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lưu ý quan trọng -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card border-warning">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0 text-warning">
+                                                <i data-feather="alert-triangle"></i> Lưu ý quan trọng
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <ul class="mb-0 small">
+                                                <li>Mỗi giáo viên chỉ có thể tham gia một lần trong cùng một công trình.</li>
+                                                <li>Chỉ được có một <strong>Chủ nhiệm</strong> cho mỗi công trình.</li>
+                                                <li>Số lượng tác giả không được vượt quá quy định.</li>
+                                                <li>Số giờ sẽ được tính vào khối lượng công tác của giáo viên.</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-feather="user-plus"></i> Phân công
+                                </button>
+                                <a asp-action="Details" asp-route-id="@Model.MaTaiNCKH" class="btn btn-secondary">
+                                    <i data-feather="arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        feather.replace();
+
+        // Calculate quy doi gio chuan
+        function calculateQuyDoi() {
+            const soGio = parseFloat($('#SoGio').val()) || 0;
+            const quyRaGioChuan = @(taiNCKH?.QuyDoiGioChuan?.QuyRaGioChuan ?? 1);
+            const result = soGio * quyRaGioChuan;
+            $('#quyDoiGioChuan').val(result.toFixed(1));
+        }
+
+        $('#SoGio').on('input', calculateQuyDoi);
+
+        // Form validation
+        $('form').on('submit', function(e) {
+            let isValid = true;
+
+            // Reset validation
+            $('.is-invalid').removeClass('is-invalid');
+
+            if (!$('#MaGV').val()) {
+                $('#MaGV').addClass('is-invalid');
+                isValid = false;
+            }
+
+            if (!$('#VaiTro').val()) {
+                $('#VaiTro').addClass('is-invalid');
+                isValid = false;
+            }
+
+            const soGio = parseFloat($('#SoGio').val());
+            if (!soGio || soGio <= 0 || soGio > 500) {
+                $('#SoGio').addClass('is-invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                alert('Vui lòng điền đầy đủ thông tin bắt buộc');
+                return false;
+            }
+
+            // Check if already full
+            const isFullAuthors = @(taiNCKH?.DayDuTacGia.ToString().ToLower() ?? "false");
+            if (isFullAuthors) {
+                if (!confirm('Công trình đã đủ số tác giả. Bạn có chắc chắn muốn tiếp tục?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+        });
+
+        // Load giáo viên info when selected
+        $('#MaGV').change(function() {
+            const selectedValue = $(this).val();
+            if (selectedValue) {
+                // Add loading or info display logic here if needed
+                console.log('Selected teacher:', selectedValue);
+            }
+        });
+
+        // Check vai tro constraints
+        $('#VaiTro').change(function() {
+            const selectedRole = $(this).val();
+            if (selectedRole === 'Chủ nhiệm') {
+                const hasChuNhiem = @Html.Raw(Json.Serialize(taiNCKH?.DanhSachTacGia.Any(t => t.VaiTro == "Chủ nhiệm") ?? false));
+                if (hasChuNhiem) {
+                    alert('Công trình đã có Chủ nhiệm. Vui lòng chọn vai trò khác.');
+                    $(this).val('');
+                }
+            }
+        });
+
+        // Initial calculation
+        calculateQuyDoi();
+    </script>
+}

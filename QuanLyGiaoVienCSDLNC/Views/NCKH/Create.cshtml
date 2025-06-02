@@ -1,0 +1,199 @@
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHCreateDto
+@{
+    ViewData["Title"] = "Thêm mới tài NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">Quản lý NCKH</a></li>
+                        <li class="breadcrumb-item active">Thêm mới</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin tài NCKH</h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="Create" method="post">
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="TenCongTrinhKhoaHoc" class="form-label required">Tên công trình khoa học</label>
+                                        <input asp-for="TenCongTrinhKhoaHoc" class="form-control" placeholder="Nhập tên công trình khoa học..." />
+                                        <span asp-validation-for="TenCongTrinhKhoaHoc" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="NamHoc" class="form-label required">Năm học</label>
+                                        <input asp-for="NamHoc" class="form-control" placeholder="VD: 2023-2024" />
+                                        <span asp-validation-for="NamHoc" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="SoTacGia" class="form-label required">Số tác giả</label>
+                                        <input asp-for="SoTacGia" class="form-control" type="number" min="1" max="20" value="1" />
+                                        <span asp-validation-for="SoTacGia" class="text-danger"></span>
+                                        <small class="form-text text-muted">Số tác giả từ 1 đến 20</small>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label asp-for="MaLoaiNCKH" class="form-label required">Loại NCKH</label>
+                                        <select asp-for="MaLoaiNCKH" class="form-control" asp-items="ViewBag.LoaiNCKHList as SelectList">
+                                            <option value="">-- Chọn loại NCKH --</option>
+                                        </select>
+                                        <span asp-validation-for="MaLoaiNCKH" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-light">
+                                            <h6 class="mb-0 text-info">
+                                                <i data-feather="info"></i> Thông tin loại NCKH
+                                            </h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="loaiNCKHInfo">
+                                                <p class="text-muted">Vui lòng chọn loại NCKH để xem thông tin chi tiết</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <i data-feather="save"></i> Lưu
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i data-feather="arrow-left"></i> Quay lại
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+
+        // Thông tin loại NCKH
+        const loaiNCKHData = @Html.Raw(Json.Serialize(ViewBag.LoaiNCKHList));
+
+        $('#MaLoaiNCKH').change(function() {
+            const selectedValue = $(this).val();
+            const infoDiv = $('#loaiNCKHInfo');
+
+            if (selectedValue) {
+                // Tìm thông tin loại NCKH được chọn
+                const selectedLoai = loaiNCKHData.find(item => item.Value === selectedValue);
+                if (selectedLoai) {
+                    // Giả sử có thêm thông tin về quy đổi giờ chuẩn
+                    infoDiv.html(`
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Tên loại:</strong> ${selectedLoai.Text}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Mã loại:</strong> ${selectedLoai.Value}
+                            </div>
+                        </div>
+                        <small class="text-muted mt-2">
+                            <i data-feather="info" style="width: 14px; height: 14px;"></i>
+                            Thông tin quy đổi giờ chuẩn sẽ được tính toán tự động
+                        </small>
+                    `);
+                    feather.replace();
+                }
+            } else {
+                infoDiv.html('<p class="text-muted">Vui lòng chọn loại NCKH để xem thông tin chi tiết</p>');
+            }
+        });
+
+        // Form validation
+        $('form').on('submit', function(e) {
+            let isValid = true;
+            const tenCongTrinh = $('#TenCongTrinhKhoaHoc').val().trim();
+            const namHoc = $('#NamHoc').val().trim();
+            const soTacGia = parseInt($('#SoTacGia').val());
+            const loaiNCKH = $('#MaLoaiNCKH').val();
+
+            // Reset validation
+            $('.is-invalid').removeClass('is-invalid');
+
+            if (!tenCongTrinh) {
+                $('#TenCongTrinhKhoaHoc').addClass('is-invalid');
+                isValid = false;
+            }
+
+            if (!namHoc) {
+                $('#NamHoc').addClass('is-invalid');
+                isValid = false;
+            }
+
+            if (!soTacGia || soTacGia < 1 || soTacGia > 20) {
+                $('#SoTacGia').addClass('is-invalid');
+                isValid = false;
+            }
+
+            if (!loaiNCKH) {
+                $('#MaLoaiNCKH').addClass('is-invalid');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+                toastr.error('Vui lòng điền đầy đủ thông tin bắt buộc');
+            }
+        });
+
+        // Auto uppercase for NamHoc
+        $('#NamHoc').on('input', function() {
+            const value = $(this).val();
+            if (value && !value.includes('-')) {
+                const currentYear = new Date().getFullYear();
+                if (value.length === 4 && !isNaN(value)) {
+                    $(this).val(value + '-' + (parseInt(value) + 1));
+                }
+            }
+        });
+    </script>
+}

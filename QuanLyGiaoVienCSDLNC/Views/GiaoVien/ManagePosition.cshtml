@@ -1,0 +1,450 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.GiaoVien
+@{
+    ViewData["Title"] = "Quản lý chức vụ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Quản lý chức vụ</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Index">Quản lý giáo viên</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@ViewBag.MaGV">Chi tiết</a></li>
+                        <li class="breadcrumb-item active">Chức vụ</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Thông tin giáo viên -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-primary" role="alert">
+                    <h4 class="alert-heading">
+                        <i data-feather="user"></i> @ViewBag.HoTen
+                    </h4>
+                    <p class="mb-0">Mã giáo viên: <strong>@ViewBag.MaGV</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Chức vụ hiện tại -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="briefcase"></i> Lịch sử chức vụ
+                        </h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#assignPositionModal">
+                                <i data-feather="plus"></i> Phân công chức vụ
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline-container">
+                            <!-- Timeline items sẽ được load từ server hoặc mock data -->
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-primary"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="timeline-title">Trưởng bộ môn Công nghệ thông tin</h6>
+                                        <span class="timeline-date">01/01/2023 - Hiện tại</span>
+                                    </div>
+                                    <p class="timeline-text">Đang đảm nhiệm chức vụ Trưởng bộ môn</p>
+                                    <div class="timeline-actions">
+                                        <button class="btn btn-warning btn-sm" onclick="endPosition('CV001', '2024-01-01')">
+                                            <i data-feather="clock"></i> Kết thúc
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-success"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="timeline-title">Phó trưởng khoa Công nghệ</h6>
+                                        <span class="timeline-date">01/01/2021 - 31/12/2022</span>
+                                    </div>
+                                    <p class="timeline-text">Đã hoàn thành nhiệm kỳ</p>
+                                    <span class="badge bg-success">Đã kết thúc</span>
+                                </div>
+                            </div>
+
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-info"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h6 class="timeline-title">Giảng viên</h6>
+                                        <span class="timeline-date">01/01/2020 - 31/12/2020</span>
+                                    </div>
+                                    <p class="timeline-text">Chức vụ ban đầu khi vào trường</p>
+                                    <span class="badge bg-secondary">Đã kết thúc</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thống kê chức vụ -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="bar-chart-2"></i> Thống kê chức vụ
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Tổng số chức vụ đã đảm nhiệm:</span>
+                                <strong class="text-primary">3</strong>
+                            </div>
+                        </div>
+
+                        <div class="stats-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Chức vụ hiện tại:</span>
+                                <strong class="text-success">1</strong>
+                            </div>
+                        </div>
+
+                        <div class="stats-item mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Tổng thời gian đảm nhiệm:</span>
+                                <strong class="text-info">4 năm</strong>
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="position-breakdown">
+                            <h6 class="mb-3">Phân loại chức vụ</h6>
+                            <div class="position-item mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-primary">Trưởng bộ môn</span>
+                                    <small>1 năm</small>
+                                </div>
+                            </div>
+                            <div class="position-item mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-success">Phó trưởng khoa</span>
+                                    <small>2 năm</small>
+                                </div>
+                            </div>
+                            <div class="position-item mb-2">
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-secondary">Giảng viên</span>
+                                    <small>1 năm</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chức vụ khả dụng -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="list"></i> Chức vụ khả dụng
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="available-positions">
+                            <div class="position-card mb-2 p-2 border rounded">
+                                <h6 class="mb-1">Phó trưởng bộ môn</h6>
+                                <small class="text-muted">Bộ môn Công nghệ thông tin</small>
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-primary btn-sm w-100" onclick="assignQuickPosition('PTBM001')">
+                                        <i data-feather="plus-circle"></i> Phân công
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="position-card mb-2 p-2 border rounded">
+                                <h6 class="mb-1">Thư ký khoa</h6>
+                                <small class="text-muted">Khoa Công nghệ</small>
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-primary btn-sm w-100" onclick="assignQuickPosition('TK001')">
+                                        <i data-feather="plus-circle"></i> Phân công
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="position-card mb-2 p-2 border rounded">
+                                <h6 class="mb-1">Chủ nhiệm đề tài</h6>
+                                <small class="text-muted">Cấp trường</small>
+                                <div class="mt-2">
+                                    <button class="btn btn-outline-primary btn-sm w-100" onclick="assignQuickPosition('CNDT001')">
+                                        <i data-feather="plus-circle"></i> Phân công
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-footer text-center">
+                        <a asp-action="Details" asp-route-id="@ViewBag.MaGV" class="btn btn-secondary me-2">
+                            <i data-feather="arrow-left"></i> Quay lại chi tiết
+                        </a>
+                        <a asp-action="ManageAcademic" asp-route-id="@ViewBag.MaGV" class="btn btn-primary me-2">
+                            <i data-feather="award"></i> Quản lý học thuật
+                        </a>
+                        <a asp-action="Statistics" asp-route-id="@ViewBag.MaGV" class="btn btn-info">
+                            <i data-feather="bar-chart"></i> Xem thống kê
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal phân công chức vụ -->
+<div class="modal fade" id="assignPositionModal" tabindex="-1" aria-labelledby="assignPositionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AssignPosition" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="assignPositionModalLabel">
+                        <i data-feather="briefcase"></i> Phân công chức vụ mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="maGV" value="@ViewBag.MaGV" />
+
+                    <div class="mb-3">
+                        <label for="maChucVu" class="form-label">Chức vụ *</label>
+                        <select class="form-select" name="maChucVu" required>
+                            <option value="">-- Chọn chức vụ --</option>
+                            <option value="TBM">Trưởng bộ môn</option>
+                            <option value="PTBM">Phó trưởng bộ môn</option>
+                            <option value="TK">Trưởng khoa</option>
+                            <option value="PTK">Phó trưởng khoa</option>
+                            <option value="ThuKy">Thư ký</option>
+                            <option value="CNDT">Chủ nhiệm đề tài</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ngayNhan" class="form-label">Ngày nhận chức *</label>
+                        <input type="date" class="form-control" name="ngayNhan" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ghiChu" class="form-label">Ghi chú</label>
+                        <textarea class="form-control" name="ghiChu" rows="3" placeholder="Ghi chú về việc phân công (nếu có)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-feather="save"></i> Phân công chức vụ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal kết thúc chức vụ -->
+<div class="modal fade" id="endPositionModal" tabindex="-1" aria-labelledby="endPositionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="EndPosition" method="post" id="endPositionForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="endPositionModalLabel">
+                        <i data-feather="clock"></i> Kết thúc chức vụ
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="maGV" value="@ViewBag.MaGV" />
+                    <input type="hidden" name="maChucVu" id="endPosition_maChucVu" />
+
+                    <div class="alert alert-warning">
+                        <h6>Xác nhận kết thúc chức vụ</h6>
+                        <p class="mb-0">Bạn có chắc chắn muốn kết thúc chức vụ này không?</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ngayKetThuc" class="form-label">Ngày kết thúc *</label>
+                        <input type="date" class="form-control" name="ngayKetThuc" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="lyDoKetThuc" class="form-label">Lý do kết thúc</label>
+                        <select class="form-select" name="lyDoKetThuc">
+                            <option value="">-- Chọn lý do --</option>
+                            <option value="HetNhiemKy">Hết nhiệm kỳ</option>
+                            <option value="ChuyenCongTac">Chuyển công tác</option>
+                            <option value="XinThoiChuc">Xin thôi chức</option>
+                            <option value="Khac">Lý do khác</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i data-feather="clock"></i> Kết thúc chức vụ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+
+        // Function to end position
+        function endPosition(maChucVu, ngayKetThuc) {
+            $('#endPosition_maChucVu').val(maChucVu);
+            $('[name="ngayKetThuc"]').val(ngayKetThuc);
+            $('#endPositionModal').modal('show');
+        }
+
+        // Function to assign quick position
+        function assignQuickPosition(maChucVu) {
+            $('[name="maChucVu"]').val(maChucVu);
+            $('[name="ngayNhan"]').val(new Date().toISOString().split('T')[0]);
+            $('#assignPositionModal').modal('show');
+        }
+    </script>
+
+    <style>
+        .timeline-container {
+            position: relative;
+            padding-left: 30px;
+        }
+
+            .timeline-container::before {
+                content: '';
+                position: absolute;
+                left: 15px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #e9ecef;
+            }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: -37px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 3px solid #007bff;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .timeline-title {
+            margin: 0;
+            color: #495057;
+        }
+
+        .timeline-date {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-left: auto;
+        }
+
+        .timeline-text {
+            margin: 10px 0;
+            color: #6c757d;
+        }
+
+        .timeline-actions {
+            margin-top: 10px;
+        }
+
+        .stats-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+            .stats-item:last-child {
+                border-bottom: none;
+            }
+
+        .position-breakdown .position-item {
+            padding: 8px 0;
+        }
+
+        .available-positions .position-card {
+            transition: all 0.3s ease;
+        }
+
+            .available-positions .position-card:hover {
+                background-color: #f8f9fa;
+                transform: translateY(-2px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+
+        @@media (max-width: 768px) {
+            .timeline-header
+
+        {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .timeline-date {
+            margin-left: 0;
+            margin-top: 5px;
+        }
+
+        }
+    </style>
+}

@@ -1,30 +1,50 @@
-﻿<div class="page-header">
+﻿@using Microsoft.AspNetCore.Http
+
+<div class="page-header">
     <div class="header-wrapper row m-0">
         <form class="form-inline search-full col" action="#" method="get">
             <div class="form-group w-100">
                 <div class="Typeahead Typeahead--twitterUsers">
                     <div class="u-posRelative">
-                        <input class="demo-input Typeahead-input form-control-plaintext w-100" type="text" placeholder="Tìm kiếm trong hệ thống..." name="q" title="" autofocus>
-                        <div class="spinner-border Typeahead-spinner" role="status"><span class="sr-only">Loading...</span></div><i class="close-search" data-feather="x"></i>
+                        <input class="demo-input Typeahead-input form-control-plaintext w-100 search-input"
+                               type="text"
+                               placeholder="Tìm kiếm giáo viên, học phần, lớp..."
+                               name="q"
+                               title=""
+                               autofocus>
+                        <div class="spinner-border Typeahead-spinner" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                        <i class="close-search" data-feather="x"></i>
                     </div>
                     <div class="Typeahead-menu"></div>
                 </div>
             </div>
         </form>
         <div class="header-logo-wrapper col-auto p-0">
-            <div class="logo-wrapper"><a asp-controller="Home" asp-action="Index"><img class="img-fluid" src="~/assets/images/logo/logo.png" alt=""></a></div>
-            <div class="toggle-sidebar"><i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i></div>
+            <div class="logo-wrapper">
+                <a asp-controller="Home" asp-action="Index">
+                    <img class="img-fluid" src="~/assets/images/logo/logo.png" alt="Logo">
+                </a>
+            </div>
+            <div class="toggle-sidebar">
+                <i class="status_toggle middle sidebar-toggle" data-feather="align-center"></i>
+            </div>
         </div>
         <div class="left-header col-xxl-5 col-xl-6 col-lg-5 col-md-4 col-sm-3 p-0">
             <div class="notification-slider">
                 <div class="d-flex h-100">
                     <img src="~/assets/images/giftools.gif" alt="gif">
-                    <h6 class="mb-0 f-w-400"><span class="font-primary">Hệ thống quản lý giáo viên! </span><span class="f-light">Chào mừng bạn đến với hệ thống.</span></h6>
+                    <h6 class="mb-0 f-w-400">
+                        <span class="font-primary">Hệ thống quản lý giáo viên! </span>
+                        <span class="f-light">Chào mừng bạn đến với hệ thống.</span>
+                    </h6>
                 </div>
             </div>
         </div>
         <div class="nav-right col-xxl-7 col-xl-6 col-md-7 col-8 pull-right right-header p-0 ms-auto">
             <ul class="nav-menus">
+                <!-- Global Search -->
                 <li>
                     <span class="header-search">
                         <svg>
@@ -32,43 +52,280 @@
                         </svg>
                     </span>
                 </li>
+
+                <!-- Quick Actions -->
+                <li class="onhover-dropdown">
+                    <div class="quick-actions">
+                        <svg>
+                            <use href="~/assets/svg/icon-sprite.svg#plus-circle"></use>
+                        </svg>
+                    </div>
+                    <div class="onhover-show-div quick-actions-dropdown">
+                        <h6 class="f-18 mb-0 dropdown-title">Thao tác nhanh</h6>
+                        <ul>
+                            <li>
+                                <a asp-controller="GiaoVien" asp-action="Create">
+                                    <i data-feather="user-plus"></i>
+                                    <span>Thêm giáo viên</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="GiangDay" asp-action="Create">
+                                    <i data-feather="book-open"></i>
+                                    <span>Thêm tải giảng dạy</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a asp-controller="BaoCao" asp-action="Index">
+                                    <i data-feather="bar-chart-2"></i>
+                                    <span>Xem báo cáo</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+
+                <!-- Notifications -->
                 <li class="onhover-dropdown">
                     <div class="notification-box">
                         <svg>
                             <use href="~/assets/svg/icon-sprite.svg#notification"></use>
-                        </svg><span class="badge rounded-pill badge-secondary">3</span>
+                        </svg>
+                        <span class="badge rounded-pill badge-secondary" id="notification-count">0</span>
                     </div>
                     <div class="onhover-show-div notification-dropdown">
                         <h6 class="f-18 mb-0 dropdown-title">Thông báo</h6>
-                        <ul>
-                            <li class="b-l-primary border-4">
-                                <p>Có giáo viên mới được thêm <span class="font-danger">10 phút trước</span></p>
-                            </li>
-                            <li class="b-l-success border-4">
-                                <p>Báo cáo đã được xuất<span class="font-success">1 giờ trước</span></p>
-                            </li>
-                            <li class="b-l-warning border-4">
-                                <p>Cần cập nhật định mức<span class="font-warning">3 giờ trước</span></p>
-                            </li>
-                            <li><a class="f-w-700" href="#">Xem tất cả</a></li>
-                        </ul>
+                        <div id="notification-list">
+                            <ul>
+                                <li class="b-l-primary border-4">
+                                    <p>Chào mừng bạn đến với hệ thống! <span class="font-success">Mới</span></p>
+                                </li>
+                                <li class="text-center">
+                                    <small class="text-muted">Không có thông báo mới</small>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="notification-footer">
+                            <a class="f-w-700" href="#" onclick="markAllAsRead()">Đánh dấu đã đọc</a>
+                            <a class="f-w-700 ms-3" href="#" onclick="loadMoreNotifications()">Xem thêm</a>
+                        </div>
                     </div>
                 </li>
+
+                <!-- User Profile -->
                 <li class="profile-nav onhover-dropdown pe-0 py-0">
                     <div class="media profile-media">
-                        <img class="b-r-10" src="~/assets/images/dashboard/profile.png" alt="">
+                        <img class="b-r-10" src="~/assets/images/dashboard/profile.png" alt="Profile">
                         <div class="media-body">
-                            <span>@Context.Session.GetString("Username")</span>
-                            <p class="mb-0 font-roboto">Admin <i class="middle fa fa-angle-down"></i></p>
+                            <span>@(Context.Session.GetString("Username") ?? "Admin")</span>
+                            <p class="mb-0 font-roboto">
+                                @(Context.Session.GetString("UserRole") ?? "Quản trị viên")
+                                <i class="middle fa fa-angle-down"></i>
+                            </p>
                         </div>
                     </div>
                     <ul class="profile-dropdown onhover-show-div">
-                        <li><a href="#"><i data-feather="user"></i><span>Tài khoản</span></a></li>
-                        <li><a href="#"><i data-feather="settings"></i><span>Cài đặt</span></a></li>
-                        <li><a asp-controller="Login" asp-action="Logout"><i data-feather="log-out"></i><span>Đăng xuất</span></a></li>
+                        <li>
+                            <a asp-controller="Profile" asp-action="Index">
+                                <i data-feather="user"></i>
+                                <span>Tài khoản của tôi</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Profile" asp-action="ChangePassword">
+                                <i data-feather="lock"></i>
+                                <span>Đổi mật khẩu</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Settings" asp-action="Index">
+                                <i data-feather="settings"></i>
+                                <span>Cài đặt</span>
+                            </a>
+                        </li>
+                        <li class="dropdown-divider"></li>
+                        <li>
+                            <a asp-controller="Help" asp-action="Index">
+                                <i data-feather="help-circle"></i>
+                                <span>Trợ giúp</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Login" asp-action="Logout" class="text-danger">
+                                <i data-feather="log-out"></i>
+                                <span>Đăng xuất</span>
+                            </a>
+                        </li>
                     </ul>
                 </li>
             </ul>
         </div>
     </div>
 </div>
+
+<!-- Notifications Container (for dynamic notifications) -->
+<div id="notifications-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+    <!-- Dynamic notifications will be inserted here -->
+</div>
+
+<!-- Global Search Results Modal -->
+<div class="modal fade" id="globalSearchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kết quả tìm kiếm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="search-results">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Đang tìm kiếm...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Header JavaScript functionality
+    $(document).ready(function() {
+        // Global search functionality
+        let searchTimeout;
+        $('.search-input').on('input', function() {
+            const searchTerm = $(this).val().trim();
+
+            clearTimeout(searchTimeout);
+
+            if (searchTerm.length >= 2) {
+                searchTimeout = setTimeout(function() {
+                    performGlobalSearch(searchTerm);
+                }, 300);
+            } else {
+                hideSearchResults();
+            }
+        });
+
+        // Notification functionality
+        loadNotifications();
+
+        // Auto-refresh notifications every 5 minutes
+        setInterval(loadNotifications, 5 * 60 * 1000);
+
+        // Quick actions
+        $('.quick-actions').click(function() {
+            $(this).next('.quick-actions-dropdown').toggle();
+        });
+    });
+
+    function performGlobalSearch(searchTerm) {
+        $.ajax({
+            url: '@Url.Action("GlobalSearch", "Home")',
+            type: 'GET',
+            data: { q: searchTerm },
+            success: function(response) {
+                displaySearchResults(response);
+            },
+            error: function() {
+                console.error('Search failed');
+            }
+        });
+    }
+
+    function displaySearchResults(results) {
+        let html = '';
+
+        if (results.giaoVien && results.giaoVien.length > 0) {
+            html += '<h6>Giáo viên</h6><ul class="list-unstyled">';
+            results.giaoVien.forEach(function(item) {
+                html += '<li><a href="' + item.url + '">' + item.name + ' (' + item.code + ')</a></li>';
+            });
+            html += '</ul>';
+        }
+
+        if (results.taiGiangDay && results.taiGiangDay.length > 0) {
+            html += '<h6>Tải giảng dạy</h6><ul class="list-unstyled">';
+            results.taiGiangDay.forEach(function(item) {
+                html += '<li><a href="' + item.url + '">' + item.name + ' - ' + item.class + '</a></li>';
+            });
+            html += '</ul>';
+        }
+
+        if (html === '') {
+            html = '<p class="text-muted">Không tìm thấy kết quả phù hợp.</p>';
+        }
+
+        $('#search-results').html(html);
+        $('#globalSearchModal').modal('show');
+    }
+
+    function hideSearchResults() {
+        $('#globalSearchModal').modal('hide');
+    }
+
+    function loadNotifications() {
+        $.ajax({
+            url: '@Url.Action("GetNotifications", "Home")',
+            type: 'GET',
+            success: function(response) {
+                updateNotificationUI(response);
+            },
+            error: function() {
+                console.error('Failed to load notifications');
+            }
+        });
+    }
+
+    function updateNotificationUI(notifications) {
+        const count = notifications.length;
+        $('#notification-count').text(count);
+
+        if (count > 0) {
+            $('#notification-count').show();
+        } else {
+            $('#notification-count').hide();
+        }
+
+        let html = '<ul>';
+
+        if (notifications.length === 0) {
+            html += '<li class="text-center"><small class="text-muted">Không có thông báo mới</small></li>';
+        } else {
+            notifications.slice(0, 5).forEach(function(notification) {
+                const borderClass = 'b-l-' + (notification.type || 'primary');
+                html += '<li class="' + borderClass + ' border-4">';
+                html += '<p>' + notification.message + ' <span class="font-' + (notification.type || 'primary') + '">' + notification.time + '</span></p>';
+                html += '</li>';
+            });
+
+            if (notifications.length > 5) {
+                html += '<li class="text-center"><small class="text-muted">Và ' + (notifications.length - 5) + ' thông báo khác...</small></li>';
+            }
+        }
+
+        html += '</ul>';
+        $('#notification-list').html(html);
+    }
+
+    function markAllAsRead() {
+        $.ajax({
+            url: '@Url.Action("MarkNotificationsAsRead", "Home")',
+            type: 'POST',
+            success: function() {
+                $('#notification-count').text('0').hide();
+                TM.utils.showNotification('Đã đánh dấu tất cả thông báo là đã đọc', 'success');
+                loadNotifications();
+            },
+            error: function() {
+                TM.utils.showNotification('Có lỗi xảy ra', 'error');
+            }
+        });
+    }
+
+    function loadMoreNotifications() {
+        // Navigate to notifications page
+        window.location.href = '@Url.Action("Notifications", "Home")';
+    }
+</script>

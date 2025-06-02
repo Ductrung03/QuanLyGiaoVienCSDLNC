@@ -7,6 +7,8 @@ using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 using QuanLyGiaoVienCSDLNC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddControllersWithViews()
+    .AddRazorRuntimeCompilation();
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.ListenAnyIP(5000); // Bạn có thể thay đổi cổng nếu muốn
@@ -26,6 +28,13 @@ builder.Services.AddScoped<ITaiGiangDayRepository, TaiGiangDayRepository>();
 builder.Services.AddScoped<IThongKeRepository, ThongKeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+// Đăng ký các repository mới cho NCKH
+builder.Services.AddScoped<INCKHRepository, NCKHRepository>();
+builder.Services.AddScoped<IChucVuRepository, ChucVuRepository>();
+builder.Services.AddScoped<IHoiDongRepository, HoiDongRepository>();
+builder.Services.AddScoped<IHuongDanRepository, HuongDanRepository>();
+builder.Services.AddScoped<IKhaoThiRepository, KhaoThiRepository>();
+
 // Đăng ký các service
 builder.Services.AddScoped<IGiaoVienService, GiaoVienService>();
 builder.Services.AddScoped<IBoMonService, BoMonService>();
@@ -33,6 +42,13 @@ builder.Services.AddScoped<IKhoaService, KhoaService>();
 builder.Services.AddScoped<ITaiGiangDayService, TaiGiangDayService>();
 builder.Services.AddScoped<IThongKeService, ThongKeService>();
 builder.Services.AddScoped<IUserService, UserService>();
+
+// Đăng ký các service mới cho NCKH
+builder.Services.AddScoped<INCKHService, NCKHService>();
+//builder.Services.AddScoped<IChucVuService, ChucVuService>();
+//builder.Services.AddScoped<IHoiDongService, HoiDongService>();
+//builder.Services.AddScoped<IHuongDanService, HuongDanService>();
+//builder.Services.AddScoped<IKhaoThiService, KhaoThiService>();
 
 // Thêm hỗ trợ session
 builder.Services.AddDistributedMemoryCache();

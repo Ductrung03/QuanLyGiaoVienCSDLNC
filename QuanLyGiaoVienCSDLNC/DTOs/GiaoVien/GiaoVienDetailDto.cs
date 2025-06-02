@@ -9,7 +9,7 @@ namespace QuanLyGiaoVienCSDLNC.DTOs.GiaoVien
         public List<LichSuHocHam> DanhSachHocHam { get; set; } = new List<LichSuHocHam>();
         public List<LichSuChucVu> DanhSachChucVu { get; set; } = new List<LichSuChucVu>();
         public QuanLyGiaoVienCSDLNC.Models.LyLichKhoaHoc LyLichKhoaHoc { get; set; }
-        public List<ChiTietGiangDay> DanhSachGiangDay { get; set; } = new List<ChiTietGiangDay>();
+        public List<QuanLyGiaoVienCSDLNC.Models.ChiTietGiangDay> DanhSachGiangDay { get; set; } = new List<QuanLyGiaoVienCSDLNC.Models.ChiTietGiangDay>();
         public List<ChiTietNCKH> DanhSachNCKH { get; set; } = new List<ChiTietNCKH>();
         public ThongKeGiaoVien ThongKe { get; set; }
     }

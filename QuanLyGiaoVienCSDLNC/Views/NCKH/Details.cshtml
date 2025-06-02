@@ -1,0 +1,288 @@
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHDetailDto
+@{
+    ViewData["Title"] = "Chi tiết tài NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">Quản lý NCKH</a></li>
+                        <li class="breadcrumb-item active">Chi tiết</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Thông tin cơ bản -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Thông tin cơ bản</h5>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <a asp-action="Edit" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-warning btn-sm">
+                                    <i data-feather="edit"></i> Sửa
+                                </a>
+                                <a asp-action="PhanCong" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-success btn-sm">
+                                    <i data-feather="user-plus"></i> Phân công
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-danger btn-sm">
+                                    <i data-feather="trash-2"></i> Xóa
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Mã tài NCKH:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                @Model.ThongTinCoBan.MaTaiNCKH
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Tên công trình:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                @Model.ThongTinCoBan.TenCongTrinhKhoaHoc
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Năm học:</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-primary">@Model.ThongTinCoBan.NamHoc</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Loại NCKH:</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge bg-info">@Model.LoaiNCKH?.TenLoaiNCKH</span>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Số tác giả:</strong>
+                            </div>
+                            <div class="col-md-3">
+                                @Model.ThongTinCoBan.SoTacGia
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Số TG hiện tại:</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <span class="badge @(Model.DayDuTacGia ? "bg-success" : "bg-warning")">
+                                    @Model.SoTacGiaHienTai / @Model.ThongTinCoBan.SoTacGia
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin quy đổi -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin quy đổi</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.QuyDoiGioChuan != null)
+                        {
+                            <div class="text-center">
+                                <h3 class="text-primary">@Model.QuyDoiGioChuan.QuyRaGioChuan</h3>
+                                <p class="text-muted">@Model.QuyDoiGioChuan.DonViTinh</p>
+                                <small>@Model.QuyDoiGioChuan.GhiChu</small>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(Model.QuyDoiGioChuan.NhomCongViec))
+                            {
+                                <hr>
+                                <div class="row">
+                                    <div class="col-12">
+                                        <strong>Nhóm công việc:</strong><br>
+                                        <span class="badge bg-secondary">@Model.QuyDoiGioChuan.NhomCongViec</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted text-center">Chưa có thông tin quy đổi</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h5>Trạng thái</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        @if (Model.DayDuTacGia)
+                        {
+                            <i data-feather="check-circle" class="text-success" style="width: 48px; height: 48px;"></i>
+                            <h5 class="text-success mt-2">Đầy đủ tác giả</h5>
+                            <p class="text-muted">Công trình đã có đủ số lượng tác giả theo quy định</p>
+                        }
+                        else
+                        {
+                            <i data-feather="alert-circle" class="text-warning" style="width: 48px; height: 48px;"></i>
+                            <h5 class="text-warning mt-2">Thiếu tác giả</h5>
+                            <p class="text-muted">Còn thiếu @(Model.ThongTinCoBan.SoTacGia - Model.SoTacGiaHienTai) tác giả</p>
+                            <a asp-action="PhanCong" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-success btn-sm">
+                                <i data-feather="user-plus"></i> Thêm tác giả
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách tác giả -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Danh sách tác giả (@Model.SoTacGiaHienTai)</h5>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                @if (!Model.DayDuTacGia)
+                                {
+                                    <a asp-action="PhanCong" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-primary btn-sm">
+                                        <i data-feather="user-plus"></i> Thêm tác giả
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.DanhSachTacGia.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Vai trò</th>
+                                            <th>Số giờ</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int stt = 1;
+                                        }
+                                        @foreach (var tacGia in Model.DanhSachTacGia.OrderBy(t => t.VaiTro == "Chủ nhiệm" ? 0 : 1))
+                                        {
+                                            <tr>
+                                                <td>@(stt++)</td>
+                                                <td>@tacGia.MaGV</td>
+                                                <td>
+                                                    <a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@tacGia.MaGV" class="text-primary">
+                                                        @tacGia.GiaoVien?.HoTen
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    @if (tacGia.VaiTro == "Chủ nhiệm")
+                                                    {
+                                                        <span class="badge bg-danger">@tacGia.VaiTro</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">@tacGia.VaiTro</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">@tacGia.SoGio</td>
+                                                <td>
+                                                    <form asp-action="XoaPhanCong" method="post" style="display: inline;"
+                                                          onsubmit="return confirm('Bạn có chắc chắn muốn xóa tác giả này?');">
+                                                        <input type="hidden" name="maChiTietNCKH" value="@tacGia.MaChiTietNCKH" />
+                                                        <input type="hidden" name="maTaiNCKH" value="@Model.ThongTinCoBan.MaTaiNCKH" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i data-feather="users" class="text-muted" style="width: 48px; height: 48px;"></i>
+                                <h5 class="text-muted mt-3">Chưa có tác giả</h5>
+                                <p class="text-muted">Công trình này chưa có tác giả nào được phân công.</p>
+                                <a asp-action="PhanCong" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-primary">
+                                    <i data-feather="user-plus"></i> Thêm tác giả đầu tiên
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quay lại -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i data-feather="arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+
+        // Auto refresh status
+        setTimeout(function() {
+            feather.replace();
+        }, 100);
+    </script>
+}

@@ -1,0 +1,806 @@
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.Common.PagedResultDto<QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.GiaoVienListItemDto>
+@{
+    ViewData["Title"] = "Thao tác hàng loạt";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Thao tác hàng loạt giáo viên</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Index">Quản lý giáo viên</a></li>
+                        <li class="breadcrumb-item active">Thao tác hàng loạt</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Control Panel -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bảng điều khiển thao tác</h5>
+                        <div class="card-header-right">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-primary btn-sm" onclick="selectAll()">
+                                    <i data-feather="check-square"></i> Chọn tất cả
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAll()">
+                                    <i data-feather="square"></i> Bỏ chọn
+                                </button>
+                                <button type="button" class="btn btn-info btn-sm" onclick="selectByFilter()">
+                                    <i data-feather="filter"></i> Chọn theo điều kiện
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="selection-info">
+                                    <h6>Thông tin lựa chọn:</h6>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="info-item">
+                                            <span class="badge bg-primary" id="selected-count">0</span>
+                                            <small class="ms-1">Đã chọn</small>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="badge bg-info" id="total-count">@Model.TotalRecords</span>
+                                            <small class="ms-1">Tổng số</small>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="badge bg-success" id="action-ready">0</span>
+                                            <small class="ms-1">Sẵn sàng thao tác</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="bulk-actions text-end">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-success btn-sm" onclick="showBulkUpdate()" disabled id="bulk-update-btn">
+                                            <i data-feather="edit"></i> Cập nhật hàng loạt
+                                        </button>
+                                        <button type="button" class="btn btn-warning btn-sm" onclick="showBulkExport()" disabled id="bulk-export-btn">
+                                            <i data-feather="download"></i> Xuất dữ liệu
+                                        </button>
+                                        <button type="button" class="btn btn-danger btn-sm" onclick="showBulkDelete()" disabled id="bulk-delete-btn">
+                                            <i data-feather="trash-2"></i> Xóa hàng loạt
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bộ lọc nâng cao</h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-outline-info btn-sm" onclick="toggleAdvancedFilter()">
+                                <i data-feather="settings"></i> Bộ lọc nâng cao
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <form id="filterForm">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Khoa</label>
+                                        <select class="form-select" name="MaKhoa" id="filter-khoa">
+                                            <option value="">-- Tất cả khoa --</option>
+                                            @if (ViewBag.Khoas != null)
+                                            {
+                                                @foreach (var khoa in ViewBag.Khoas)
+                                                {
+                                                    <option value="@khoa.Value">@khoa.Text</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Bộ môn</label>
+                                        <select class="form-select" name="MaBM" id="filter-bomon">
+                                            <option value="">-- Tất cả bộ môn --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Độ tuổi</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" name="MinAge" placeholder="Từ" min="22" max="70">
+                                            <span class="input-group-text">-</span>
+                                            <input type="number" class="form-control" name="MaxAge" placeholder="Đến" min="22" max="70">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Giới tính</label>
+                                        <select class="form-select" name="GioiTinh">
+                                            <option value="">-- Tất cả --</option>
+                                            <option value="true">Nam</option>
+                                            <option value="false">Nữ</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="advanced-filter" id="advanced-filter" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Học vị</label>
+                                            <select class="form-select" name="HocVi">
+                                                <option value="">-- Tất cả học vị --</option>
+                                                <option value="Cử nhân">Cử nhân</option>
+                                                <option value="Thạc sĩ">Thạc sĩ</option>
+                                                <option value="Tiến sĩ">Tiến sĩ</option>
+                                                <option value="Giáo sư">Giáo sư</option>
+                                                <option value="Phó Giáo sư">Phó Giáo sư</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Năm sinh</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" name="MinYear" placeholder="Từ năm" min="1950" max="2005">
+                                                <span class="input-group-text">-</span>
+                                                <input type="number" class="form-control" name="MaxYear" placeholder="Đến năm" min="1950" max="2005">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Quê quán</label>
+                                            <input type="text" class="form-control" name="QueQuan" placeholder="Nhập quê quán">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="mb-3">
+                                            <label class="form-label">Trạng thái</label>
+                                            <select class="form-select" name="TrangThai">
+                                                <option value="">-- Tất cả --</option>
+                                                <option value="active">Hoạt động</option>
+                                                <option value="inactive">Tạm nghỉ</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="button" class="btn btn-outline-secondary me-2" onclick="resetFilter()">
+                                    <i data-feather="refresh-cw"></i> Đặt lại
+                                </button>
+                                <button type="button" class="btn btn-primary" onclick="applyFilter()">
+                                    <i data-feather="search"></i> Áp dụng bộ lọc
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Danh sách giáo viên</h5>
+                        <div class="card-header-right">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-info">Hiển thị @Model.Data.Count / @Model.TotalRecords</span>
+                                <select class="form-select form-select-sm" style="width: auto;" onchange="changePageSize(this.value)">
+                                    <option value="20">20/trang</option>
+                                    <option value="50">50/trang</option>
+                                    <option value="100">100/trang</option>
+                                    <option value="all">Tất cả</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Data?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="bulkTable">
+                                    <thead>
+                                        <tr>
+                                            <th width="50">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="selectAllCheckbox">
+                                                </div>
+                                            </th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Tuổi</th>
+                                            <th>Email</th>
+                                            <th>Bộ môn</th>
+                                            <th>Khoa</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Data)
+                                        {
+                                            <tr data-id="@item.MaGV">
+                                                <td>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input row-checkbox"
+                                                               type="checkbox"
+                                                               value="@item.MaGV"
+                                                               data-name="@item.HoTen"
+                                                               data-bomon="@item.TenBM"
+                                                               data-khoa="@item.TenKhoa">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">@item.MaGV</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="avatar avatar-sm me-2">
+                                                            <div class="avatar-title bg-primary rounded-circle">
+                                                                @item.HoTen?.FirstOrDefault()
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <span class="fw-bold">@item.HoTen</span>
+                                                            <br>
+                                                            <small class="text-muted">@item.GioiTinh</small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark">@item.Tuoi tuổi</span>
+                                                </td>
+                                                <td>
+                                                    <a href="mailto:@item.Email" class="text-decoration-none">@item.Email</a>
+                                                </td>
+                                                <td>
+                                                    <span class="text-primary">@item.TenBM</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-success">@item.TenKhoa</span>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success">@item.TrangThai</span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a asp-action="Details" asp-route-id="@item.MaGV"
+                                                           class="btn btn-primary btn-sm" title="Chi tiết">
+                                                            <i data-feather="eye"></i>
+                                                        </a>
+                                                        <a asp-action="Edit" asp-route-id="@item.MaGV"
+                                                           class="btn btn-info btn-sm" title="Chỉnh sửa">
+                                                            <i data-feather="edit"></i>
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            @if (Model.TotalPages > 1)
+                            {
+                                <nav aria-label="Page navigation" class="mt-3">
+                                    <ul class="pagination justify-content-center">
+                                        @if (Model.HasPreviousPage)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" onclick="loadPage(1)">Đầu</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" onclick="loadPage(@(Model.PageNumber - 1))">‹</a>
+                                            </li>
+                                        }
+
+                                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
+                                        {
+                                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                                                <a class="page-link" href="#" onclick="loadPage(@i)">@i</a>
+                                            </li>
+                                        }
+
+                                        @if (Model.HasNextPage)
+                                        {
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" onclick="loadPage(@(Model.PageNumber + 1))">›</a>
+                                            </li>
+                                            <li class="page-item">
+                                                <a class="page-link" href="#" onclick="loadPage(@Model.TotalPages)">Cuối</a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </nav>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i data-feather="users" size="64" class="text-muted mb-3"></i>
+                                <h5>Không tìm thấy giáo viên nào</h5>
+                                <p class="text-muted">Thử thay đổi tiêu chí lọc hoặc tạo dữ liệu mới</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Update Modal -->
+<div class="modal fade" id="bulkUpdateModal" tabindex="-1" aria-labelledby="bulkUpdateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkUpdateModalLabel">
+                    <i data-feather="edit" class="me-2"></i>Cập nhật hàng loạt
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6>Các trường được chọn sẽ được cập nhật cho tất cả giáo viên đã chọn</h6>
+                    <p class="mb-0">Để trống các trường không muốn thay đổi</p>
+                </div>
+
+                <form id="bulkUpdateForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="update-bomon">
+                                    <label class="form-check-label" for="update-bomon">
+                                        Thay đổi bộ môn
+                                    </label>
+                                </div>
+                                <select class="form-select mt-2" name="MaBM" disabled>
+                                    <option value="">-- Chọn bộ môn --</option>
+                                    @if (ViewBag.BoMons != null)
+                                    {
+                                        @foreach (var bomon in ViewBag.BoMons)
+                                        {
+                                            <option value="@bomon.Value">@bomon.Text</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="update-status">
+                                    <label class="form-check-label" for="update-status">
+                                        Thay đổi trạng thái
+                                    </label>
+                                </div>
+                                <select class="form-select mt-2" name="TrangThai" disabled>
+                                    <option value="">-- Chọn trạng thái --</option>
+                                    <option value="active">Hoạt động</option>
+                                    <option value="inactive">Tạm nghỉ</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="selected-items mt-3">
+                        <h6>Giáo viên sẽ được cập nhật:</h6>
+                        <div id="bulk-update-list" class="border rounded p-3 bg-light" style="max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="executeBulkUpdate()">
+                    <i data-feather="save"></i> Cập nhật
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-labelledby="bulkDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkDeleteModalLabel">
+                    <i data-feather="trash-2" class="me-2"></i>Xóa hàng loạt
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6>Cảnh báo!</h6>
+                    <p class="mb-0">Bạn có chắc chắn muốn xóa các giáo viên đã chọn? Hành động này không thể hoàn tác.</p>
+                </div>
+
+                <div class="selected-items">
+                    <h6>Danh sách sẽ xóa:</h6>
+                    <div id="bulk-delete-list" class="border rounded p-3 bg-light" style="max-height: 200px; overflow-y: auto;"></div>
+                </div>
+
+                <div class="mt-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="force-delete">
+                        <label class="form-check-label" for="force-delete">
+                            Xóa bắt buộc (bỏ qua ràng buộc dữ liệu)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="executeBulkDelete()">
+                    <i data-feather="trash-2"></i> Xác nhận xóa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        let selectedItems = [];
+
+        $(document).ready(function () {
+            setupBulkOperations();
+            setupFilters();
+
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+
+        function setupBulkOperations() {
+            // Handle individual checkbox changes
+            $('.row-checkbox').on('change', function() {
+                updateSelectedItems();
+            });
+
+            // Handle select all checkbox
+            $('#selectAllCheckbox').on('change', function() {
+                var isChecked = $(this).is(':checked');
+                $('.row-checkbox').prop('checked', isChecked);
+                updateSelectedItems();
+            });
+
+            // Handle bulk update form checkboxes
+            $('#update-bomon').on('change', function() {
+                $('select[name="MaBM"]').prop('disabled', !$(this).is(':checked'));
+            });
+
+            $('#update-status').on('change', function() {
+                $('select[name="TrangThai"]').prop('disabled', !$(this).is(':checked'));
+            });
+        }
+
+        function setupFilters() {
+            $('#filter-khoa').on('change', function() {
+                loadBoMonByKhoa($(this).val());
+            });
+        }
+
+        function updateSelectedItems() {
+            selectedItems = [];
+            $('.row-checkbox:checked').each(function() {
+                selectedItems.push({
+                    id: $(this).val(),
+                    name: $(this).data('name'),
+                    bomon: $(this).data('bomon'),
+                    khoa: $(this).data('khoa')
+                });
+            });
+
+            updateSelectionInfo();
+            toggleBulkButtons();
+        }
+
+        function updateSelectionInfo() {
+            $('#selected-count').text(selectedItems.length);
+            $('#action-ready').text(selectedItems.length);
+
+            // Update select all checkbox state
+            var totalCheckboxes = $('.row-checkbox').length;
+            var checkedCheckboxes = $('.row-checkbox:checked').length;
+
+            $('#selectAllCheckbox').prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+            $('#selectAllCheckbox').prop('checked', checkedCheckboxes === totalCheckboxes);
+        }
+
+        function toggleBulkButtons() {
+            var hasSelection = selectedItems.length > 0;
+            $('#bulk-update-btn, #bulk-export-btn, #bulk-delete-btn').prop('disabled', !hasSelection);
+        }
+
+        function selectAll() {
+            $('.row-checkbox').prop('checked', true);
+            updateSelectedItems();
+        }
+
+        function deselectAll() {
+            $('.row-checkbox').prop('checked', false);
+            $('#selectAllCheckbox').prop('checked', false);
+            updateSelectedItems();
+        }
+
+        function selectByFilter() {
+            // This would implement selection based on current filters
+            alert('Chức năng chọn theo điều kiện sẽ được phát triển');
+        }
+
+        function toggleAdvancedFilter() {
+            $('#advanced-filter').toggle();
+        }
+
+        function resetFilter() {
+            $('#filterForm')[0].reset();
+            $('#filter-bomon').html('<option value="">-- Tất cả bộ môn --</option>');
+        }
+
+        function applyFilter() {
+            // This would apply the filter and reload the table
+            alert('Đang áp dụng bộ lọc...');
+        }
+
+        function loadBoMonByKhoa(maKhoa) {
+            // This would load bộ môn based on selected khoa
+            $.ajax({
+                url: '@Url.Action("GetBoMonByKhoa", "GiaoVien")',
+                type: 'GET',
+                data: { maKhoa: maKhoa },
+                success: function (data) {
+                    var html = '<option value="">-- Tất cả bộ môn --</option>';
+                    $.each(data, function (key, item) {
+                        html += '<option value="' + item.maBM + '">' + item.tenBM + '</option>';
+                    });
+                    $('#filter-bomon').html(html);
+                }
+            });
+        }
+
+        function showBulkUpdate() {
+            if (selectedItems.length === 0) {
+                alert('Vui lòng chọn ít nhất một giáo viên');
+                return;
+            }
+
+            var html = '';
+            selectedItems.forEach(function(item) {
+                html += '<div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">';
+                html += '<div><strong>' + item.name + '</strong><br><small class="text-muted">' + item.bomon + '</small></div>';
+                html += '<span class="badge bg-primary">' + item.id + '</span>';
+                html += '</div>';
+            });
+
+            $('#bulk-update-list').html(html);
+            $('#bulkUpdateModal').modal('show');
+        }
+
+        function showBulkDelete() {
+            if (selectedItems.length === 0) {
+                alert('Vui lòng chọn ít nhất một giáo viên');
+                return;
+            }
+
+            var html = '';
+            selectedItems.forEach(function(item) {
+                html += '<div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">';
+                html += '<div><strong>' + item.name + '</strong><br><small class="text-muted">' + item.bomon + '</small></div>';
+                html += '<span class="badge bg-danger">' + item.id + '</span>';
+                html += '</div>';
+            });
+
+            $('#bulk-delete-list').html(html);
+            $('#bulkDeleteModal').modal('show');
+        }
+
+        function showBulkExport() {
+            if (selectedItems.length === 0) {
+                alert('Vui lòng chọn ít nhất một giáo viên');
+                return;
+            }
+
+            var selectedIds = selectedItems.map(item => item.id);
+            var form = $('<form>').attr({
+                method: 'POST',
+                action: '@Url.Action("ExportSelected", "GiaoVien")'
+            });
+
+            form.append($('<input>').attr({
+                type: 'hidden',
+                name: '__RequestVerificationToken',
+                value: $('[name=__RequestVerificationToken]').val()
+            }));
+
+            $.each(selectedIds, function(i, id) {
+                form.append($('<input>').attr({
+                    type: 'hidden',
+                    name: 'selectedIds[' + i + ']',
+                    value: id
+                }));
+            });
+
+            $('body').append(form);
+            form.submit();
+            form.remove();
+        }
+
+        function executeBulkUpdate() {
+            var formData = {
+                selectedIds: selectedItems.map(item => item.id),
+                updates: {}
+            };
+
+            if ($('#update-bomon').is(':checked')) {
+                formData.updates.MaBM = $('select[name="MaBM"]').val();
+            }
+
+            if ($('#update-status').is(':checked')) {
+                formData.updates.TrangThai = $('select[name="TrangThai"]').val();
+            }
+
+            if (Object.keys(formData.updates).length === 0) {
+                alert('Vui lòng chọn ít nhất một trường để cập nhật');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("BulkUpdate", "GiaoVien")',
+                type: 'POST',
+                data: JSON.stringify(formData),
+                contentType: 'application/json',
+                headers: {
+                    'RequestVerificationToken': $('[name=__RequestVerificationToken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Cập nhật thành công ' + selectedItems.length + ' giáo viên');
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra khi cập nhật');
+                }
+            });
+
+            $('#bulkUpdateModal').modal('hide');
+        }
+
+        function executeBulkDelete() {
+            var selectedIds = selectedItems.map(item => item.id);
+            var forceDelete = $('#force-delete').is(':checked');
+
+            $.ajax({
+                url: '@Url.Action("BulkDelete", "GiaoVien")',
+                type: 'POST',
+                data: {
+                    selectedIds: selectedIds,
+                    forceDelete: forceDelete,
+                    __RequestVerificationToken: $('[name=__RequestVerificationToken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Xóa thành công ' + selectedItems.length + ' giáo viên');
+                        location.reload();
+                    } else {
+                        alert('Có lỗi xảy ra: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra khi xóa');
+                }
+            });
+
+            $('#bulkDeleteModal').modal('hide');
+        }
+
+        function changePageSize(pageSize) {
+            var url = new URL(window.location);
+            url.searchParams.set('pageSize', pageSize);
+            url.searchParams.set('pageNumber', 1);
+            window.location = url;
+        }
+
+        function loadPage(pageNumber) {
+            var url = new URL(window.location);
+            url.searchParams.set('pageNumber', pageNumber);
+            window.location = url;
+        }
+    </script>
+
+    <style>
+        .avatar-sm {
+            height: 2rem;
+            width: 2rem;
+        }
+
+        .avatar-title {
+            align-items: center;
+            background-color: #007bff;
+            color: #fff;
+            display: flex;
+            font-size: 1rem;
+            font-weight: 600;
+            height: 100%;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .selection-info .info-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .bulk-actions .btn-group .btn:disabled {
+            opacity: 0.6;
+        }
+
+        .advanced-filter {
+            border-top: 1px solid #e9ecef;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        .selected-items .border {
+            background-color: #f8f9fa !important;
+        }
+
+        @@media (max-width: 768px) {
+            .bulk-actions
+
+        {
+            text-align: left !important;
+            margin-top: 15px;
+        }
+
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+
+            .btn-group .btn {
+                margin-bottom: 5px;
+            }
+
+        }
+    </style>
+}

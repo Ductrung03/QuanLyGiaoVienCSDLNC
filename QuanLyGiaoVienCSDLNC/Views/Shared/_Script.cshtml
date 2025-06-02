@@ -1,5 +1,5 @@
 ﻿<!-- latest jquery-->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <!-- Bootstrap js-->
 <script src="~/assets/js/bootstrap/bootstrap.bundle.min.js"></script>
 <!-- feather icon js-->
@@ -16,7 +16,308 @@
 <script src="~/assets/js/slick/slick.js"></script>
 <script src="~/assets/js/header-slick.js"></script>
 <script src="~/assets/js/animation/wow/wow.min.js"></script>
+
+<!-- Additional libraries for teaching management -->
+<!-- Excel export library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js for statistics -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<!-- Moment.js for date formatting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<!-- Vietnamese locale for moment.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/vi.min.js"></script>
+<!-- SweetAlert2 for beautiful alerts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.1/sweetalert2.all.min.js"></script>
+<!-- DataTables for advanced table features (optional) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap5.min.js"></script>
+
 <!-- Plugins JS Ends-->
 <!-- Theme js-->
 <script src="~/assets/js/script.js"></script>
-<!-- login js-->
+
+<!-- Custom JavaScript for Teaching Management System -->
+<script>
+    // Set Vietnamese locale for moment.js
+    moment.locale('vi');
+
+    // Global configuration
+    window.TeachingManagement = {
+        // API endpoints
+        api: {
+            base: '@Url.Content("~/")',
+            giangDay: '@Url.Action("Index", "GiangDay")',
+            giaoVien: '@Url.Action("Index", "GiaoVien")'
+        },
+
+        // Common messages
+        messages: {
+            confirmDelete: 'Bạn có chắc chắn muốn xóa mục này?',
+            deleteSuccess: 'Xóa thành công!',
+            deleteError: 'Có lỗi xảy ra khi xóa!',
+            saveSuccess: 'Lưu thành công!',
+            saveError: 'Có lỗi xảy ra khi lưu!',
+            loadError: 'Có lỗi xảy ra khi tải dữ liệu!',
+            noDataFound: 'Không tìm thấy dữ liệu.',
+            pleaseWait: 'Vui lòng đợi...',
+            processing: 'Đang xử lý...'
+        },
+
+        // Utility functions
+        utils: {
+            // Format number with Vietnamese locale
+            formatNumber: function(number) {
+                return new Intl.NumberFormat('vi-VN').format(number);
+            },
+
+            // Format currency
+            formatCurrency: function(amount) {
+                return new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND'
+                }).format(amount);
+            },
+
+            // Format date
+            formatDate: function(dateString, format = 'DD/MM/YYYY') {
+                return moment(dateString).format(format);
+            },
+
+            // Show loading overlay
+            showLoading: function() {
+                $('#loadingOverlay').show();
+            },
+
+            // Hide loading overlay
+            hideLoading: function() {
+                $('#loadingOverlay').hide();
+            },
+
+            // Show notification using SweetAlert2
+            showNotification: function(message, type = 'info', title = '') {
+                Swal.fire({
+                    title: title,
+                    text: message,
+                    icon: type,
+                    timer: type === 'success' ? 2000 : 5000,
+                    showConfirmButton: type !== 'success',
+                    timerProgressBar: true
+                });
+            },
+
+            // Confirm dialog using SweetAlert2
+            confirmDialog: function(message, title = 'Xác nhận') {
+                return Swal.fire({
+                    title: title,
+                    text: message,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Đồng ý',
+                    cancelButtonText: 'Hủy bỏ'
+                });
+            },
+
+            // Export table to Excel
+            exportToExcel: function(tableId, filename) {
+                try {
+                    const table = document.getElementById(tableId);
+                    if (!table) {
+                        this.showNotification('Không tìm thấy bảng dữ liệu!', 'error');
+                        return;
+                    }
+
+                    const wb = XLSX.utils.table_to_book(table, { sheet: "Data" });
+                    const fileName = filename || 'export_' + moment().format('YYYYMMDD_HHmmss');
+                    XLSX.writeFile(wb, fileName + '.xlsx');
+
+                    this.showNotification('Xuất Excel thành công!', 'success');
+                } catch (error) {
+                    console.error('Export error:', error);
+                    this.showNotification('Có lỗi xảy ra khi xuất Excel!', 'error');
+                }
+            },
+
+            // Initialize DataTable with Vietnamese language
+            initDataTable: function(tableId, options = {}) {
+                const defaultOptions = {
+                    language: {
+                        url: 'https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/i18n/Vietnamese.json'
+                    },
+                    responsive: true,
+                    pageLength: 25,
+                    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tất cả"]],
+                    dom: 'Bfrtip',
+                    buttons: [
+                        'copy', 'csv', 'excel', 'pdf', 'print'
+                    ]
+                };
+
+                const mergedOptions = { ...defaultOptions, ...options };
+                return $('#' + tableId).DataTable(mergedOptions);
+            },
+
+            // Validate form
+            validateForm: function(formId) {
+                const form = document.getElementById(formId);
+                if (!form) return false;
+
+                form.classList.add('was-validated');
+                return form.checkValidity();
+            },
+
+            // Reset form validation
+            resetFormValidation: function(formId) {
+                const form = document.getElementById(formId);
+                if (form) {
+                    form.classList.remove('was-validated');
+                    $(form).find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+                }
+            },
+
+            // Debounce function for search
+            debounce: function(func, wait, immediate) {
+                let timeout;
+                return function executedFunction() {
+                    const context = this;
+                    const args = arguments;
+                    const later = function() {
+                        timeout = null;
+                        if (!immediate) func.apply(context, args);
+                    };
+                    const callNow = immediate && !timeout;
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                    if (callNow) func.apply(context, args);
+                };
+            }
+        }
+    };
+
+    // Global event handlers
+    $(document).ready(function() {
+        // Initialize Feather icons
+        feather.replace();
+
+        // Initialize tooltips
+        $('[data-bs-toggle="tooltip"]').tooltip();
+
+        // Initialize popovers
+        $('[data-bs-toggle="popover"]').popover();
+
+        // Auto-hide alerts
+        $('.alert:not(.alert-permanent)').delay(5000).fadeOut('slow');
+
+        // Global form submission with loading
+        $('form').on('submit', function() {
+            const submitBtn = $(this).find('button[type="submit"]');
+            if (submitBtn.length) {
+                submitBtn.prop('disabled', true);
+                const originalText = submitBtn.html();
+                submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>' + TeachingManagement.messages.processing);
+
+                setTimeout(function() {
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
+                }, 3000);
+            }
+        });
+
+        // Global delete confirmation
+        $(document).on('click', '[data-action="delete"]', function(e) {
+            e.preventDefault();
+            const self = this;
+
+            TeachingManagement.utils.confirmDialog(
+                TeachingManagement.messages.confirmDelete,
+                'Xác nhận xóa'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    // If it's a form, submit it
+                    if ($(self).is('button') && $(self).closest('form').length) {
+                        $(self).closest('form').submit();
+                    }
+                    // If it's a link, navigate to it
+                    else if ($(self).is('a')) {
+                        window.location.href = $(self).attr('href');
+                    }
+                }
+            });
+        });
+
+        // Global AJAX error handler
+        $(document).ajaxError(function(event, xhr, settings) {
+            console.error('AJAX Error:', xhr.responseText);
+            TeachingManagement.utils.showNotification(
+                'Có lỗi xảy ra khi kết nối với máy chủ!',
+                'error'
+            );
+        });
+
+        // Auto-refresh page every 30 minutes to keep session alive
+        setInterval(function() {
+            $.get('/ping', function() {
+                console.log('Session kept alive');
+            }).fail(function() {
+                console.log('Session may have expired');
+            });
+        }, 30 * 60 * 1000); // 30 minutes
+
+        // Handle table row selection
+        $('.table').on('change', 'input[type="checkbox"].select-all', function() {
+            const isChecked = $(this).is(':checked');
+            $(this).closest('table').find('input[type="checkbox"].row-checkbox')
+                .prop('checked', isChecked);
+            updateBulkActions();
+        });
+
+        $('.table').on('change', 'input[type="checkbox"].row-checkbox', function() {
+            updateBulkActions();
+        });
+
+        function updateBulkActions() {
+            const checkedCount = $('.row-checkbox:checked').length;
+            if (checkedCount > 0) {
+                $('.bulk-actions').show();
+                $('.bulk-action-count').text(checkedCount);
+            } else {
+                $('.bulk-actions').hide();
+            }
+        }
+
+        // Enhanced search functionality
+        $('.search-input').on('input', TeachingManagement.utils.debounce(function() {
+            const searchTerm = $(this).val();
+            // Implement search logic here
+            console.log('Searching for:', searchTerm);
+        }, 300));
+
+        // Initialize number formatting
+        $('.number-format').each(function() {
+            const value = $(this).text();
+            if (!isNaN(value) && value !== '') {
+                $(this).text(TeachingManagement.utils.formatNumber(value));
+            }
+        });
+
+        // Initialize currency formatting
+        $('.currency-format').each(function() {
+            const value = $(this).text();
+            if (!isNaN(value) && value !== '') {
+                $(this).text(TeachingManagement.utils.formatCurrency(value));
+            }
+        });
+
+        // Initialize date formatting
+        $('.date-format').each(function() {
+            const dateValue = $(this).text();
+            if (dateValue && moment(dateValue).isValid()) {
+                $(this).text(TeachingManagement.utils.formatDate(dateValue));
+            }
+        });
+    });
+
+    // Make TeachingManagement globally available
+    window.TM = TeachingManagement;
+</script>

@@ -1,7 +1,9 @@
-﻿@{
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay.ChiTietGiangDayCreateDto
+@{
     ViewData["Title"] = "Phân công giảng dạy";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var taiGiangDay = ViewBag.TaiGiangDay as QuanLyGiaoVienCSDLNC.Models.TaiGiangDay;
+    var chiTietGiangDay = ViewBag.ChiTietGiangDay as List<QuanLyGiaoVienCSDLNC.Models.ChiTietGiangDay> ?? new List<QuanLyGiaoVienCSDLNC.Models.ChiTietGiangDay>();
 }
 
 <div class="page-body">
@@ -21,6 +23,7 @@
                             </a>
                         </li>
                         <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Details" asp-route-id="@taiGiangDay?.MaTaiGiangDay">Chi tiết</a></li>
                         <li class="breadcrumb-item active">Phân công</li>
                     </ol>
                 </div>
@@ -30,11 +33,17 @@
     <!-- Container-fluid starts-->
     <div class="container-fluid">
         <div class="row">
-            <div class="col-sm-12">
+            <!-- Thông tin học phần -->
+            <div class="col-xl-8">
                 @if (TempData["ErrorMessage"] != null)
                 {
-                    <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
                 }
+
                 <div class="card">
                     <div class="card-header">
                         <h5>Thông tin học phần</h5>
@@ -44,13 +53,13 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Mã tải giảng dạy</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.MaTaiGiangDay" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.MaTaiGiangDay" readonly />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Tên học phần</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.TenHocPhan" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.TenHocPhan" readonly />
                                 </div>
                             </div>
                         </div>
@@ -58,19 +67,19 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Hệ</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.He" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.He" readonly />
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Lớp</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.Lop" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.Lop" readonly />
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label class="form-label">Sĩ số</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.SiSo" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.SiSo" readonly />
                                 </div>
                             </div>
                         </div>
@@ -78,65 +87,259 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Số tín chỉ</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.SoTinChi" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.SoTinChi" readonly />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Năm học</label>
-                                    <input type="text" class="form-control" value="@taiGiangDay.NamHoc" readonly />
+                                    <input type="text" class="form-control" value="@taiGiangDay?.NamHoc" readonly />
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Form phân công -->
                 <div class="card">
                     <div class="card-header">
-                        <h5>Phân công giáo viên</h5>
+                        <h5>Phân công giáo viên mới</h5>
                     </div>
                     <div class="card-body">
                         <form asp-action="PhanCong" method="post">
-                            <input type="hidden" name="id" value="@taiGiangDay.MaTaiGiangDay" />
+                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                            <input type="hidden" asp-for="MaTaiGiangDay" />
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Chọn giáo viên</label>
-                                        <select name="maGV" class="form-select" asp-items="ViewBag.GiaoViens" required>
+                                        <label asp-for="MaGV" class="form-label">Chọn giáo viên</label>
+                                        <select asp-for="MaGV" class="form-select" asp-items="ViewBag.GiaoViens" id="selectGiaoVien">
                                             <option value="">-- Chọn giáo viên --</option>
                                         </select>
+                                        <span asp-validation-for="MaGV" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <i data-feather="info"></i> Chọn giáo viên để phân công giảng dạy
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Số tiết</label>
-                                        <input type="number" class="form-control" name="soTiet" min="1" required />
+                                        <label asp-for="SoTiet" class="form-label">Số tiết</label>
+                                        <input asp-for="SoTiet" class="form-control" type="number" min="1" max="200" placeholder="Nhập số tiết" />
+                                        <span asp-validation-for="SoTiet" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <i data-feather="clock"></i> Số tiết từ 1 đến 200
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Mã nội dung giảng dạy</label>
-                                        <input type="text" class="form-control" name="maNoiDungGiangDay" required />
+                                        <label asp-for="MaNoiDungGiangDay" class="form-label">Mã nội dung giảng dạy</label>
+                                        <input asp-for="MaNoiDungGiangDay" class="form-control" placeholder="Nhập mã nội dung (tùy chọn)" />
+                                        <span asp-validation-for="MaNoiDungGiangDay" class="text-danger"></span>
+                                        <div class="form-text">
+                                            <i data-feather="book"></i> Mã nội dung chi tiết (không bắt buộc)
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label class="form-label">Ghi chú</label>
-                                        <textarea class="form-control" name="ghiChu" rows="3"></textarea>
+                                        <label asp-for="CheckConflict" class="form-label">Kiểm tra trùng lịch</label>
+                                        <div class="form-check form-switch">
+                                            <input asp-for="CheckConflict" class="form-check-input" type="checkbox" checked />
+                                            <label class="form-check-label" for="CheckConflict">
+                                                Kiểm tra lịch trùng với giáo viên
+                                            </label>
+                                        </div>
+                                        <div class="form-text">
+                                            <i data-feather="shield"></i> Khuyến nghị bật để tránh xung đột lịch
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="mb-3">
+                                        <label asp-for="GhiChu" class="form-label">Ghi chú</label>
+                                        <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Nhập ghi chú về phân công (tùy chọn)"></textarea>
+                                        <span asp-validation-for="GhiChu" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="card-footer text-end">
-                                <button type="submit" class="btn btn-primary">Phân công</button>
-                                <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+                                <button type="submit" class="btn btn-primary" id="btnPhanCong">
+                                    <i data-feather="user-plus"></i> Phân công
+                                </button>
+                                <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                                    <i data-feather="refresh-cw"></i> Làm mới
+                                </button>
+                                <a asp-action="Details" asp-route-id="@taiGiangDay?.MaTaiGiangDay" class="btn btn-outline-secondary">
+                                    <i data-feather="arrow-left"></i> Quay lại
+                                </a>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
+
+            <!-- Sidebar thông tin -->
+            <div class="col-xl-4">
+                <!-- Thống kê phân công -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thống kê phân công</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Số giáo viên đã phân công:</span>
+                                <strong class="text-primary">@chiTietGiangDay.Count</strong>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Tổng số tiết đã phân:</span>
+                                <strong class="text-success">@chiTietGiangDay.Sum(x => x.SoTiet)</strong>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between">
+                                <span>Tổng tiết quy đổi:</span>
+                                <strong class="text-info">@chiTietGiangDay.Sum(x => x.SoTietQuyDoi).ToString("F2")</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hướng dẫn -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Hướng dẫn phân công</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item">
+                                <h6 class="mb-1">
+                                    <i data-feather="user" class="me-2"></i>Chọn giáo viên
+                                </h6>
+                                <p class="mb-1">Chọn giáo viên phù hợp với chuyên môn học phần</p>
+                            </div>
+                            <div class="list-group-item">
+                                <h6 class="mb-1">
+                                    <i data-feather="clock" class="me-2"></i>Nhập số tiết
+                                </h6>
+                                <p class="mb-1">Số tiết giảng dạy thực tế của giáo viên</p>
+                            </div>
+                            <div class="list-group-item">
+                                <h6 class="mb-1">
+                                    <i data-feather="shield" class="me-2"></i>Kiểm tra trùng lịch
+                                </h6>
+                                <p class="mb-1">Hệ thống sẽ tự động kiểm tra xung đột lịch</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin quy đổi -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Thông tin quy đổi</h5>
+                    </div>
+                    <div class="card-body">
+                        <small class="text-muted">
+                            <strong>Hệ số quy đổi được tính từ:</strong><br>
+                            • Đối tượng giảng dạy<br>
+                            • Thời gian giảng dạy<br>
+                            • Ngôn ngữ giảng dạy<br><br>
+                            <strong>Công thức:</strong><br>
+                            Số tiết quy đổi = Số tiết × Hệ số đối tượng × Hệ số thời gian × Hệ số ngôn ngữ
+                        </small>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Danh sách giáo viên đã phân công -->
+        @if (chiTietGiangDay.Any())
+        {
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Danh sách giáo viên đã phân công</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Số tiết</th>
+                                            <th>Số tiết quy đổi</th>
+                                            <th>Ghi chú</th>
+                                            <th>Ngày phân công</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            var stt = 1;
+                                        }
+                                        @foreach (var item in chiTietGiangDay)
+                                        {
+                                            <tr>
+                                                <td>@stt</td>
+                                                <td>
+                                                    <span class="badge bg-info">@item.MaGV</span>
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        <h6 class="mb-0">@(item.GiaoVien?.HoTen ?? "N/A")</h6>
+                                                        <small class="text-muted">@item.MaGV</small>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-primary">@item.SoTiet</span>
+                                                </td>
+                                                <td>
+                                                    <span class="fw-bold text-success">@item.SoTietQuyDoi.ToString("F2")</span>
+                                                </td>
+                                                <td>
+                                                    <small>@item.GhiChu</small>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">Hôm nay</small>
+                                                </td>
+                                                <td>
+                                                    <form asp-action="XoaPhanCong" method="post" style="display: inline;">
+                                                        <input type="hidden" name="maChiTietGiangDay" value="@item.MaChiTietGiangDay" />
+                                                        <input type="hidden" name="maTaiGiangDay" value="@taiGiangDay?.MaTaiGiangDay" />
+                                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa phân công này?')"
+                                                                title="Xóa phân công">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            stt++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
     <!-- Container-fluid Ends-->
 </div>
@@ -145,4 +348,66 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function() {
+            // Initialize form
+            feather.replace();
+
+            // Form validation
+            $('form').submit(function(e) {
+                var maGV = $('#selectGiaoVien').val();
+                var soTiet = $('input[name="SoTiet"]').val();
+
+                if (!maGV) {
+                    alert('Vui lòng chọn giáo viên');
+                    e.preventDefault();
+                    return false;
+                }
+
+                if (!soTiet || soTiet <= 0) {
+                    alert('Vui lòng nhập số tiết hợp lệ');
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Show loading state
+                var submitBtn = $('#btnPhanCong');
+                submitBtn.prop('disabled', true);
+                submitBtn.html('<i class="spinner-border spinner-border-sm me-2"></i>Đang phân công...');
+            });
+
+            // Auto-calculate estimated completion time
+            $('input[name="SoTiet"]').on('input', function() {
+                var soTiet = parseInt($(this).val()) || 0;
+                var estimatedHours = soTiet * 1.5; // Estimate 1.5 hours per period
+
+                if (soTiet > 0) {
+                    var message = 'Ước tính: ' + estimatedHours + ' giờ giảng dạy';
+                    $(this).next('.text-danger').after('<small class="text-info d-block estimate-info">' + message + '</small>');
+                } else {
+                    $('.estimate-info').remove();
+                }
+            });
+
+            // Suggest default values
+            $('#selectGiaoVien').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                if (selectedOption.val()) {
+                    // Could add logic to suggest default number of periods based on teacher's typical load
+                    if (!$('input[name="SoTiet"]').val()) {
+                        $('input[name="SoTiet"]').val(@(taiGiangDay?.SoTinChi * 15 ?? 30)); // 15 periods per credit
+                    }
+                }
+            });
+        });
+
+        function resetForm() {
+            $('form')[0].reset();
+            $('.estimate-info').remove();
+            $('#selectGiaoVien').val('');
+            $('input[name="SoTiet"]').val('');
+            $('textarea[name="GhiChu"]').val('');
+            $('input[name="CheckConflict"]').prop('checked', true);
+        }
+    </script>
 }

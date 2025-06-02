@@ -1,0 +1,140 @@
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHDetailDto
+@{
+    ViewData["Title"] = "Xóa tài NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">Quản lý NCKH</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Details" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH">Chi tiết</a></li>
+                        <li class="breadcrumb-item active">Xóa</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i data-feather="alert-triangle"></i> Xác nhận xóa tài NCKH
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-warning" role="alert">
+                            <strong>Cảnh báo!</strong> Bạn có chắc chắn muốn xóa tài NCKH này không? 
+                            Hành động này không thể hoàn tác.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Thông tin tài NCKH sẽ bị xóa:</h6>
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <td><strong>Mã tài NCKH:</strong></td>
+                                        <td>@Model.ThongTinCoBan.MaTaiNCKH</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Tên công trình:</strong></td>
+                                        <td>@Model.ThongTinCoBan.TenCongTrinhKhoaHoc</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Năm học:</strong></td>
+                                        <td>@Model.ThongTinCoBan.NamHoc</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Loại NCKH:</strong></td>
+                                        <td>@Model.LoaiNCKH?.TenLoaiNCKH</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Số tác giả:</strong></td>
+                                        <td>@Model.ThongTinCoBan.SoTacGia</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                @if (Model.DanhSachTacGia.Any())
+                                {
+                                        <h6>Danh sách tác giả sẽ bị ảnh hưởng:</h6>
+                                        <div class="list-group">
+                                        @foreach (var tacGia in Model.DanhSachTacGia)
+                                        {
+                                                    <div class="list-group-item">
+                                                        <div class="d-flex w-100 justify-content-between">
+                                                            <h6 class="mb-1">@tacGia.GiaoVien?.HoTen</h6>
+                                                            <small>@tacGia.VaiTro</small>
+                                                        </div>
+                                                        <p class="mb-1">Mã GV: @tacGia.MaGV</p>
+                                                        <small>Số giờ: @tacGia.SoGio</small>
+                                                    </div>
+                                        }
+                                        </div>
+                                }
+                                else
+                                {
+                                        <div class="alert alert-info">
+                                            <strong>Thông tin:</strong> Tài NCKH này chưa có tác giả nào được phân công.
+                                        </div>
+                                }
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <form asp-action="Delete" method="post">
+                                    <input type="hidden" asp-for="ThongTinCoBan.MaTaiNCKH" />
+
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                        <label class="form-check-label" for="confirmDelete">
+                                            Tôi hiểu rằng việc xóa này không thể hoàn tác và đồng ý tiếp tục.
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                        <i data-feather="trash-2"></i> Xác nhận xóa
+                                    </button>
+                                    <a asp-action="Details" asp-route-id="@Model.ThongTinCoBan.MaTaiNCKH" class="btn btn-secondary">
+                                        <i data-feather="arrow-left"></i> Hủy bỏ
+                                    </a>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+        <script>
+            feather.replace();
+
+            // Enable/disable delete button based on checkbox
+            $('#confirmDelete').change(function() {
+                $('#deleteButton').prop('disabled', !this.checked);
+            });
+
+            // Confirm before submit
+            $('form').on('submit', function(e) {
+                if (!confirm('Bạn có CHẮC CHẮN muốn xóa tài NCKH này không?')) {
+                    e.preventDefault();
+                    return false;
+                }
+            });
+        </script>
+}

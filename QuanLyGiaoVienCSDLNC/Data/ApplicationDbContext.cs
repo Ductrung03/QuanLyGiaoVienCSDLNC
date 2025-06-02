@@ -1,5 +1,6 @@
 ﻿// Data/ApplicationDbContext.cs
 using Microsoft.EntityFrameworkCore;
+using QuanLyGiaoVienCSDLNC.DTOs.NCKH;
 using QuanLyGiaoVienCSDLNC.Models;
 using System;
 using System.Collections.Generic;
@@ -92,22 +93,70 @@ namespace QuanLyGiaoVienCSDLNC.Data
             modelBuilder.Entity<Nhom_Quyen>()
                 .HasKey(n => new { n.MaNhom, n.MaQuyen });
 
-            // Configure table names to match the database
+            // Bảng quản lý giáo viên và tổ chức
             modelBuilder.Entity<GiaoVien>().ToTable("GiaoVien");
             modelBuilder.Entity<BoMon>().ToTable("BoMon");
             modelBuilder.Entity<Khoa>().ToTable("Khoa");
             modelBuilder.Entity<HocVi>().ToTable("HocVi");
             modelBuilder.Entity<HocHam>().ToTable("HocHam");
             modelBuilder.Entity<LichSuHocHam>().ToTable("LichSuHocHam");
+            modelBuilder.Entity<QuanHam>().ToTable("QuanHam");
+            modelBuilder.Entity<LyLichKhoaHoc>().ToTable("LyLichKhoaHoc");
+
+            // Bảng định mức
             modelBuilder.Entity<DinhMucGiangDay>().ToTable("DinhMucGiangDay");
             modelBuilder.Entity<DinhMucNghienCuu>().ToTable("DinhMucNghienCuu");
+            modelBuilder.Entity<DinhMucMienGiam>().ToTable("DinhMucMienGiam");
+
+            // Bảng giảng dạy
             modelBuilder.Entity<TaiGiangDay>().ToTable("TaiGiangDay");
             modelBuilder.Entity<ChiTietGiangDay>().ToTable("ChiTietGiangDay");
+            modelBuilder.Entity<NgonNguGiangDay>().ToTable("NgonNguGiangDay");
+            modelBuilder.Entity<DoiTuongGiangDay>().ToTable("DoiTuongGiangDay");
+            modelBuilder.Entity<ThoiGianGiangDay>().ToTable("ThoiGianGiangDay");
+
+            // Bảng nghiên cứu khoa học
+            modelBuilder.Entity<QuyDoiGioChuanNCKH>().ToTable("QuyDoiGioChuanNCKH");
+            modelBuilder.Entity<LoaiNCKH>().ToTable("LoaiNCKH");
+            modelBuilder.Entity<TaiNCKH>().ToTable("TaiNCKH");
+            modelBuilder.Entity<ChiTietNCKH>().ToTable("ChiTietNCKH");
+
+            // Bảng khảo thí
+            modelBuilder.Entity<LoaiCongTacKhaoThi>().ToTable("LoaiCongTacKhaoThi");
+            modelBuilder.Entity<TaiKhaoThi>().ToTable("TaiKhaoThi");
+            modelBuilder.Entity<ChiTietTaiKhaoThi>().ToTable("ChiTietTaiKhaoThi");
+
+            // Bảng chức vụ
+            modelBuilder.Entity<ChucVu>().ToTable("ChucVu");
+            modelBuilder.Entity<LichSuChucVu>().ToTable("LichSuChucVu");
+
+            // Bảng hội đồng
+            modelBuilder.Entity<LoaiHoiDong>().ToTable("LoaiHoiDong");
+            modelBuilder.Entity<TaiHoiDong>().ToTable("TaiHoiDong");
+            modelBuilder.Entity<ThamGia>().ToTable("ThamGia");
+
+            // Bảng hướng dẫn
+            modelBuilder.Entity<LoaiHinhHuongDan>().ToTable("LoaiHinhHuongDan");
+            modelBuilder.Entity<TaiHuongDan>().ToTable("TaiHuongDan");
+            modelBuilder.Entity<ThamGiaHuongDan>().ToTable("ThamGiaHuongDan");
+
+            // Bảng công tác khác
+            modelBuilder.Entity<CongTacKhac>().ToTable("CongTacKhac");
+            modelBuilder.Entity<ChiTietCongTacKhac>().ToTable("ChiTietCongTacKhac");
+
+            // Bảng người dùng và phân quyền
             modelBuilder.Entity<NguoiDung>().ToTable("NguoiDung");
             modelBuilder.Entity<NhomNguoiDung>().ToTable("NhomNguoiDung");
             modelBuilder.Entity<NguoiDung_Nhom>().ToTable("NguoiDung_Nhom");
             modelBuilder.Entity<Quyen>().ToTable("Quyen");
             modelBuilder.Entity<Nhom_Quyen>().ToTable("Nhom_Quyen");
+
+            // Bảng lịch sử và nhật ký
+            modelBuilder.Entity<LichSuDangNhap>().ToTable("LichSuDangNhap");
+            modelBuilder.Entity<NhatKyThayDoi>().ToTable("NhatKyThayDoi");
+
+            // Bảng hỗ trợ
+            modelBuilder.Entity<SequenceGenerator>().ToTable("SequenceGenerator");
         }
     }
 }

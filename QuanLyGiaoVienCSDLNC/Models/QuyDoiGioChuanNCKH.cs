@@ -13,7 +13,7 @@ namespace QuanLyGiaoVienCSDLNC.Models
         public string DonViTinh { get; set; }
 
         [Display(Name = "Quy ra giờ chuẩn")]
-        public float QuyRaGioChuan { get; set; }
+        public double QuyRaGioChuan { get; set; }
 
         [StringLength(200)]
         [Display(Name = "Ghi chú")]

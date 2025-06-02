@@ -64,6 +64,32 @@
                     <li class="sidebar-list">
                         <a class="sidebar-link sidebar-title">
                             <svg class="stroke-icon">
+                                <use href="../assets/svg/icon-sprite.svg#stroke-book-open"></use>
+                            </svg>
+                            <span>Quản lý NCKH</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li><a asp-controller="NCKH" asp-action="Index">Danh sách tài NCKH</a></li>
+                            <li><a asp-controller="NCKH" asp-action="Create">Thêm tài NCKH</a></li>
+                            <li><a asp-controller="NCKH" asp-action="ThongKe">Thống kê NCKH</a></li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title">
+                            <svg class="stroke-icon">
+                                <use href="../assets/svg/icon-sprite.svg#stroke-users"></use>
+                            </svg>
+                            <span>Quản lý hoạt động</span>
+                        </a>
+                        <ul class="sidebar-submenu">
+                            <li><a asp-controller="KhaoThi" asp-action="Index">Công tác khảo thí</a></li>
+                            <li><a asp-controller="HoiDong" asp-action="Index">Tham gia hội đồng</a></li>
+                            <li><a asp-controller="HuongDan" asp-action="Index">Hướng dẫn luận văn</a></li>
+                        </ul>
+                    </li>
+                    <li class="sidebar-list">
+                        <a class="sidebar-link sidebar-title">
+                            <svg class="stroke-icon">
                                 <use href="../assets/svg/icon-sprite.svg#stroke-chart"></use>
                             </svg>
                             <span>Báo cáo thống kê</span>
@@ -73,6 +99,7 @@
                             <li><a asp-controller="BaoCao" asp-action="NCKHTheoGiaoVien">BC NCKH theo GV</a></li>
                             <li><a asp-controller="BaoCao" asp-action="HoanThanhDinhMuc">BC Hoàn thành định mức</a></li>
                             <li><a asp-controller="BaoCao" asp-action="GiangDayTheoKhoaBoMon">BC theo khoa/bộ môn</a></li>
+                            <li><a asp-controller="BaoCao" asp-action="TongHop">BC Tổng hợp</a></li>
                         </ul>
                     </li>
                     <li class="sidebar-list">
@@ -85,6 +112,7 @@
                         <ul class="sidebar-submenu">
                             <li><a href="#">Quản lý người dùng</a></li>
                             <li><a href="#">Phân quyền</a></li>
+                            <li><a href="#">Định mức và quy đổi</a></li>
                             <li><a href="#">Sao lưu dữ liệu</a></li>
                             <li><a asp-controller="Login" asp-action="Logout">Đăng xuất</a></li>
                         </ul>

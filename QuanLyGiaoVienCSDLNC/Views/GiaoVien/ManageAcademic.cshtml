@@ -1,0 +1,418 @@
+﻿@model QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.GiaoVienDetailDto
+@{
+    ViewData["Title"] = "Quản lý học thuật";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Quản lý học thuật</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Index">Quản lý giáo viên</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@ViewBag.MaGV">Chi tiết</a></li>
+                        <li class="breadcrumb-item active">Học thuật</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Thông tin giáo viên -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-primary" role="alert">
+                    <h4 class="alert-heading">
+                        <i data-feather="user"></i> @ViewBag.HoTen
+                    </h4>
+                    <p class="mb-0">Mã giáo viên: <strong>@ViewBag.MaGV</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Quản lý học vị -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="award"></i> Quản lý học vị
+                        </h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addHocViModal">
+                                <i data-feather="plus"></i> Thêm học vị
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model?.DanhSachHocVi?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-primary">
+                                        <tr>
+                                            <th>Mã</th>
+                                            <th>Tên học vị</th>
+                                            <th>Ngày nhận</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var hocVi in Model.DanhSachHocVi)
+                                        {
+                                            <tr>
+                                                <td><span class="badge bg-info">@hocVi.MaHocVi</span></td>
+                                                <td>@hocVi.TenHocVi</td>
+                                                <td>@hocVi.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="badge bg-success">Hiệu lực</span></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i data-feather="award" size="48" class="text-muted mb-3"></i>
+                                <h6 class="text-muted">Chưa có học vị nào</h6>
+                                <p class="text-muted">Nhấn nút "Thêm học vị" để bắt đầu</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quản lý học hàm -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="star"></i> Quản lý học hàm
+                        </h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addHocHamModal">
+                                <i data-feather="plus"></i> Thêm học hàm
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model?.DanhSachHocHam?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Mã</th>
+                                            <th>Tên học hàm</th>
+                                            <th>Ngày nhận</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var hocHam in Model.DanhSachHocHam)
+                                        {
+                                            <tr>
+                                                <td><span class="badge bg-success">@hocHam.MaHocHam</span></td>
+                                                <td>@hocHam.TenHocHam</td>
+                                                <td>@hocHam.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                                <td><span class="badge bg-success">Hiệu lực</span></td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i data-feather="star" size="48" class="text-muted mb-3"></i>
+                                <h6 class="text-muted">Chưa có học hàm nào</h6>
+                                <p class="text-muted">Nhấn nút "Thêm học hàm" để bắt đầu</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lý lịch khoa học -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="book"></i> Lý lịch khoa học
+                        </h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#updateLyLichModal">
+                                <i data-feather="edit"></i> Cập nhật
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model?.LyLichKhoaHoc != null)
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="info-group mb-3">
+                                        <h6 class="text-primary">Thông tin đại học</h6>
+                                        <p><strong>Hệ đào tạo:</strong> @Model.LyLichKhoaHoc.HeDaoTaoDH</p>
+                                        <p><strong>Nơi đào tạo:</strong> @Model.LyLichKhoaHoc.NoiDaoTaoDH</p>
+                                        <p><strong>Ngành học:</strong> @Model.LyLichKhoaHoc.NganhHocDH</p>
+                                        <p><strong>Năm tốt nghiệp:</strong> @Model.LyLichKhoaHoc.NamTotNghiepDH</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="info-group mb-3">
+                                        <h6 class="text-success">Thông tin sau đại học</h6>
+                                        <p><strong>Thạc sĩ chuyên ngành:</strong> @Model.LyLichKhoaHoc.ThacSiChuyenNganh</p>
+                                        <p><strong>Tiến sĩ chuyên ngành:</strong> @Model.LyLichKhoaHoc.TienSiChuyenNganh</p>
+                                        <p><strong>Nơi đào tạo TS:</strong> @Model.LyLichKhoaHoc.NoiDaoTaoTS</p>
+                                        <p><strong>Năm cấp bằng TS:</strong> @Model.LyLichKhoaHoc.NamCapBangTS</p>
+                                    </div>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.LyLichKhoaHoc.TenLuanVanTotNghiep))
+                            {
+                                <div class="alert alert-info">
+                                    <h6>Luận văn tốt nghiệp:</h6>
+                                    <p class="mb-0">@Model.LyLichKhoaHoc.TenLuanVanTotNghiep</p>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i data-feather="book" size="48" class="text-muted mb-3"></i>
+                                <h6 class="text-muted">Chưa có thông tin lý lịch khoa học</h6>
+                                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#updateLyLichModal">
+                                    <i data-feather="plus"></i> Thêm thông tin
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-footer text-center">
+                        <a asp-action="Details" asp-route-id="@ViewBag.MaGV" class="btn btn-secondary me-2">
+                            <i data-feather="arrow-left"></i> Quay lại chi tiết
+                        </a>
+                        <a asp-action="ManagePosition" asp-route-id="@ViewBag.MaGV" class="btn btn-primary me-2">
+                            <i data-feather="briefcase"></i> Quản lý chức vụ
+                        </a>
+                        <a asp-action="Statistics" asp-route-id="@ViewBag.MaGV" class="btn btn-info">
+                            <i data-feather="bar-chart"></i> Xem thống kê
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm học vị -->
+<div class="modal fade" id="addHocViModal" tabindex="-1" aria-labelledby="addHocViModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AddHocVi" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addHocViModalLabel">
+                        <i data-feather="award"></i> Thêm học vị mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaGV" value="@ViewBag.MaGV" />
+
+                    <div class="mb-3">
+                        <label for="TenHocVi" class="form-label">Tên học vị *</label>
+                        <select class="form-select" name="TenHocVi" required>
+                            <option value="">-- Chọn học vị --</option>
+                            <option value="Cử nhân">Cử nhân</option>
+                            <option value="Thạc sĩ">Thạc sĩ</option>
+                            <option value="Tiến sĩ">Tiến sĩ</option>
+                            <option value="Giáo sư">Giáo sư</option>
+                            <option value="Phó Giáo sư">Phó Giáo sư</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="NgayNhan" class="form-label">Ngày nhận *</label>
+                        <input type="date" class="form-control" name="NgayNhan" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i data-feather="save"></i> Lưu học vị
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm học hàm -->
+<div class="modal fade" id="addHocHamModal" tabindex="-1" aria-labelledby="addHocHamModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AddHocHam" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addHocHamModalLabel">
+                        <i data-feather="star"></i> Thêm học hàm mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="maGV" value="@ViewBag.MaGV" />
+
+                    <div class="mb-3">
+                        <label for="maHocHam" class="form-label">Tên học hàm *</label>
+                        <select class="form-select" name="maHocHam" required>
+                            <option value="">-- Chọn học hàm --</option>
+                            <option value="GS">Giáo sư</option>
+                            <option value="PGS">Phó Giáo sư</option>
+                            <option value="TSKH">Tiến sĩ khoa học</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="ngayNhan" class="form-label">Ngày nhận *</label>
+                        <input type="date" class="form-control" name="ngayNhan" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i data-feather="save"></i> Lưu học hàm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal cập nhật lý lịch khoa học -->
+<div class="modal fade" id="updateLyLichModal" tabindex="-1" aria-labelledby="updateLyLichModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form asp-action="UpdateLyLichKhoaHoc" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateLyLichModalLabel">
+                        <i data-feather="book"></i> Cập nhật lý lịch khoa học
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaGV" value="@ViewBag.MaGV" />
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Thông tin đại học</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Hệ đào tạo đại học *</label>
+                                <input type="text" class="form-control" name="HeDaoTaoDH"
+                                       value="@Model?.LyLichKhoaHoc?.HeDaoTaoDH" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nơi đào tạo đại học *</label>
+                                <input type="text" class="form-control" name="NoiDaoTaoDH"
+                                       value="@Model?.LyLichKhoaHoc?.NoiDaoTaoDH" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Ngành học đại học *</label>
+                                <input type="text" class="form-control" name="NganhHocDH"
+                                       value="@Model?.LyLichKhoaHoc?.NganhHocDH" required />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Năm tốt nghiệp ĐH</label>
+                                <input type="number" class="form-control" name="NamTotNghiepDH" min="1950" max="2030"
+                                       value="@Model?.LyLichKhoaHoc?.NamTotNghiepDH" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <h6 class="text-success mb-3">Thông tin sau đại học</h6>
+
+                            <div class="mb-3">
+                                <label class="form-label">Chuyên ngành thạc sĩ</label>
+                                <input type="text" class="form-control" name="ThacSiChuyenNganh"
+                                       value="@Model?.LyLichKhoaHoc?.ThacSiChuyenNganh" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Chuyên ngành tiến sĩ</label>
+                                <input type="text" class="form-control" name="TienSiChuyenNganh"
+                                       value="@Model?.LyLichKhoaHoc?.TienSiChuyenNganh" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Nơi đào tạo tiến sĩ</label>
+                                <input type="text" class="form-control" name="NoiDaoTaoTS"
+                                       value="@Model?.LyLichKhoaHoc?.NoiDaoTaoTS" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Năm cấp bằng TS</label>
+                                <input type="number" class="form-control" name="NamCapBangTS" min="1950" max="2030"
+                                       value="@Model?.LyLichKhoaHoc?.NamCapBangTS" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Tên luận văn tốt nghiệp</label>
+                        <textarea class="form-control" name="TenLuanVanTotNghiep" rows="3">@Model?.LyLichKhoaHoc?.TenLuanVanTotNghiep</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-info">
+                        <i data-feather="save"></i> Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons when modal is shown
+            $('#addHocViModal, #addHocHamModal, #updateLyLichModal').on('shown.bs.modal', function () {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            });
+
+            // Initialize feather icons on page load
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+    </script>
+}

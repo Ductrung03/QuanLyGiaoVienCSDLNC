@@ -1,0 +1,401 @@
+﻿@model object
+@{
+    ViewData["Title"] = "Thống kê NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>@ViewData["Title"]</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">Quản lý NCKH</a></li>
+                        <li class="breadcrumb-item active">Thống kê</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Bộ lọc thống kê -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Bộ lọc thống kê</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="ThongKe">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="maGV">Giáo viên</label>
+                                        <select name="maGV" class="form-control" asp-items="ViewBag.GiaoVienList as SelectList">
+                                            <option value="">Tất cả giáo viên</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="form-group">
+                                        <label for="maBM">Bộ môn</label>
+                                        <select name="maBM" class="form-control" asp-items="ViewBag.BoMonList as SelectList">
+                                            <option value="">Tất cả bộ môn</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="maKhoa">Khoa</label>
+                                        <select name="maKhoa" class="form-control" asp-items="ViewBag.KhoaList as SelectList">
+                                            <option value="">Tất cả khoa</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label for="namHoc">Năm học</label>
+                                        <select name="namHoc" class="form-control">
+                                            <option value="">Tất cả năm</option>
+                                            @foreach (var namHoc in ViewBag.AvailableNamHoc as List<string> ?? new List<string>())
+                                            {
+                                                <option value="@namHoc" selected="@(ViewBag.SelectedNamHoc?.ToString() == namHoc)">@namHoc</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-group">
+                                        <label>&nbsp;</label>
+                                        <div>
+                                            <button type="submit" class="btn btn-primary w-100">
+                                                <i data-feather="bar-chart-2"></i> Thống kê
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kết quả thống kê -->
+        @if (Model != null)
+        {
+            <!-- Thống kê tổng quan -->
+            <div class="row">
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card o-hidden">
+                        <div class="bg-primary b-r-4 card-body">
+                            <div class="media static-top-widget">
+                                <div class="align-self-center text-center">
+                                    <i data-feather="book" class="text-white" style="width: 48px; height: 48px;"></i>
+                                </div>
+                                <div class="media-body">
+                                    <span class="m-0 text-white">Tổng công trình</span>
+                                    <h4 class="mb-0 counter text-white" id="totalCongTrinh">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card o-hidden">
+                        <div class="bg-success b-r-4 card-body">
+                            <div class="media static-top-widget">
+                                <div class="align-self-center text-center">
+                                    <i data-feather="users" class="text-white" style="width: 48px; height: 48px;"></i>
+                                </div>
+                                <div class="media-body">
+                                    <span class="m-0 text-white">Tổng tác giả</span>
+                                    <h4 class="mb-0 counter text-white" id="totalTacGia">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card o-hidden">
+                        <div class="bg-warning b-r-4 card-body">
+                            <div class="media static-top-widget">
+                                <div class="align-self-center text-center">
+                                    <i data-feather="clock" class="text-white" style="width: 48px; height: 48px;"></i>
+                                </div>
+                                <div class="media-body">
+                                    <span class="m-0 text-white">Tổng giờ</span>
+                                    <h4 class="mb-0 counter text-white" id="totalGio">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-sm-6">
+                    <div class="card o-hidden">
+                        <div class="bg-info b-r-4 card-body">
+                            <div class="media static-top-widget">
+                                <div class="align-self-center text-center">
+                                    <i data-feather="trending-up" class="text-white" style="width: 48px; height: 48px;"></i>
+                                </div>
+                                <div class="media-body">
+                                    <span class="m-0 text-white">TB giờ/CT</span>
+                                    <h4 class="mb-0 counter text-white" id="avgGio">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Biểu đồ thống kê -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thống kê theo loại NCKH</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartLoaiNCKH" width="400" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Thống kê theo năm học</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartNamHoc" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng thống kê chi tiết -->
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Chi tiết thống kê NCKH</h5>
+                                </div>
+                                <div class="col-md-6 text-end">
+                                    <button type="button" class="btn btn-success btn-sm" onclick="exportToExcel()">
+                                        <i data-feather="download"></i> Xuất Excel
+                                    </button>
+                                    <button type="button" class="btn btn-info btn-sm" onclick="printReport()">
+                                        <i data-feather="printer"></i> In báo cáo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="thongKeTable">
+                                    <thead>
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Bộ môn</th>
+                                            <th>Số công trình</th>
+                                            <th>Tổng giờ</th>
+                                            <th>Vai trò chủ nhiệm</th>
+                                            <th>Vai trò thành viên</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Dữ liệu sẽ được load bằng JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i data-feather="bar-chart-2" class="text-muted" style="width: 64px; height: 64px;"></i>
+                            <h4 class="text-muted mt-3">Chưa có dữ liệu thống kê</h4>
+                            <p class="text-muted">Vui lòng chọn tiêu chí lọc để xem thống kê NCKH.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Nút quay lại -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i data-feather="arrow-left"></i> Quay lại danh sách
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize Feather icons
+        feather.replace();
+
+        // Sample data - In thực tế sẽ load từ server
+        const sampleData = {
+            totalCongTrinh: 25,
+            totalTacGia: 45,
+            totalGio: 1250,
+            avgGio: 50,
+            loaiNCKH: [
+                { label: 'Bài báo khoa học', value: 15, color: '#007bff' },
+                { label: 'Sách chuyên khảo', value: 5, color: '#28a745' },
+                { label: 'Đề tài nghiên cứu', value: 3, color: '#ffc107' },
+                { label: 'Khác', value: 2, color: '#dc3545' }
+            ],
+            namHoc: [
+                { label: '2020-2021', value: 5 },
+                { label: '2021-2022', value: 8 },
+                { label: '2022-2023', value: 7 },
+                { label: '2023-2024', value: 5 }
+            ],
+            chiTiet: [
+                { maGV: 'GV001', hoTen: 'Nguyễn Văn A', boMon: 'Công nghệ thông tin', soCongTrinh: 5, tongGio: 200, chuNhiem: 2, thanhVien: 3, trangThai: 'Đạt' },
+                { maGV: 'GV002', hoTen: 'Trần Thị B', boMon: 'Khoa học máy tính', soCongTrinh: 3, tongGio: 150, chuNhiem: 1, thanhVien: 2, trangThai: 'Đạt' },
+                { maGV: 'GV003', hoTen: 'Lê Văn C', boMon: 'Mạng máy tính', soCongTrinh: 2, tongGio: 80, chuNhiem: 0, thanhVien: 2, trangThai: 'Chưa đạt' }
+            ]
+        };
+
+        // Update overview counters
+        $('#totalCongTrinh').text(sampleData.totalCongTrinh);
+        $('#totalTacGia').text(sampleData.totalTacGia);
+        $('#totalGio').text(sampleData.totalGio);
+        $('#avgGio').text(sampleData.avgGio);
+
+        // Chart for Loai NCKH
+        const ctxLoai = document.getElementById('chartLoaiNCKH').getContext('2d');
+        new Chart(ctxLoai, {
+            type: 'doughnut',
+            data: {
+                labels: sampleData.loaiNCKH.map(item => item.label),
+                datasets: [{
+                    data: sampleData.loaiNCKH.map(item => item.value),
+                    backgroundColor: sampleData.loaiNCKH.map(item => item.color),
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // Chart for Nam Hoc
+        const ctxNam = document.getElementById('chartNamHoc').getContext('2d');
+        new Chart(ctxNam, {
+            type: 'bar',
+            data: {
+                labels: sampleData.namHoc.map(item => item.label),
+                datasets: [{
+                    label: 'Số công trình',
+                    data: sampleData.namHoc.map(item => item.value),
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Populate detail table
+        const tableBody = document.querySelector('#thongKeTable tbody');
+        sampleData.chiTiet.forEach((item, index) => {
+            const row = tableBody.insertRow();
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.maGV}</td>
+                <td><a href="/GiaoVien/Details/${item.maGV}" class="text-primary">${item.hoTen}</a></td>
+                <td>${item.boMon}</td>
+                <td class="text-center">${item.soCongTrinh}</td>
+                <td class="text-center">${item.tongGio}</td>
+                <td class="text-center">${item.chuNhiem}</td>
+                <td class="text-center">${item.thanhVien}</td>
+                <td class="text-center">
+                    <span class="badge ${item.trangThai === 'Đạt' ? 'bg-success' : 'bg-warning'}">${item.trangThai}</span>
+                </td>
+            `;
+        });
+
+        // Export functions
+        function exportToExcel() {
+            // Implementation for Excel export
+            alert('Chức năng xuất Excel đang được phát triển');
+        }
+
+        function printReport() {
+            // Implementation for printing
+            window.print();
+        }
+
+        // Filter change handlers
+        $('select[name="maBM"]').change(function() {
+            const selectedBM = $(this).val();
+            if (selectedBM) {
+                // Filter GiaoVien by BoMon
+                // Load giáo viên thuộc bộ môn được chọn
+            }
+        });
+
+        $('select[name="maKhoa"]').change(function() {
+            const selectedKhoa = $(this).val();
+            if (selectedKhoa) {
+                // Filter BoMon by Khoa
+                // Load bộ môn thuộc khoa được chọn
+            }
+        });
+
+        // Auto submit when filter changes (optional)
+        $('.auto-submit').change(function() {
+            $(this).closest('form').submit();
+        });
+
+        // Tooltips for charts
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0,0,0,0.8)';
+        Chart.defaults.plugins.tooltip.titleColor = '#fff';
+        Chart.defaults.plugins.tooltip.bodyColor = '#fff';
+    </script>
+}
