@@ -52,7 +52,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 totalRecordsParam
             };
 
-            var result = await _context.Database.SqlQueryRaw<TaiNCKHListItemDto>(
+            var result = await _context.TaiNCKHListItems.FromSqlRaw(
                 "EXEC sp_NCKH_DanhSach @MaGV, @NamHoc, @PageNumber, @PageSize, @TotalRecords OUTPUT",
                 parameters.ToArray()).ToListAsync();
 

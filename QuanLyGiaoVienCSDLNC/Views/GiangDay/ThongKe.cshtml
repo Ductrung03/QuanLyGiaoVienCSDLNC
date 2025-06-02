@@ -1,0 +1,400 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "Thống kê giảng dạy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Thống kê giảng dạy</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <i data-feather="home"></i>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item">Quản lý giảng dạy</li>
+                        <li class="breadcrumb-item active">Thống kê</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-sm-12">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                }
+
+                <!-- Filter Card -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Bộ lọc thống kê</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" asp-action="ThongKe">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Giáo viên</label>
+                                        <input type="text" class="form-control" name="maGV" value="@ViewBag.MaGV" placeholder="Mã giáo viên">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Bộ môn</label>
+                                        <input type="text" class="form-control" name="maBM" value="@ViewBag.MaBM" placeholder="Mã bộ môn">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Khoa</label>
+                                        <input type="text" class="form-control" name="maKhoa" value="@ViewBag.MaKhoa" placeholder="Mã khoa">
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label class="form-label">Năm học</label>
+                                        <select class="form-select" name="namHoc" asp-items="ViewBag.NamHocs">
+                                            <option value="">-- Tất cả năm học --</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i data-feather="search"></i> Thống kê
+                                    </button>
+                                    <button type="button" class="btn btn-success me-2" onclick="exportChart()">
+                                        <i data-feather="download"></i> Xuất biểu đồ
+                                    </button>
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i data-feather="list"></i> Quay lại danh sách
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                @if (Model != null)
+                {
+                        <!-- Tổng quan -->
+                        <div class="row mb-4">
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card stats-card bg-primary text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h4 class="mb-0">@Model.TongSoTiet</h4>
+                                                <p class="mb-0">Tổng số tiết</p>
+                                            </div>
+                                            <i data-feather="clock" size="48"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card stats-card bg-success text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h4 class="mb-0">@((float)Model.TongSoTietQuyDoi).ToString("F1")</h4>
+                                                <p class="mb-0">Giờ quy đổi</p>
+                                            </div>
+                                            <i data-feather="trending-up" size="48"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card stats-card bg-info text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h4 class="mb-0">@Model.SoTaiGiangDay</h4>
+                                                <p class="mb-0">Tải giảng dạy</p>
+                                            </div>
+                                            <i data-feather="book-open" size="48"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-3 col-md-6">
+                                <div class="card stats-card bg-warning text-white">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h4 class="mb-0">@Model.SoGiaoVien</h4>
+                                                <p class="mb-0">Giáo viên</p>
+                                            </div>
+                                            <i data-feather="users" size="48"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Biểu đồ -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Phân bố số tiết theo giáo viên</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="chartSoTiet" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Phân bố giờ quy đổi theo giáo viên</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <canvas id="chartGioQuyDoi" height="300"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chi tiết theo giáo viên -->
+                    @if (Model.ChiTiet != null && ((IEnumerable<dynamic>)Model.ChiTiet).Any())
+                    {
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5>Chi tiết theo giáo viên</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="statisticsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Mã GV</th>
+                                                        <th>Họ tên</th>
+                                                        <th>Số tải GD</th>
+                                                        <th>Tổng số tiết</th>
+                                                        <th>Giờ quy đổi</th>
+                                                        <th>Trung bình tiết/tải</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                            @foreach (var item in Model.ChiTiet)
+                                            {
+                                                            <tr>
+                                                                <td>
+                                                                    <span class="badge bg-info">@item.MaGV</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="fw-bold">@item.HoTen</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge bg-primary">@item.SoTaiGiangDay</span>
+                                                                </td>
+                                                                <td>
+                                                                    <span class="fw-bold">@item.SoTiet</span> tiết
+                                                                </td>
+                                                                <td>
+                                                                    <span class="badge bg-success">@((float)item.SoTietQuyDoi).ToString("F1")</span>
+                                                                </td>
+                                                                <td>
+                                                        @{
+                                                            var trungBinh = item.SoTaiGiangDay > 0 ? (float)item.SoTiet / item.SoTaiGiangDay : 0;
+                                                        }
+                                                                    <span class="text-muted">@trungBinh.ToString("F1") tiết/tải</span>
+                                                                </td>
+                                                            </tr>
+                                            }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                    }
+                    else
+                    {
+                                <div class="card">
+                                    <div class="card-body text-center py-5">
+                                        <i data-feather="bar-chart-2" size="48" class="text-muted mb-3"></i>
+                                        <h5>Không có dữ liệu chi tiết</h5>
+                                        <p class="text-muted">Thay đổi bộ lọc để xem thống kê chi tiết.</p>
+                                    </div>
+                                </div>
+                    }
+                }
+                else
+                {
+                        <div class="card">
+                            <div class="card-body text-center py-5">
+                                <i data-feather="bar-chart-2" size="48" class="text-muted mb-3"></i>
+                                <h5>Chưa có dữ liệu thống kê</h5>
+                                <p class="text-muted">Hãy chọn bộ lọc và nhấn "Thống kê" để xem báo cáo.</p>
+                            </div>
+                        </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                // Set selected values for filters
+                $('select[name="namHoc"]').val('@ViewBag.NamHoc');
+
+                // Initialize feather icons
+                feather.replace();
+
+                // Initialize DataTable
+                if ($('#statisticsTable').length && $('#statisticsTable tbody tr').length > 0) {
+                    $('#statisticsTable').DataTable({
+                        "language": {
+                            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                        },
+                        "pageLength": 25,
+                        "order": [[4, "desc"]], // Sort by giờ quy đổi desc
+                        "columnDefs": [
+                            { "type": "num", "targets": [2, 3, 4, 5] }
+                        ]
+                    });
+                }
+
+                // Create charts if data exists
+        @if (Model != null && Model.ChiTiet != null)
+        {
+            <text>
+                        // Prepare data for charts
+                        var labels = [];
+                        var dataSoTiet = [];
+                        var dataGioQuyDoi = [];
+                        var colors = [];
+
+                @foreach (var item in Model.ChiTiet)
+                {
+                    <text>
+                                labels.push('@item.HoTen');
+                                dataSoTiet.push(@item.SoTiet);
+                                dataGioQuyDoi.push(@((float)item.SoTietQuyDoi).ToString("F1"));
+                                colors.push('rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.8)');
+                    </text>
+                }
+
+                        // Chart for Số tiết
+                        var ctxSoTiet = document.getElementById('chartSoTiet').getContext('2d');
+                        var chartSoTiet = new Chart(ctxSoTiet, {
+                            type: 'bar',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Số tiết',
+                                    data: dataSoTiet,
+                                    backgroundColor: colors,
+                                    borderColor: colors.map(color => color.replace('0.8', '1')),
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: true,
+                                            text: 'Số tiết'
+                                        }
+                                    },
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Giáo viên'
+                                        }
+                                    }
+                                },
+                                plugins: {
+                                    legend: {
+                                        display: false
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Phân bố số tiết theo giáo viên'
+                                    }
+                                }
+                            }
+                        });
+
+                        // Chart for Giờ quy đổi
+                        var ctxGioQuyDoi = document.getElementById('chartGioQuyDoi').getContext('2d');
+                        var chartGioQuyDoi = new Chart(ctxGioQuyDoi, {
+                            type: 'doughnut',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Giờ quy đổi',
+                                    data: dataGioQuyDoi,
+                                    backgroundColor: colors,
+                                    borderColor: colors.map(color => color.replace('0.8', '1')),
+                                    borderWidth: 2
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                plugins: {
+                                    legend: {
+                                        position: 'right'
+                                    },
+                                    title: {
+                                        display: true,
+                                        text: 'Phân bố giờ quy đổi theo giáo viên'
+                                    }
+                                }
+                            }
+                        });
+
+                        // Store charts for export
+                        window.chartSoTiet = chartSoTiet;
+                        window.chartGioQuyDoi = chartGioQuyDoi;
+            </text>
+        }
+            });
+
+            function exportChart() {
+                // Export as image using html2canvas
+                var element = document.querySelector('.container-fluid');
+
+                html2canvas(element, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                }).then(function(canvas) {
+                    var link = document.createElement('a');
+                    link.download = 'ThongKeGiangDay_' + new Date().toISOString().split('T')[0] + '.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+
+                    TM.utils.showNotification('Xuất biểu đồ thành công!', 'success');
+                }).catch(function(error) {
+                    console.error('Error:', error);
+                    TM.utils.showNotification('Có lỗi khi xuất biểu đồ!', 'error');
+                });
+            }
+        </script>
+}

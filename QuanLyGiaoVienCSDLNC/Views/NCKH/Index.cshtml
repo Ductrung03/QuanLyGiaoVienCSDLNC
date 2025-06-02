@@ -153,18 +153,9 @@
                                                 <td>@item.NamHoc</td>
                                                 <td>@item.TenLoaiNCKH</td>
                                                 <td class="text-center">@item.SoTacGia</td>
-                                                <td class="text-center">@item.SoTacGiaHienTai</td>
+                                               
                                                 <td class="text-center">@item.QuyRaGioChuan</td>
-                                                <td>
-                                                    @if (item.SoTacGiaHienTai >= item.SoTacGia)
-                                                    {
-                                                        <span class="badge bg-success">Đầy đủ</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-warning">Thiếu TG</span>
-                                                    }
-                                                </td>
+                                                
                                                 <td>
                                                     <div class="btn-group" role="group">
                                                         <a asp-action="Details" asp-route-id="@item.MaTaiNCKH"

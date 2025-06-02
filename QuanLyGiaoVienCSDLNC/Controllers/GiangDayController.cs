@@ -1,27 +1,25 @@
-﻿// Controllers/GiangDayController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using QuanLyGiaoVienCSDLNC.DTOs.TaiGiangDay;
-using QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay;
+using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 
 namespace QuanLyGiaoVienCSDLNC.Controllers
 {
     public class GiangDayController : Controller
     {
-        private readonly ITaiGiangDayService _taiGiangDayService;
+        private readonly IGiangDayService _giangDayService;
         private readonly IGiaoVienService _giaoVienService;
 
-        public GiangDayController(ITaiGiangDayService taiGiangDayService, IGiaoVienService giaoVienService)
+        public GiangDayController(IGiangDayService giangDayService, IGiaoVienService giaoVienService)
         {
-            _taiGiangDayService = taiGiangDayService;
+            _giangDayService = giangDayService;
             _giaoVienService = giaoVienService;
         }
 
         #region TaiGiangDay Actions
 
         // GET: GiangDay
-        public async Task<IActionResult> Index(TaiGiangDaySearchDto searchDto)
+        public async Task<IActionResult> Index(string searchTerm = null, string namHoc = null, string he = null, string maDoiTuong = null)
         {
             // Kiểm tra đăng nhập
             if (HttpContext.Session.GetString("UserId") == null)
@@ -29,20 +27,25 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return RedirectToAction("Index", "Login");
             }
 
-            // Lấy danh sách lookup data
-            await PopulateViewBagDataAsync();
+            try
+            {
+                var taiGiangDays = await _giangDayService.SearchTaiGiangDayAsync(searchTerm, namHoc, he, maDoiTuong);
 
-            // Tìm kiếm
-            var result = await _taiGiangDayService.SearchTaiGiangDayAsync(searchDto);
-            if (result.Success)
-            {
-                ViewBag.SearchDto = searchDto;
-                return View(result.Data);
+                // Load lookup data cho filter
+                await LoadLookupDataAsync();
+
+                // Truyền search parameters về view
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.NamHoc = namHoc;
+                ViewBag.He = he;
+                ViewBag.MaDoiTuong = maDoiTuong;
+
+                return View(taiGiangDays);
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = result.Message;
-                return View();
+                TempData["ErrorMessage"] = ex.Message;
+                return View(new List<TaiGiangDay>());
             }
         }
 
@@ -54,55 +57,63 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return NotFound();
             }
 
-            var result = await _taiGiangDayService.GetTaiGiangDayByIdAsync(id);
-            if (!result.Success || result.Data == null)
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var taiGiangDay = await _giangDayService.GetTaiGiangDayByIdAsync(id);
+                if (taiGiangDay == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài giảng dạy";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Lấy danh sách chi tiết giảng dạy
+                var chiTietGiangDays = await _giangDayService.GetChiTietGiangDayByTaiGiangDayAsync(id);
+                ViewBag.ChiTietGiangDays = chiTietGiangDays;
+
+                return View(taiGiangDay);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-
-            // Lấy danh sách giáo viên được phân công
-            var chiTietResult = await _taiGiangDayService.GetChiTietGiangDayByTaiGiangDayAsync(id);
-            ViewBag.ChiTietGiangDay = chiTietResult.Success ? chiTietResult.Data : new List<Models.ChiTietGiangDay>();
-
-            return View(result.Data);
         }
 
         // GET: GiangDay/Create
         public async Task<IActionResult> Create()
         {
-            await PopulateViewBagDataAsync();
-            return View(new TaiGiangDayCreateDto());
+            await LoadLookupDataAsync();
+            return View(new TaiGiangDay());
         }
 
         // POST: GiangDay/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(TaiGiangDayCreateDto dto)
+        public async Task<IActionResult> Create(TaiGiangDay taiGiangDay)
         {
             if (ModelState.IsValid)
             {
-                var result = await _taiGiangDayService.AddTaiGiangDayAsync(dto);
-                if (result.Success)
+                try
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = result.Message;
-                    if (result.Errors?.Any() == true)
+                    var result = await _giangDayService.AddTaiGiangDayAsync(taiGiangDay);
+                    if (result.success)
                     {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error);
-                        }
+                        TempData["SuccessMessage"] = result.message;
+                        return RedirectToAction(nameof(Details), new { id = result.maTaiGiangDay });
                     }
+                    else
+                    {
+                        TempData["ErrorMessage"] = result.message;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["ErrorMessage"] = ex.Message;
                 }
             }
 
-            await PopulateViewBagDataAsync();
-            return View(dto);
+            await LoadLookupDataAsync();
+            return View(taiGiangDay);
         }
 
         // GET: GiangDay/Edit/5
@@ -113,53 +124,53 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return NotFound();
             }
 
-            var result = await _taiGiangDayService.GetTaiGiangDayByIdAsync(id);
-            if (!result.Success || result.Data == null)
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var taiGiangDay = await _giangDayService.GetTaiGiangDayByIdAsync(id);
+                if (taiGiangDay == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài giảng dạy";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await LoadLookupDataAsync();
+                return View(taiGiangDay);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-
-            var dto = new TaiGiangDayUpdateDto
-            {
-                MaTaiGiangDay = result.Data.MaTaiGiangDay,
-                TenHocPhan = result.Data.TenHocPhan,
-                SiSo = result.Data.SiSo,
-                He = result.Data.He,
-                Lop = result.Data.Lop,
-                SoTinChi = result.Data.SoTinChi,
-                GhiChu = result.Data.GhiChu,
-                NamHoc = result.Data.NamHoc,
-                MaDoiTuong = result.Data.MaDoiTuong,
-                MaThoiGian = result.Data.MaThoiGian,
-                MaNgonNgu = result.Data.MaNgonNgu
-            };
-
-            await PopulateViewBagDataAsync();
-            return View(dto);
         }
 
         // POST: GiangDay/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(TaiGiangDayUpdateDto dto)
+        public async Task<IActionResult> Edit(TaiGiangDay taiGiangDay)
         {
             if (ModelState.IsValid)
             {
-                var result = await _taiGiangDayService.UpdateTaiGiangDayAsync(dto);
-                if (result.Success)
+                try
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    return RedirectToAction(nameof(Index));
+                    var result = await _giangDayService.UpdateTaiGiangDayAsync(taiGiangDay);
+                    if (result.success)
+                    {
+                        TempData["SuccessMessage"] = result.message;
+                        return RedirectToAction(nameof(Details), new { id = taiGiangDay.MaTaiGiangDay });
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = result.message;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = result.Message;
+                    TempData["ErrorMessage"] = ex.Message;
                 }
             }
 
-            await PopulateViewBagDataAsync();
-            return View(dto);
+            await LoadLookupDataAsync();
+            return View(taiGiangDay);
         }
 
         // GET: GiangDay/Delete/5
@@ -170,14 +181,22 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return NotFound();
             }
 
-            var result = await _taiGiangDayService.GetTaiGiangDayByIdAsync(id);
-            if (!result.Success || result.Data == null)
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var taiGiangDay = await _giangDayService.GetTaiGiangDayByIdAsync(id);
+                if (taiGiangDay == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài giảng dạy";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(taiGiangDay);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(result.Data);
         }
 
         // POST: GiangDay/Delete/5
@@ -185,14 +204,21 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            var result = await _taiGiangDayService.DeleteTaiGiangDayAsync(id);
-            if (result.Success)
+            try
             {
-                TempData["SuccessMessage"] = result.Message;
+                var result = await _giangDayService.DeleteTaiGiangDayAsync(id);
+                if (result.success)
+                {
+                    TempData["SuccessMessage"] = result.message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.message;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = result.Message;
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Index));
@@ -210,179 +236,220 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return NotFound();
             }
 
-            var taiGiangDayResult = await _taiGiangDayService.GetTaiGiangDayByIdAsync(id);
-            if (!taiGiangDayResult.Success || taiGiangDayResult.Data == null)
+            try
             {
-                TempData["ErrorMessage"] = taiGiangDayResult.Message;
+                var taiGiangDay = await _giangDayService.GetTaiGiangDayByIdAsync(id);
+                if (taiGiangDay == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài giảng dạy";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Lấy danh sách giáo viên
+                var giaoViens = await _giaoVienService.GetAllGiaoVienAsync();
+                ViewBag.GiaoViens = new SelectList(giaoViens, "MaGV", "HoTen");
+
+                // Lấy danh sách chi tiết giảng dạy hiện tại
+                var chiTietGiangDays = await _giangDayService.GetChiTietGiangDayByTaiGiangDayAsync(id);
+                ViewBag.ChiTietGiangDays = chiTietGiangDays;
+
+                ViewBag.TaiGiangDay = taiGiangDay;
+
+                // Model cho form phân công
+                var model = new ChiTietGiangDay
+                {
+                    MaTaiGiangDay = id
+                };
+
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction(nameof(Index));
             }
-
-            // Lấy danh sách giáo viên
-            var giaoVienResult = await _giaoVienService.GetAllGiaoVienAsync();
-            if (giaoVienResult?.Any() == true)
-            {
-                ViewBag.GiaoViens = new SelectList(giaoVienResult, "MaGV", "HoTen");
-            }
-            else
-            {
-                ViewBag.GiaoViens = new SelectList(new List<object>(), "MaGV", "HoTen");
-            }
-
-            ViewBag.TaiGiangDay = taiGiangDayResult.Data;
-
-            // Lấy danh sách giáo viên đã được phân công
-            var chiTietResult = await _taiGiangDayService.GetChiTietGiangDayByTaiGiangDayAsync(id);
-            ViewBag.ChiTietGiangDay = chiTietResult.Success ? chiTietResult.Data : new List<Models.ChiTietGiangDay>();
-
-            return View(new ChiTietGiangDayCreateDto { MaTaiGiangDay = id });
         }
 
         // POST: GiangDay/PhanCong
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PhanCong(ChiTietGiangDayCreateDto dto)
+        public async Task<IActionResult> PhanCong(ChiTietGiangDay model)
         {
             if (ModelState.IsValid)
             {
-                var result = await _taiGiangDayService.PhanCongGiangDayAsync(dto);
-                if (result.Success)
+                try
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    return RedirectToAction(nameof(Details), new { id = dto.MaTaiGiangDay });
+                    var result = await _giangDayService.PhanCongGiangDayAsync(
+                        model.MaGV,
+                        model.MaTaiGiangDay,
+                        model.SoTiet,
+                        model.GhiChu,
+                        model.MaNoiDungGiangDay,
+                        true);
+
+                    if (result.success)
+                    {
+                        TempData["SuccessMessage"] = result.message;
+                        return RedirectToAction(nameof(Details), new { id = model.MaTaiGiangDay });
+                    }
+                    else
+                    {
+                        TempData["ErrorMessage"] = result.message;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["ErrorMessage"] = result.Message;
+                    TempData["ErrorMessage"] = ex.Message;
                 }
             }
 
-            // Reload data for view
-            var taiGiangDayResult = await _taiGiangDayService.GetTaiGiangDayByIdAsync(dto.MaTaiGiangDay);
-            ViewBag.TaiGiangDay = taiGiangDayResult.Data;
-
-            var giaoVienResult = await _giaoVienService.GetAllGiaoVienAsync();
-            if (giaoVienResult?.Any() == true)
+            // Reload data for view nếu có lỗi
+            try
             {
-                ViewBag.GiaoViens = new SelectList(giaoVienResult, "MaGV", "HoTen", dto.MaGV);
+                var taiGiangDay = await _giangDayService.GetTaiGiangDayByIdAsync(model.MaTaiGiangDay);
+                ViewBag.TaiGiangDay = taiGiangDay;
+
+                var giaoViens = await _giaoVienService.GetAllGiaoVienAsync();
+                ViewBag.GiaoViens = new SelectList(giaoViens, "MaGV", "HoTen", model.MaGV);
+
+                var chiTietGiangDays = await _giangDayService.GetChiTietGiangDayByTaiGiangDayAsync(model.MaTaiGiangDay);
+                ViewBag.ChiTietGiangDays = chiTietGiangDays;
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Index));
             }
 
-            var chiTietResult = await _taiGiangDayService.GetChiTietGiangDayByTaiGiangDayAsync(dto.MaTaiGiangDay);
-            ViewBag.ChiTietGiangDay = chiTietResult.Success ? chiTietResult.Data : new List<Models.ChiTietGiangDay>();
-
-            return View(dto);
+            return View(model);
         }
 
-        // POST: GiangDay/XoaPhanCong/5
+        // POST: GiangDay/XoaPhanCong
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> XoaPhanCong(string maChiTietGiangDay, string maTaiGiangDay)
         {
-            var result = await _taiGiangDayService.XoaPhanCongGiangDayAsync(maChiTietGiangDay);
-            if (result.Success)
+            try
             {
-                TempData["SuccessMessage"] = result.Message;
+                var result = await _giangDayService.XoaPhanCongGiangDayAsync(maChiTietGiangDay);
+                if (result.success)
+                {
+                    TempData["SuccessMessage"] = result.message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.message;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = result.Message;
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             return RedirectToAction(nameof(Details), new { id = maTaiGiangDay });
         }
 
         // GET: GiangDay/DanhSachGiangDay
-        public async Task<IActionResult> DanhSachGiangDay(string maGV = null, string namHoc = null, int pageNumber = 1, int pageSize = 20)
+        public async Task<IActionResult> DanhSachGiangDay(string maGV = null, string namHoc = null)
         {
-            // Kiểm tra đăng nhập
-            if (HttpContext.Session.GetString("UserId") == null)
+            try
             {
-                return RedirectToAction("Index", "Login");
+                List<ChiTietGiangDay> chiTietGiangDays;
+
+                if (!string.IsNullOrEmpty(maGV))
+                {
+                    chiTietGiangDays = await _giangDayService.GetChiTietGiangDayByGiaoVienAsync(maGV, namHoc);
+                }
+                else
+                {
+                    // Lấy tất cả hoặc theo năm học
+                    var allTaiGiangDays = await _giangDayService.SearchTaiGiangDayAsync(null, namHoc);
+                    chiTietGiangDays = new List<ChiTietGiangDay>();
+
+                    foreach (var taiGiangDay in allTaiGiangDays)
+                    {
+                        var chiTiets = await _giangDayService.GetChiTietGiangDayByTaiGiangDayAsync(taiGiangDay.MaTaiGiangDay);
+                        chiTietGiangDays.AddRange(chiTiets);
+                    }
+                }
+
+                // Load lookup data cho filter
+                var giaoViens = await _giaoVienService.GetAllGiaoVienAsync();
+                ViewBag.GiaoViens = new SelectList(giaoViens, "MaGV", "HoTen", maGV);
+
+                var namHocs = await _giangDayService.GetDistinctNamHocAsync();
+                ViewBag.NamHocs = new SelectList(namHocs, namHoc);
+
+                ViewBag.MaGV = maGV;
+                ViewBag.NamHoc = namHoc;
+
+                return View(chiTietGiangDays);
             }
-
-            var result = await _taiGiangDayService.GetDanhSachGiangDayAsync(maGV, namHoc, pageNumber, pageSize);
-            if (result.Success)
+            catch (Exception ex)
             {
-                // Lấy danh sách giáo viên và năm học cho filter
-                var giaoVienResult = await _giaoVienService.GetAllGiaoVienAsync();
-                ViewBag.GiaoViens = new SelectList(giaoVienResult ?? new List<Models.GiaoVien>(), "MaGV", "HoTen", maGV);
-
-                var namHocResult = await _taiGiangDayService.GetDistinctNamHocAsync();
-                ViewBag.NamHocs = new SelectList(namHocResult.Data ?? new List<string>(), namHoc);
-
-                ViewBag.CurrentMaGV = maGV;
-                ViewBag.CurrentNamHoc = namHoc;
-
-                return View(result.Data);
+                TempData["ErrorMessage"] = ex.Message;
+                return View(new List<ChiTietGiangDay>());
             }
-            else
+        }
+
+        // GET: GiangDay/ThongKe
+        public async Task<IActionResult> ThongKe(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null)
+        {
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var thongKe = await _giangDayService.GetThongKeGiangDayAsync(maGV, maBM, maKhoa, namHoc);
+
+                // Load data cho filter nếu cần
+                var namHocs = await _giangDayService.GetDistinctNamHocAsync();
+                ViewBag.NamHocs = new SelectList(namHocs, namHoc);
+
+                ViewBag.MaGV = maGV;
+                ViewBag.MaBM = maBM;
+                ViewBag.MaKhoa = maKhoa;
+                ViewBag.NamHoc = namHoc;
+
+                return View(thongKe);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
                 return View();
             }
         }
 
         #endregion
 
-        #region API Actions
-
-        [HttpGet]
-        public async Task<IActionResult> GetTaiGiangDayJson(TaiGiangDaySearchDto searchDto)
-        {
-            var result = await _taiGiangDayService.SearchTaiGiangDayAsync(searchDto);
-            return Json(result);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetChiTietGiangDayJson(string maTaiGiangDay)
-        {
-            var result = await _taiGiangDayService.GetChiTietGiangDayByTaiGiangDayAsync(maTaiGiangDay);
-            return Json(result);
-        }
-
-        #endregion
-
         #region Private Methods
 
-        private async Task PopulateViewBagDataAsync()
+        private async Task LoadLookupDataAsync()
         {
             try
             {
-                // Lấy danh sách đối tượng giảng dạy
-                var doiTuongResult = await _taiGiangDayService.GetAllDoiTuongGiangDayAsync();
-                ViewBag.DoiTuongs = new SelectList(
-                    doiTuongResult.Success ? doiTuongResult.Data : new List<Models.DoiTuongGiangDay>(),
-                    "MaDoiTuong", "TenDoiTuong");
+                var doiTuongs = await _giangDayService.GetAllDoiTuongGiangDayAsync();
+                ViewBag.DoiTuongs = new SelectList(doiTuongs, "MaDoiTuong", "TenDoiTuong");
 
-                // Lấy danh sách thời gian giảng dạy
-                var thoiGianResult = await _taiGiangDayService.GetAllThoiGianGiangDayAsync();
-                ViewBag.ThoiGians = new SelectList(
-                    thoiGianResult.Success ? thoiGianResult.Data : new List<Models.ThoiGianGiangDay>(),
-                    "MaThoiGian", "TenThoiGian");
+                var thoiGians = await _giangDayService.GetAllThoiGianGiangDayAsync();
+                ViewBag.ThoiGians = new SelectList(thoiGians, "MaThoiGian", "TenThoiGian");
 
-                // Lấy danh sách ngôn ngữ giảng dạy
-                var ngonNguResult = await _taiGiangDayService.GetAllNgonNguGiangDayAsync();
-                ViewBag.NgonNgus = new SelectList(
-                    ngonNguResult.Success ? ngonNguResult.Data : new List<Models.NgonNguGiangDay>(),
-                    "MaNgonNgu", "TenNgonNgu");
+                var ngonNgus = await _giangDayService.GetAllNgonNguGiangDayAsync();
+                ViewBag.NgonNgus = new SelectList(ngonNgus, "MaNgonNgu", "TenNgonNgu");
 
-                // Lấy danh sách năm học
-                var namHocResult = await _taiGiangDayService.GetDistinctNamHocAsync();
-                ViewBag.NamHocs = new SelectList(
-                    namHocResult.Success ? namHocResult.Data : new List<string>());
+                var namHocs = await _giangDayService.GetDistinctNamHocAsync();
+                ViewBag.NamHocs = new SelectList(namHocs);
 
-                // Lấy danh sách hệ đào tạo
-                var heResult = await _taiGiangDayService.GetDistinctHeAsync();
-                ViewBag.Hes = new SelectList(
-                    heResult.Success ? heResult.Data : new List<string>());
+                var hes = await _giangDayService.GetDistinctHeAsync();
+                ViewBag.Hes = new SelectList(hes);
             }
             catch (Exception ex)
             {
-                // Log error
-                ViewBag.DoiTuongs = new SelectList(new List<object>(), "MaDoiTuong", "TenDoiTuong");
-                ViewBag.ThoiGians = new SelectList(new List<object>(), "MaThoiGian", "TenThoiGian");
-                ViewBag.NgonNgus = new SelectList(new List<object>(), "MaNgonNgu", "TenNgonNgu");
+                // Log error và set empty lists
+                ViewBag.DoiTuongs = new SelectList(new List<DoiTuongGiangDay>(), "MaDoiTuong", "TenDoiTuong");
+                ViewBag.ThoiGians = new SelectList(new List<ThoiGianGiangDay>(), "MaThoiGian", "TenThoiGian");
+                ViewBag.NgonNgus = new SelectList(new List<NgonNguGiangDay>(), "MaNgonNgu", "TenNgonNgu");
                 ViewBag.NamHocs = new SelectList(new List<string>());
                 ViewBag.Hes = new SelectList(new List<string>());
+
+                TempData["ErrorMessage"] = $"Lỗi khi tải dữ liệu: {ex.Message}";
             }
         }
 

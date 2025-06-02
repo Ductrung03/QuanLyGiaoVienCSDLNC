@@ -9,7 +9,6 @@
         public string TenLoaiNCKH { get; set; }
         public string DonViTinh { get; set; }
         public float QuyRaGioChuan { get; set; }
-        public int SoTacGiaHienTai { get; set; }
         public string TrangThai { get; set; }
     }
 }

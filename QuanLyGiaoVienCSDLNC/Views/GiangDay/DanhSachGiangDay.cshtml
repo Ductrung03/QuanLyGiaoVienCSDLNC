@@ -1,9 +1,7 @@
-﻿@model QuanLyGiaoVienCSDLNC.DTOs.Common.PagedResultDto<QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay.ChiTietGiangDayListDto>
+﻿@model List<QuanLyGiaoVienCSDLNC.Models.ChiTietGiangDay>
 @{
     ViewData["Title"] = "Danh sách giảng dạy";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var currentMaGV = ViewBag.CurrentMaGV as string;
-    var currentNamHoc = ViewBag.CurrentNamHoc as string;
 }
 
 <div class="page-body">
@@ -17,19 +15,17 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item">
                             <a asp-controller="Home" asp-action="Index">
-                                <svg class="stroke-icon">
-                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
-                                </svg>
+                                <i data-feather="home"></i>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a></li>
+                        <li class="breadcrumb-item">Quản lý giảng dạy</li>
                         <li class="breadcrumb-item active">Danh sách giảng dạy</li>
                     </ol>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Container-fluid starts-->
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
@@ -51,7 +47,7 @@
                 }
 
                 <!-- Filter Card -->
-                <div class="card">
+                <div class="card mb-4">
                     <div class="card-header">
                         <h5>Bộ lọc tìm kiếm</h5>
                     </div>
@@ -74,49 +70,49 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-2">
-                                    <div class="mb-3">
-                                        <label class="form-label">Kích thước trang</label>
-                                        <select class="form-select" name="pageSize">
-                                            <option value="20" selected="@(Model?.PageSize == 20)">20</option>
-                                            <option value="50" selected="@(Model?.PageSize == 50)">50</option>
-                                            <option value="100" selected="@(Model?.PageSize == 100)">100</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="mb-3">
-                                        <label class="form-label">&nbsp;</label>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <div class="mb-3 w-100">
                                         <button type="submit" class="btn btn-primary w-100">
                                             <i data-feather="search"></i> Tìm kiếm
                                         </button>
                                     </div>
                                 </div>
-                                <div class="col-md-1">
-                                    <div class="mb-3">
-                                        <label class="form-label">&nbsp;</label>
-                                        <a href="@Url.Action("DanhSachGiangDay")" class="btn btn-outline-secondary w-100" title="Làm mới">
-                                            <i data-feather="refresh-cw"></i>
-                                        </a>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <div class="mb-3 w-100">
+                                        <button type="button" class="btn btn-success w-100" onclick="exportToExcel()">
+                                            <i data-feather="download"></i> Xuất Excel
+                                        </button>
                                     </div>
                                 </div>
                             </div>
-                            <input type="hidden" name="pageNumber" value="1" />
                         </form>
                     </div>
                 </div>
 
                 <!-- Statistics Cards -->
-                @if (Model?.Data?.Any() == true)
+                @if (Model?.Any() == true)
                 {
                     <div class="row mb-4">
                         <div class="col-xl-3 col-md-6">
-                            <div class="card bg-primary text-white">
+                            <div class="card stats-card bg-primary text-white">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h4 class="mb-0">@Model.TotalRecords</h4>
+                                            <h4 class="mb-0">@Model.Count</h4>
                                             <p class="mb-0">Tổng phân công</p>
+                                        </div>
+                                        <i data-feather="book-open" size="48"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xl-3 col-md-6">
+                            <div class="card stats-card bg-success text-white">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h4 class="mb-0">@Model.Select(x => x.MaGV).Distinct().Count()</h4>
+                                            <p class="mb-0">Giáo viên</p>
                                         </div>
                                         <i data-feather="users" size="48"></i>
                                     </div>
@@ -124,24 +120,11 @@
                             </div>
                         </div>
                         <div class="col-xl-3 col-md-6">
-                            <div class="card bg-success text-white">
+                            <div class="card stats-card bg-info text-white">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h4 class="mb-0">@Model.Data.Select(x => x.MaGV).Distinct().Count()</h4>
-                                            <p class="mb-0">Số giáo viên</p>
-                                        </div>
-                                        <i data-feather="user" size="48"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6">
-                            <div class="card bg-info text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h4 class="mb-0">@Model.Data.Sum(x => x.SoTiet)</h4>
+                                            <h4 class="mb-0">@Model.Sum(x => x.SoTiet)</h4>
                                             <p class="mb-0">Tổng số tiết</p>
                                         </div>
                                         <i data-feather="clock" size="48"></i>
@@ -150,14 +133,14 @@
                             </div>
                         </div>
                         <div class="col-xl-3 col-md-6">
-                            <div class="card bg-warning text-white">
+                            <div class="card stats-card bg-warning text-white">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center">
                                         <div>
-                                            <h4 class="mb-0">@Model.Data.Sum(x => x.SoTietQuyDoi).ToString("F0")</h4>
-                                            <p class="mb-0">Tổng giờ chuẩn</p>
+                                            <h4 class="mb-0">@Model.Sum(x => x.SoTietQuyDoi).ToString("F1")</h4>
+                                            <p class="mb-0">Giờ quy đổi</p>
                                         </div>
-                                        <i data-feather="award" size="48"></i>
+                                        <i data-feather="trending-up" size="48"></i>
                                     </div>
                                 </div>
                             </div>
@@ -165,196 +148,149 @@
                     </div>
                 }
 
+                <!-- Main Table -->
                 <div class="card">
                     <div class="card-header">
                         <div class="d-flex justify-content-between align-items-center">
-                            <h5>Danh sách phân công giảng dạy</h5>
+                            <h5>Danh sách giảng dạy chi tiết</h5>
                             <div>
-                                <button type="button" class="btn btn-success me-2" onclick="exportToExcel()">
-                                    <i data-feather="download"></i> Xuất Excel
-                                </button>
-                                <button type="button" class="btn btn-info me-2" onclick="exportToPDF()">
-                                    <i data-feather="file-text"></i> Xuất PDF
-                                </button>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
-                                        <i data-feather="more-horizontal"></i> Thêm
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" onclick="printReport()">In báo cáo</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="emailReport()">Gửi email</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="#" onclick="viewChart()">Xem biểu đồ</a></li>
-                                    </ul>
-                                </div>
+                                <a asp-action="Index" class="btn btn-outline-primary me-2">
+                                    <i data-feather="list"></i> DS Tải GD
+                                </a>
+                                <a asp-action="ThongKe" class="btn btn-success">
+                                    <i data-feather="bar-chart-2"></i> Thống kê
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        @if (Model?.Data?.Any() == true)
+                        @if (Model?.Any() == true)
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover" id="giangDayTable">
                                     <thead>
                                         <tr>
-                                            <th>STT</th>
-                                            <th>Mã CT</th>
+                                            <th>Mã GV</th>
                                             <th>Giáo viên</th>
+                                            <th>Bộ môn</th>
                                             <th>Học phần</th>
                                             <th>Lớp</th>
-                                            <th>Hệ</th>
-                                            <th>Sĩ số</th>
-                                            <th>TC</th>
-                                            <th>Số tiết</th>
-                                            <th>Tiết QĐ</th>
                                             <th>Năm học</th>
-                                            <th>Đối tượng</th>
+                                            <th>Số tiết</th>
+                                            <th>Giờ quy đổi</th>
                                             <th>Ghi chú</th>
+                                            <th>Chức năng</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @{
-                                            var stt = (Model.PageNumber - 1) * Model.PageSize + 1;
-                                        }
-                                        @foreach (var item in Model.Data)
+                                        @foreach (var item in Model.OrderBy(x => x.GiaoVien?.HoTen).ThenBy(x => x.TaiGiangDay?.TenHocPhan))
                                         {
                                             <tr>
-                                                <td>@stt</td>
                                                 <td>
-                                                    <span class="badge bg-secondary">@item.MaChiTietGiangDay</span>
+                                                    <span class="badge bg-info">@item.MaGV</span>
                                                 </td>
                                                 <td>
                                                     <div>
-                                                        <h6 class="mb-0">@item.HoTen</h6>
-                                                        <small class="text-muted">@item.MaGV</small>
+                                                        <h6 class="mb-0">@item.GiaoVien?.HoTen</h6>
+                                                        <small class="text-muted">@item.GiaoVien?.Email</small>
                                                     </div>
+                                                </td>
+                                                <td>
+                                                    <small>@item.GiaoVien?.BoMon?.TenBM</small>
                                                 </td>
                                                 <td>
                                                     <div>
-                                                        <h6 class="mb-0">@item.TenHocPhan</h6>
-                                                        <small class="text-muted">@item.MaTaiGiangDay</small>
+                                                        <span class="fw-bold text-primary">@item.TaiGiangDay?.TenHocPhan</span>
+                                                        <br>
+                                                        <small class="text-muted">@item.TaiGiangDay?.MaTaiGiangDay</small>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-info">@item.Lop</span>
+                                                    <span class="badge bg-secondary">@item.TaiGiangDay?.Lop</span>
+                                                    <br>
+                                                    <small class="text-muted">@item.TaiGiangDay?.He</small>
+                                                </td>
+                                                <td>@item.TaiGiangDay?.NamHoc</td>
+                                                <td>
+                                                    <span class="fw-bold">@item.SoTiet</span> tiết
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-primary">@item.He</span>
-                                                </td>
-                                                <td>
-                                                    <span class="fw-bold">@item.SiSo</span>
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-success">@item.SoTinChi</span>
-                                                </td>
-                                                <td>
-                                                    <span class="fw-bold text-primary">@item.SoTiet</span>
-                                                </td>
-                                                <td>
-                                                    <span class="fw-bold text-success">@item.SoTietQuyDoi.ToString("F2")</span>
-                                                </td>
-                                                <td>@item.NamHoc</td>
-                                                <td>
-                                                    <small>@item.TenDoiTuong</small>
+                                                    <span class="badge bg-success">@item.SoTietQuyDoi.ToString("F1")</span>
                                                 </td>
                                                 <td>
                                                     @if (!string.IsNullOrEmpty(item.GhiChu))
                                                     {
-                                                        <small title="@item.GhiChu">
-                                                            @(item.GhiChu.Length > 30 ? item.GhiChu.Substring(0, 30) + "..." : item.GhiChu)
-                                                        </small>
+                                                        <small>@item.GhiChu</small>
+                                                    }
+                                                    else
+                                                    {
+                                                        <small class="text-muted">--</small>
                                                     }
                                                 </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a asp-action="Details" asp-route-id="@item.MaTaiGiangDay"
+                                                           class="btn btn-primary btn-sm" title="Chi tiết tải GD">
+                                                            <i data-feather="eye"></i>
+                                                        </a>
+                                                        <a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@item.MaGV"
+                                                           class="btn btn-info btn-sm" title="Chi tiết giáo viên">
+                                                            <i data-feather="user"></i>
+                                                        </a>
+                                                        <form asp-action="XoaPhanCong" method="post" style="display: inline;">
+                                                            <input type="hidden" name="maChiTietGiangDay" value="@item.MaChiTietGiangDay" />
+                                                            <input type="hidden" name="maTaiGiangDay" value="@item.MaTaiGiangDay" />
+                                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                                    onclick="return confirm('Bạn có chắc chắn muốn xóa phân công này?')"
+                                                                    title="Xóa phân công">
+                                                                <i data-feather="trash-2"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                            stt++;
                                         }
                                     </tbody>
-                                    <tfoot>
-                                        <tr class="table-info">
-                                            <th colspan="8">Tổng cộng</th>
-                                            <th class="fw-bold">@Model.Data.Sum(x => x.SoTiet)</th>
-                                            <th class="fw-bold">@Model.Data.Sum(x => x.SoTietQuyDoi).ToString("F2")</th>
-                                            <th colspan="3"></th>
-                                        </tr>
-                                    </tfoot>
                                 </table>
                             </div>
-
-                            <!-- Pagination -->
-                            @if (Model.TotalPages > 1)
-                            {
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        @if (Model.HasPreviousPage)
-                                        {
-                                            <li class="page-item">
-                                                <a class="page-link" href="@Url.Action("DanhSachGiangDay", new {
-                                                    maGV = currentMaGV,
-                                                    namHoc = currentNamHoc,
-                                                    pageNumber = Model.PageNumber - 1,
-                                                    pageSize = Model.PageSize
-                                                })">Trước</a>
-                                            </li>
-                                        }
-
-                                        @for (var i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
-                                        {
-                                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                                <a class="page-link" href="@Url.Action("DanhSachGiangDay", new {
-                                                    maGV = currentMaGV,
-                                                    namHoc = currentNamHoc,
-                                                    pageNumber = i,
-                                                    pageSize = Model.PageSize
-                                                })">@i</a>
-                                            </li>
-                                        }
-
-                                        @if (Model.HasNextPage)
-                                        {
-                                            <li class="page-item">
-                                                <a class="page-link" href="@Url.Action("DanhSachGiangDay", new {
-                                                    maGV = currentMaGV,
-                                                    namHoc = currentNamHoc,
-                                                    pageNumber = Model.PageNumber + 1,
-                                                    pageSize = Model.PageSize
-                                                })">Sau</a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </nav>
-                            }
                         }
                         else
                         {
                             <div class="text-center py-5">
-                                <i data-feather="users" size="48" class="text-muted mb-3"></i>
-                                <h5>Không có dữ liệu phân công giảng dạy</h5>
+                                <i data-feather="book-open" size="48" class="text-muted mb-3"></i>
+                                <h5>Chưa có dữ liệu giảng dạy</h5>
                                 <p class="text-muted">
-                                    @if (!string.IsNullOrEmpty(currentMaGV) || !string.IsNullOrEmpty(currentNamHoc))
-                                    {
-                                        <span>Không tìm thấy kết quả phù hợp với bộ lọc. <a href="@Url.Action("DanhSachGiangDay")">Xem tất cả</a></span>
-                                    }
-                                    else
-                                    {
-                                        <span>Chưa có phân công giảng dạy nào được tạo. <a asp-action="Index">Quay lại quản lý tải giảng dạy</a></span>
-                                    }
+                                    Hãy
+                                    <a asp-action="Index">quản lý tải giảng dạy</a>
+                                    và phân công giáo viên để bắt đầu.
                                 </p>
                             </div>
                         }
                     </div>
-                    @if (Model?.Data?.Any() == true)
+                    @if (Model?.Any() == true)
                     {
                         <div class="card-footer">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="text-muted">
-                                        Hiển thị @((Model.PageNumber - 1) * Model.PageSize + 1) - @(Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords))
-                                        trong tổng số @Model.TotalRecords phân công giảng dạy
+                                        Hiển thị @Model.Count phân công giảng dạy
                                     </span>
                                 </div>
                                 <div>
                                     <small class="text-muted">
-                                        Tổng: @Model.Data.Sum(x => x.SoTiet) tiết | @Model.Data.Sum(x => x.SoTietQuyDoi).ToString("F2") giờ chuẩn
+                                        Lọc theo:
+                                        @if (!string.IsNullOrEmpty(ViewBag.MaGV as string))
+                                        {
+                                            <span class="badge bg-info">Giáo viên</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(ViewBag.NamHoc as string))
+                                        {
+                                            <span class="badge bg-warning">@ViewBag.NamHoc</span>
+                                        }
+                                        @if (string.IsNullOrEmpty(ViewBag.MaGV as string) && string.IsNullOrEmpty(ViewBag.NamHoc as string))
+                                        {
+                                            <span class="badge bg-secondary">Tất cả</span>
+                                        }
                                     </small>
                                 </div>
                             </div>
@@ -364,7 +300,6 @@
             </div>
         </div>
     </div>
-    <!-- Container-fluid Ends-->
 </div>
 
 @section Script {
@@ -372,71 +307,47 @@
     <script>
         $(document).ready(function() {
             // Set selected values for filters
-            $('select[name="maGV"]').val('@currentMaGV');
-            $('select[name="namHoc"]').val('@currentNamHoc');
+            $('select[name="maGV"]').val('@ViewBag.MaGV');
+            $('select[name="namHoc"]').val('@ViewBag.NamHoc');
 
-            // Auto-submit form when filter changes (optional)
-            // $('select[name="maGV"], select[name="namHoc"]').change(function() {
-            //     $('form').submit();
-            // });
+            // Initialize feather icons
+            feather.replace();
+
+            // Initialize DataTable for better sorting and filtering
+            if ($('#giangDayTable tbody tr').length > 0) {
+                $('#giangDayTable').DataTable({
+                    "language": {
+                        "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                    },
+                    "pageLength": 25,
+                    "order": [[1, "asc"], [3, "asc"]], // Sort by teacher name, then subject
+                    "columnDefs": [
+                        { "orderable": false, "targets": [9] } // Disable sorting for action column
+                    ]
+                });
+            }
         });
 
         function exportToExcel() {
             var table = document.getElementById("giangDayTable");
             if (table) {
                 var wb = XLSX.utils.table_to_book(table, {sheet:"Danh sách giảng dạy"});
+
+                // Get current filter values for filename
+                var maGV = $('select[name="maGV"]').val();
+                var namHoc = $('select[name="namHoc"]').val();
                 var filename = "DanhSachGiangDay";
-                if ('@currentNamHoc') {
-                    filename += "_@currentNamHoc";
-                }
-                if ('@currentMaGV') {
-                    filename += "_@currentMaGV";
-                }
-                filename += ".xlsx";
-                XLSX.writeFile(wb, filename);
+
+                if (maGV) filename += "_" + maGV;
+                if (namHoc) filename += "_" + namHoc.replace(/\s+/g, '');
+                filename += "_" + new Date().toISOString().split('T')[0];
+
+                XLSX.writeFile(wb, filename + ".xlsx");
+
+                TM.utils.showNotification('Xuất Excel thành công!', 'success');
+            } else {
+                TM.utils.showNotification('Không có dữ liệu để xuất!', 'warning');
             }
-        }
-
-        function exportToPDF() {
-            window.print();
-        }
-
-        function printReport() {
-            window.print();
-        }
-
-        function emailReport() {
-            alert('Chức năng gửi email báo cáo sẽ được triển khai');
-        }
-
-        function viewChart() {
-            // Implementation for chart view
-            alert('Chức năng xem biểu đồ sẽ được triển khai');
         }
     </script>
-}
-
-@section Styles {
-    <style>
-        @@media print {
-            .page-title, .breadcrumb, .card-header .btn-group, .card-footer {
-                display: none !important;
-            }
-
-            .card {
-                border: none !important;
-                box-shadow: none !important;
-            }
-
-            .table {
-                font-size: 12px;
-            }
-
-            .badge {
-                background-color: #f8f9fa !important;
-                color: #212529 !important;
-                border: 1px solid #dee2e6 !important;
-            }
-        }
-    </style>
 }

@@ -82,6 +82,8 @@ namespace QuanLyGiaoVienCSDLNC.Data
         // Bảng hỗ trợ
         public DbSet<SequenceGenerator> SequenceGenerators { get; set; }
 
+        public DbSet<TaiNCKHListItemDto> TaiNCKHListItems { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -157,6 +159,11 @@ namespace QuanLyGiaoVienCSDLNC.Data
 
             // Bảng hỗ trợ
             modelBuilder.Entity<SequenceGenerator>().ToTable("SequenceGenerator");
+
+            // THÊM: Cấu hình keyless entity types cho DTOs
+            modelBuilder.Entity<TaiNCKHListItemDto>()
+                .HasNoKey()
+                .ToView(null); // Không map đến view cụ thể nào
         }
     }
 }

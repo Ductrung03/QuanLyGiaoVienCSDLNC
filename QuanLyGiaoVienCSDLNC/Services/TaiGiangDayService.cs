@@ -1,159 +1,120 @@
-﻿// Services/TaiGiangDayService.cs
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
-using QuanLyGiaoVienCSDLNC.DTOs.TaiGiangDay;
-using QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay;
-using QuanLyGiaoVienCSDLNC.Models;
+﻿using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 
 namespace QuanLyGiaoVienCSDLNC.Services
 {
-    public class TaiGiangDayService : ITaiGiangDayService
+    public class GiangDayService : IGiangDayService
     {
-        private readonly ITaiGiangDayRepository _taiGiangDayRepository;
+        private readonly IGiangDayRepository _giangDayRepository;
+        private readonly IGiaoVienRepository _giaoVienRepository;
 
-        public TaiGiangDayService(ITaiGiangDayRepository taiGiangDayRepository)
+        public GiangDayService(IGiangDayRepository giangDayRepository, IGiaoVienRepository giaoVienRepository)
         {
-            _taiGiangDayRepository = taiGiangDayRepository;
+            _giangDayRepository = giangDayRepository;
+            _giaoVienRepository = giaoVienRepository;
         }
 
         #region TaiGiangDay Operations
 
-        public async Task<ApiResponseDto<List<TaiGiangDay>>> GetAllTaiGiangDayAsync()
+        public async Task<List<TaiGiangDay>> GetAllTaiGiangDayAsync()
         {
             try
             {
-                var result = await _taiGiangDayRepository.GetAllTaiGiangDayAsync();
-                return ApiResponseDto<List<TaiGiangDay>>.SuccessResult(result, "Lấy danh sách tài giảng dạy thành công");
+                return await _giangDayRepository.GetAllTaiGiangDayAsync();
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<TaiGiangDay>>.ErrorResult($"Lỗi khi lấy danh sách tài giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách tài giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<TaiGiangDay>> GetTaiGiangDayByIdAsync(string maTaiGiangDay)
+        public async Task<TaiGiangDay> GetTaiGiangDayByIdAsync(string maTaiGiangDay)
         {
+            if (string.IsNullOrEmpty(maTaiGiangDay))
+            {
+                throw new ArgumentException("Mã tài giảng dạy không được để trống");
+            }
+
             try
             {
-                if (string.IsNullOrEmpty(maTaiGiangDay))
-                {
-                    return ApiResponseDto<TaiGiangDay>.ErrorResult("Mã tài giảng dạy không được để trống");
-                }
-
-                var result = await _taiGiangDayRepository.GetTaiGiangDayByIdAsync(maTaiGiangDay);
-                if (result == null)
-                {
-                    return ApiResponseDto<TaiGiangDay>.ErrorResult("Không tìm thấy tài giảng dạy");
-                }
-
-                return ApiResponseDto<TaiGiangDay>.SuccessResult(result, "Lấy thông tin tài giảng dạy thành công");
+                return await _giangDayRepository.GetTaiGiangDayByIdAsync(maTaiGiangDay);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<TaiGiangDay>.ErrorResult($"Lỗi khi lấy thông tin tài giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy thông tin tài giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<PagedResultDto<TaiGiangDayListDto>>> SearchTaiGiangDayAsync(TaiGiangDaySearchDto searchDto)
+        public async Task<List<TaiGiangDay>> SearchTaiGiangDayAsync(string searchTerm = null, string namHoc = null, string he = null, string maDoiTuong = null)
         {
             try
             {
-                if (searchDto == null)
-                {
-                    searchDto = new TaiGiangDaySearchDto();
-                }
-
-                // Validate pagination parameters
-                if (searchDto.PageNumber <= 0) searchDto.PageNumber = 1;
-                if (searchDto.PageSize <= 0) searchDto.PageSize = 20;
-                if (searchDto.PageSize > 100) searchDto.PageSize = 100;
-
-                var result = await _taiGiangDayRepository.SearchTaiGiangDayAsync(searchDto);
-                return ApiResponseDto<PagedResultDto<TaiGiangDayListDto>>.SuccessResult(result, "Tìm kiếm tài giảng dạy thành công");
+                return await _giangDayRepository.SearchTaiGiangDayAsync(searchTerm, namHoc, he, maDoiTuong);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<PagedResultDto<TaiGiangDayListDto>>.ErrorResult($"Lỗi khi tìm kiếm tài giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi tìm kiếm tài giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<string>> AddTaiGiangDayAsync(TaiGiangDayCreateDto dto)
+        public async Task<(bool success, string message, string maTaiGiangDay)> AddTaiGiangDayAsync(TaiGiangDay taiGiangDay)
         {
+            // Validation
+            var validationResult = await ValidateTaiGiangDayAsync(taiGiangDay, false);
+            if (!validationResult.isValid)
+            {
+                return (false, string.Join("; ", validationResult.errors), null);
+            }
+
             try
             {
-                // Validate business rules
-                var validationResult = await ValidateTaiGiangDayAsync(dto);
-                if (!validationResult.Success)
-                {
-                    return validationResult;
-                }
-
-                var result = await _taiGiangDayRepository.AddTaiGiangDayAsync(dto);
-                if (result.success)
-                {
-                    return ApiResponseDto<string>.SuccessResult(result.maTaiGiangDay, result.message);
-                }
-                else
-                {
-                    return ApiResponseDto<string>.ErrorResult(result.message);
-                }
+                return await _giangDayRepository.AddTaiGiangDayAsync(taiGiangDay);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<string>.ErrorResult($"Lỗi khi thêm tài giảng dạy: {ex.Message}");
+                return (false, $"Lỗi khi thêm tài giảng dạy: {ex.Message}", null);
             }
         }
 
-        public async Task<ApiResponseDto<bool>> UpdateTaiGiangDayAsync(TaiGiangDayUpdateDto dto)
+        public async Task<(bool success, string message)> UpdateTaiGiangDayAsync(TaiGiangDay taiGiangDay)
         {
+            if (string.IsNullOrEmpty(taiGiangDay.MaTaiGiangDay))
+            {
+                return (false, "Mã tài giảng dạy không được để trống");
+            }
+
+            // Validation
+            var validationResult = await ValidateTaiGiangDayAsync(taiGiangDay, true);
+            if (!validationResult.isValid)
+            {
+                return (false, string.Join("; ", validationResult.errors));
+            }
+
             try
             {
-                // Check if exists
-                var existing = await _taiGiangDayRepository.GetTaiGiangDayByIdAsync(dto.MaTaiGiangDay);
-                if (existing == null)
-                {
-                    return ApiResponseDto<bool>.ErrorResult("Không tìm thấy tài giảng dạy cần cập nhật");
-                }
-
-                var result = await _taiGiangDayRepository.UpdateTaiGiangDayAsync(dto);
-                if (result.success)
-                {
-                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
-                }
-                else
-                {
-                    return ApiResponseDto<bool>.ErrorResult(result.message);
-                }
+                return await _giangDayRepository.UpdateTaiGiangDayAsync(taiGiangDay);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi cập nhật tài giảng dạy: {ex.Message}");
+                return (false, $"Lỗi khi cập nhật tài giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<bool>> DeleteTaiGiangDayAsync(string maTaiGiangDay)
+        public async Task<(bool success, string message)> DeleteTaiGiangDayAsync(string maTaiGiangDay)
         {
+            if (string.IsNullOrEmpty(maTaiGiangDay))
+            {
+                return (false, "Mã tài giảng dạy không được để trống");
+            }
+
             try
             {
-                if (string.IsNullOrEmpty(maTaiGiangDay))
-                {
-                    return ApiResponseDto<bool>.ErrorResult("Mã tài giảng dạy không được để trống");
-                }
-
-                var result = await _taiGiangDayRepository.DeleteTaiGiangDayAsync(maTaiGiangDay);
-                if (result.success)
-                {
-                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
-                }
-                else
-                {
-                    return ApiResponseDto<bool>.ErrorResult(result.message);
-                }
+                return await _giangDayRepository.DeleteTaiGiangDayAsync(maTaiGiangDay);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi xóa tài giảng dạy: {ex.Message}");
+                return (false, $"Lỗi khi xóa tài giảng dạy: {ex.Message}");
             }
         }
 
@@ -161,129 +122,95 @@ namespace QuanLyGiaoVienCSDLNC.Services
 
         #region ChiTietGiangDay Operations
 
-        public async Task<ApiResponseDto<string>> PhanCongGiangDayAsync(ChiTietGiangDayCreateDto dto)
+        public async Task<List<ChiTietGiangDay>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay)
         {
+            if (string.IsNullOrEmpty(maTaiGiangDay))
+            {
+                throw new ArgumentException("Mã tài giảng dạy không được để trống");
+            }
+
             try
             {
-                // Validate business rules
-                var validationResult = await ValidateChiTietGiangDayAsync(dto);
-                if (!validationResult.Success)
-                {
-                    return validationResult;
-                }
-
-                var result = await _taiGiangDayRepository.PhanCongGiangDayAsync(dto);
-                if (result.success)
-                {
-                    return ApiResponseDto<string>.SuccessResult(result.maChiTietGiangDay, result.message);
-                }
-                else
-                {
-                    return ApiResponseDto<string>.ErrorResult(result.message);
-                }
+                return await _giangDayRepository.GetChiTietGiangDayByTaiGiangDayAsync(maTaiGiangDay);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<string>.ErrorResult($"Lỗi khi phân công giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy chi tiết giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<bool>> UpdateChiTietGiangDayAsync(ChiTietGiangDayUpdateDto dto)
+        public async Task<List<ChiTietGiangDay>> GetChiTietGiangDayByGiaoVienAsync(string maGV, string namHoc = null)
         {
+            if (string.IsNullOrEmpty(maGV))
+            {
+                throw new ArgumentException("Mã giáo viên không được để trống");
+            }
+
             try
             {
-                var result = await _taiGiangDayRepository.UpdateChiTietGiangDayAsync(dto);
-                if (result.success)
-                {
-                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
-                }
-                else
-                {
-                    return ApiResponseDto<bool>.ErrorResult(result.message);
-                }
+                return await _giangDayRepository.GetChiTietGiangDayByGiaoVienAsync(maGV, namHoc);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi cập nhật chi tiết giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách giảng dạy của giáo viên: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<bool>> XoaPhanCongGiangDayAsync(string maChiTietGiangDay)
+        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string maNoiDungGiangDay = null, bool checkConflict = true)
         {
+            // Validation
+            var validationResult = await ValidatePhanCongAsync(maGV, maTaiGiangDay, soTiet, checkConflict);
+            if (!validationResult.isValid)
+            {
+                return (false, string.Join("; ", validationResult.errors), null);
+            }
+
             try
             {
-                if (string.IsNullOrEmpty(maChiTietGiangDay))
-                {
-                    return ApiResponseDto<bool>.ErrorResult("Mã chi tiết giảng dạy không được để trống");
-                }
-
-                var result = await _taiGiangDayRepository.XoaPhanCongGiangDayAsync(maChiTietGiangDay);
-                if (result.success)
-                {
-                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
-                }
-                else
-                {
-                    return ApiResponseDto<bool>.ErrorResult(result.message);
-                }
+                return await _giangDayRepository.PhanCongGiangDayAsync(maGV, maTaiGiangDay, soTiet, ghiChu, maNoiDungGiangDay, checkConflict);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi xóa phân công giảng dạy: {ex.Message}");
+                return (false, $"Lỗi khi phân công giảng dạy: {ex.Message}", null);
             }
         }
 
-        public async Task<ApiResponseDto<PagedResultDto<ChiTietGiangDayListDto>>> GetDanhSachGiangDayAsync(string maGV = null, string namHoc = null, int pageNumber = 1, int pageSize = 20)
+        public async Task<(bool success, string message)> UpdateChiTietGiangDayAsync(string maChiTietGiangDay, int soTiet, string ghiChu)
         {
+            if (string.IsNullOrEmpty(maChiTietGiangDay))
+            {
+                return (false, "Mã chi tiết giảng dạy không được để trống");
+            }
+
+            if (soTiet <= 0 || soTiet > 200)
+            {
+                return (false, "Số tiết phải từ 1 đến 200");
+            }
+
             try
             {
-                // Validate pagination parameters
-                if (pageNumber <= 0) pageNumber = 1;
-                if (pageSize <= 0) pageSize = 20;
-                if (pageSize > 100) pageSize = 100;
-
-                var result = await _taiGiangDayRepository.GetDanhSachGiangDayAsync(maGV, namHoc, pageNumber, pageSize);
-                return ApiResponseDto<PagedResultDto<ChiTietGiangDayListDto>>.SuccessResult(result, "Lấy danh sách giảng dạy thành công");
+                return await _giangDayRepository.UpdateChiTietGiangDayAsync(maChiTietGiangDay, soTiet, ghiChu);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<PagedResultDto<ChiTietGiangDayListDto>>.ErrorResult($"Lỗi khi lấy danh sách giảng dạy: {ex.Message}");
+                return (false, $"Lỗi khi cập nhật chi tiết giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<List<ChiTietGiangDay>>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay)
+        public async Task<(bool success, string message)> XoaPhanCongGiangDayAsync(string maChiTietGiangDay)
         {
+            if (string.IsNullOrEmpty(maChiTietGiangDay))
+            {
+                return (false, "Mã chi tiết giảng dạy không được để trống");
+            }
+
             try
             {
-                if (string.IsNullOrEmpty(maTaiGiangDay))
-                {
-                    return ApiResponseDto<List<ChiTietGiangDay>>.ErrorResult("Mã tài giảng dạy không được để trống");
-                }
-
-                var result = await _taiGiangDayRepository.GetChiTietGiangDayByTaiGiangDayAsync(maTaiGiangDay);
-                return ApiResponseDto<List<ChiTietGiangDay>>.SuccessResult(result, "Lấy danh sách chi tiết giảng dạy thành công");
+                return await _giangDayRepository.XoaPhanCongGiangDayAsync(maChiTietGiangDay);
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<ChiTietGiangDay>>.ErrorResult($"Lỗi khi lấy danh sách chi tiết giảng dạy: {ex.Message}");
-            }
-        }
-
-        public async Task<ApiResponseDto<List<ChiTietGiangDay>>> GetChiTietGiangDayByGiaoVienAsync(string maGV)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(maGV))
-                {
-                    return ApiResponseDto<List<ChiTietGiangDay>>.ErrorResult("Mã giáo viên không được để trống");
-                }
-
-                var result = await _taiGiangDayRepository.GetChiTietGiangDayByGiaoVienAsync(maGV);
-                return ApiResponseDto<List<ChiTietGiangDay>>.SuccessResult(result, "Lấy danh sách giảng dạy của giáo viên thành công");
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<ChiTietGiangDay>>.ErrorResult($"Lỗi khi lấy danh sách giảng dạy của giáo viên: {ex.Message}");
+                return (false, $"Lỗi khi xóa phân công giảng dạy: {ex.Message}");
             }
         }
 
@@ -291,135 +218,171 @@ namespace QuanLyGiaoVienCSDLNC.Services
 
         #region Lookup Data
 
-        public async Task<ApiResponseDto<List<DoiTuongGiangDay>>> GetAllDoiTuongGiangDayAsync()
+        public async Task<List<DoiTuongGiangDay>> GetAllDoiTuongGiangDayAsync()
         {
             try
             {
-                var result = await _taiGiangDayRepository.GetAllDoiTuongGiangDayAsync();
-                return ApiResponseDto<List<DoiTuongGiangDay>>.SuccessResult(result, "Lấy danh sách đối tượng giảng dạy thành công");
+                return await _giangDayRepository.GetAllDoiTuongGiangDayAsync();
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<DoiTuongGiangDay>>.ErrorResult($"Lỗi khi lấy danh sách đối tượng giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách đối tượng giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<List<ThoiGianGiangDay>>> GetAllThoiGianGiangDayAsync()
+        public async Task<List<ThoiGianGiangDay>> GetAllThoiGianGiangDayAsync()
         {
             try
             {
-                var result = await _taiGiangDayRepository.GetAllThoiGianGiangDayAsync();
-                return ApiResponseDto<List<ThoiGianGiangDay>>.SuccessResult(result, "Lấy danh sách thời gian giảng dạy thành công");
+                return await _giangDayRepository.GetAllThoiGianGiangDayAsync();
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<ThoiGianGiangDay>>.ErrorResult($"Lỗi khi lấy danh sách thời gian giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách thời gian giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<List<NgonNguGiangDay>>> GetAllNgonNguGiangDayAsync()
+        public async Task<List<NgonNguGiangDay>> GetAllNgonNguGiangDayAsync()
         {
             try
             {
-                var result = await _taiGiangDayRepository.GetAllNgonNguGiangDayAsync();
-                return ApiResponseDto<List<NgonNguGiangDay>>.SuccessResult(result, "Lấy danh sách ngôn ngữ giảng dạy thành công");
+                return await _giangDayRepository.GetAllNgonNguGiangDayAsync();
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<NgonNguGiangDay>>.ErrorResult($"Lỗi khi lấy danh sách ngôn ngữ giảng dạy: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách ngôn ngữ giảng dạy: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<List<string>>> GetDistinctNamHocAsync()
+        public async Task<List<string>> GetDistinctNamHocAsync()
         {
             try
             {
-                var result = await _taiGiangDayRepository.GetDistinctNamHocAsync();
-                return ApiResponseDto<List<string>>.SuccessResult(result, "Lấy danh sách năm học thành công");
+                return await _giangDayRepository.GetDistinctNamHocAsync();
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<string>>.ErrorResult($"Lỗi khi lấy danh sách năm học: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách năm học: {ex.Message}");
             }
         }
 
-        public async Task<ApiResponseDto<List<string>>> GetDistinctHeAsync()
+        public async Task<List<string>> GetDistinctHeAsync()
         {
             try
             {
-                var result = await _taiGiangDayRepository.GetDistinctHeAsync();
-                return ApiResponseDto<List<string>>.SuccessResult(result, "Lấy danh sách hệ đào tạo thành công");
+                return await _giangDayRepository.GetDistinctHeAsync();
             }
             catch (Exception ex)
             {
-                return ApiResponseDto<List<string>>.ErrorResult($"Lỗi khi lấy danh sách hệ đào tạo: {ex.Message}");
+                throw new Exception($"Lỗi khi lấy danh sách hệ đào tạo: {ex.Message}");
             }
         }
 
         #endregion
 
-        #region Validation Methods
+        #region Statistics
 
-        private async Task<ApiResponseDto<string>> ValidateTaiGiangDayAsync(TaiGiangDayCreateDto dto)
+        public async Task<object> GetThongKeGiangDayAsync(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null)
         {
-            var errors = new List<string>();
-
-            // Validate required fields
-            if (string.IsNullOrEmpty(dto.TenHocPhan))
-                errors.Add("Tên học phần không được để trống");
-
-            if (dto.SiSo <= 0 || dto.SiSo > 500)
-                errors.Add("Sĩ số phải từ 1 đến 500");
-
-            if (dto.SoTinChi <= 0 || dto.SoTinChi > 10)
-                errors.Add("Số tín chỉ phải từ 1 đến 10");
-
-            // Validate lookup data exists
-            var doiTuongList = await _taiGiangDayRepository.GetAllDoiTuongGiangDayAsync();
-            if (!doiTuongList.Any(dt => dt.MaDoiTuong == dto.MaDoiTuong))
-                errors.Add("Mã đối tượng giảng dạy không tồn tại");
-
-            var thoiGianList = await _taiGiangDayRepository.GetAllThoiGianGiangDayAsync();
-            if (!thoiGianList.Any(tg => tg.MaThoiGian == dto.MaThoiGian))
-                errors.Add("Mã thời gian giảng dạy không tồn tại");
-
-            var ngonNguList = await _taiGiangDayRepository.GetAllNgonNguGiangDayAsync();
-            if (!ngonNguList.Any(nn => nn.MaNgonNgu == dto.MaNgonNgu))
-                errors.Add("Mã ngôn ngữ giảng dạy không tồn tại");
-
-            if (errors.Any())
+            try
             {
-                return ApiResponseDto<string>.ErrorResult("Dữ liệu không hợp lệ", errors);
+                return await _giangDayRepository.GetThongKeGiangDayAsync(maGV, maBM, maKhoa, namHoc);
             }
-
-            return ApiResponseDto<string>.SuccessResult(null, "Validation passed");
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi lấy thống kê giảng dạy: {ex.Message}");
+            }
         }
 
-        private async Task<ApiResponseDto<string>> ValidateChiTietGiangDayAsync(ChiTietGiangDayCreateDto dto)
+        #endregion
+
+        #region Validation
+
+        public async Task<(bool isValid, List<string> errors)> ValidateTaiGiangDayAsync(TaiGiangDay taiGiangDay, bool isUpdate = false)
         {
             var errors = new List<string>();
 
             // Validate required fields
-            if (string.IsNullOrEmpty(dto.MaGV))
-                errors.Add("Mã giáo viên không được để trống");
+            if (string.IsNullOrEmpty(taiGiangDay.TenHocPhan))
+                errors.Add("Tên học phần không được để trống");
 
-            if (string.IsNullOrEmpty(dto.MaTaiGiangDay))
-                errors.Add("Mã tài giảng dạy không được để trống");
+            if (taiGiangDay.SiSo <= 0 || taiGiangDay.SiSo > 500)
+                errors.Add("Sĩ số phải từ 1 đến 500");
 
-            if (dto.SoTiet <= 0 || dto.SoTiet > 200)
-                errors.Add("Số tiết phải từ 1 đến 200");
+            if (taiGiangDay.SoTinChi <= 0 || taiGiangDay.SoTinChi > 10)
+                errors.Add("Số tín chỉ phải từ 1 đến 10");
 
-            // Check if TaiGiangDay exists
-            var taiGiangDay = await _taiGiangDayRepository.GetTaiGiangDayByIdAsync(dto.MaTaiGiangDay);
-            if (taiGiangDay == null)
-                errors.Add("Mã tài giảng dạy không tồn tại");
+            if (string.IsNullOrEmpty(taiGiangDay.He))
+                errors.Add("Hệ đào tạo không được để trống");
 
-            if (errors.Any())
+            if (string.IsNullOrEmpty(taiGiangDay.Lop))
+                errors.Add("Lớp không được để trống");
+
+            if (string.IsNullOrEmpty(taiGiangDay.NamHoc))
+                errors.Add("Năm học không được để trống");
+
+            // Validate foreign keys
+            try
             {
-                return ApiResponseDto<string>.ErrorResult("Dữ liệu không hợp lệ", errors);
+                var doiTuongList = await _giangDayRepository.GetAllDoiTuongGiangDayAsync();
+                if (!doiTuongList.Any(d => d.MaDoiTuong == taiGiangDay.MaDoiTuong))
+                    errors.Add("Đối tượng giảng dạy không tồn tại");
+
+                var thoiGianList = await _giangDayRepository.GetAllThoiGianGiangDayAsync();
+                if (!thoiGianList.Any(t => t.MaThoiGian == taiGiangDay.MaThoiGian))
+                    errors.Add("Thời gian giảng dạy không tồn tại");
+
+                var ngonNguList = await _giangDayRepository.GetAllNgonNguGiangDayAsync();
+                if (!ngonNguList.Any(n => n.MaNgonNgu == taiGiangDay.MaNgonNgu))
+                    errors.Add("Ngôn ngữ giảng dạy không tồn tại");
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Lỗi khi kiểm tra dữ liệu: {ex.Message}");
             }
 
-            return ApiResponseDto<string>.SuccessResult(null, "Validation passed");
+            return (errors.Count == 0, errors);
+        }
+
+        public async Task<(bool isValid, List<string> errors)> ValidatePhanCongAsync(string maGV, string maTaiGiangDay, int soTiet, bool checkConflict = true)
+        {
+            var errors = new List<string>();
+
+            // Validate required fields
+            if (string.IsNullOrEmpty(maGV))
+                errors.Add("Mã giáo viên không được để trống");
+
+            if (string.IsNullOrEmpty(maTaiGiangDay))
+                errors.Add("Mã tài giảng dạy không được để trống");
+
+            if (soTiet <= 0 || soTiet > 200)
+                errors.Add("Số tiết phải từ 1 đến 200");
+
+            // Validate existence
+            try
+            {
+                var giaoVien = await _giaoVienRepository.GetGiaoVienByIdAsync(maGV);
+                if (giaoVien == null)
+                    errors.Add("Giáo viên không tồn tại");
+
+                var taiGiangDay = await _giangDayRepository.GetTaiGiangDayByIdAsync(maTaiGiangDay);
+                if (taiGiangDay == null)
+                    errors.Add("Tài giảng dạy không tồn tại");
+
+                // Check if already assigned
+                if (giaoVien != null && taiGiangDay != null)
+                {
+                    var existingAssignment = taiGiangDay.ChiTietGiangDays?.FirstOrDefault(c => c.MaGV == maGV);
+                    if (existingAssignment != null)
+                        errors.Add("Giáo viên đã được phân công cho tài giảng dạy này");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"Lỗi khi kiểm tra dữ liệu: {ex.Message}");
+            }
+
+            return (errors.Count == 0, errors);
         }
 
         #endregion

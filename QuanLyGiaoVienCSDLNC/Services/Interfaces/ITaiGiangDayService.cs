@@ -1,37 +1,36 @@
-﻿// Services/Interfaces/ITaiGiangDayService.cs
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
-using QuanLyGiaoVienCSDLNC.DTOs.TaiGiangDay;
-using QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay;
-using QuanLyGiaoVienCSDLNC.Models;
+﻿using QuanLyGiaoVienCSDLNC.Models;
 
 namespace QuanLyGiaoVienCSDLNC.Services.Interfaces
 {
-    public interface ITaiGiangDayService
+    public interface IGiangDayService
     {
-        #region TaiGiangDay Operations
-        Task<ApiResponseDto<List<TaiGiangDay>>> GetAllTaiGiangDayAsync();
-        Task<ApiResponseDto<TaiGiangDay>> GetTaiGiangDayByIdAsync(string maTaiGiangDay);
-        Task<ApiResponseDto<PagedResultDto<TaiGiangDayListDto>>> SearchTaiGiangDayAsync(TaiGiangDaySearchDto searchDto);
-        Task<ApiResponseDto<string>> AddTaiGiangDayAsync(TaiGiangDayCreateDto dto);
-        Task<ApiResponseDto<bool>> UpdateTaiGiangDayAsync(TaiGiangDayUpdateDto dto);
-        Task<ApiResponseDto<bool>> DeleteTaiGiangDayAsync(string maTaiGiangDay);
-        #endregion
+        // TaiGiangDay operations
+        Task<List<TaiGiangDay>> GetAllTaiGiangDayAsync();
+        Task<TaiGiangDay> GetTaiGiangDayByIdAsync(string maTaiGiangDay);
+        Task<List<TaiGiangDay>> SearchTaiGiangDayAsync(string searchTerm = null, string namHoc = null, string he = null, string maDoiTuong = null);
+        Task<(bool success, string message, string maTaiGiangDay)> AddTaiGiangDayAsync(TaiGiangDay taiGiangDay);
+        Task<(bool success, string message)> UpdateTaiGiangDayAsync(TaiGiangDay taiGiangDay);
+        Task<(bool success, string message)> DeleteTaiGiangDayAsync(string maTaiGiangDay);
 
-        #region ChiTietGiangDay Operations
-        Task<ApiResponseDto<string>> PhanCongGiangDayAsync(ChiTietGiangDayCreateDto dto);
-        Task<ApiResponseDto<bool>> UpdateChiTietGiangDayAsync(ChiTietGiangDayUpdateDto dto);
-        Task<ApiResponseDto<bool>> XoaPhanCongGiangDayAsync(string maChiTietGiangDay);
-        Task<ApiResponseDto<PagedResultDto<ChiTietGiangDayListDto>>> GetDanhSachGiangDayAsync(string maGV = null, string namHoc = null, int pageNumber = 1, int pageSize = 20);
-        Task<ApiResponseDto<List<ChiTietGiangDay>>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay);
-        Task<ApiResponseDto<List<ChiTietGiangDay>>> GetChiTietGiangDayByGiaoVienAsync(string maGV);
-        #endregion
+        // ChiTietGiangDay operations
+        Task<List<ChiTietGiangDay>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay);
+        Task<List<ChiTietGiangDay>> GetChiTietGiangDayByGiaoVienAsync(string maGV, string namHoc = null);
+        Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string maNoiDungGiangDay = null, bool checkConflict = true);
+        Task<(bool success, string message)> UpdateChiTietGiangDayAsync(string maChiTietGiangDay, int soTiet, string ghiChu);
+        Task<(bool success, string message)> XoaPhanCongGiangDayAsync(string maChiTietGiangDay);
 
-        #region Lookup Data
-        Task<ApiResponseDto<List<DoiTuongGiangDay>>> GetAllDoiTuongGiangDayAsync();
-        Task<ApiResponseDto<List<ThoiGianGiangDay>>> GetAllThoiGianGiangDayAsync();
-        Task<ApiResponseDto<List<NgonNguGiangDay>>> GetAllNgonNguGiangDayAsync();
-        Task<ApiResponseDto<List<string>>> GetDistinctNamHocAsync();
-        Task<ApiResponseDto<List<string>>> GetDistinctHeAsync();
-        #endregion
+        // Lookup data
+        Task<List<DoiTuongGiangDay>> GetAllDoiTuongGiangDayAsync();
+        Task<List<ThoiGianGiangDay>> GetAllThoiGianGiangDayAsync();
+        Task<List<NgonNguGiangDay>> GetAllNgonNguGiangDayAsync();
+        Task<List<string>> GetDistinctNamHocAsync();
+        Task<List<string>> GetDistinctHeAsync();
+
+        // Statistics and reports
+        Task<object> GetThongKeGiangDayAsync(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null);
+
+        // Validation
+        Task<(bool isValid, List<string> errors)> ValidateTaiGiangDayAsync(TaiGiangDay taiGiangDay, bool isUpdate = false);
+        Task<(bool isValid, List<string> errors)> ValidatePhanCongAsync(string maGV, string maTaiGiangDay, int soTiet, bool checkConflict = true);
     }
 }

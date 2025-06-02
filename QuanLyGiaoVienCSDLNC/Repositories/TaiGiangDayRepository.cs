@@ -1,112 +1,86 @@
-﻿// Repositories/TaiGiangDayRepository.cs
-using Microsoft.Data.SqlClient;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using QuanLyGiaoVienCSDLNC.Data;
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
-using QuanLyGiaoVienCSDLNC.DTOs.TaiGiangDay;
-using QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay;
 using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
 using System.Data;
 
 namespace QuanLyGiaoVienCSDLNC.Repositories
 {
-    public class TaiGiangDayRepository : ITaiGiangDayRepository
+    public class GiangDayRepository : IGiangDayRepository
     {
         private readonly ApplicationDbContext _context;
 
-        public TaiGiangDayRepository(ApplicationDbContext context)
+        public GiangDayRepository(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        #region TaiGiangDay CRUD Operations
+        #region TaiGiangDay CRUD
 
         public async Task<List<TaiGiangDay>> GetAllTaiGiangDayAsync()
         {
-            return await _context.TaiGiangDays.ToListAsync();
+            return await _context.TaiGiangDays
+                .Include(t => t.DoiTuongGiangDay)
+                .Include(t => t.ThoiGianGiangDay)
+                .Include(t => t.NgonNguGiangDay)
+                .Include(t => t.ChiTietGiangDays)
+                    .ThenInclude(c => c.GiaoVien)
+                .OrderByDescending(t => t.NamHoc)
+                .ThenBy(t => t.TenHocPhan)
+                .ToListAsync();
         }
 
         public async Task<TaiGiangDay> GetTaiGiangDayByIdAsync(string maTaiGiangDay)
         {
-            return await _context.TaiGiangDays.FirstOrDefaultAsync(t => t.MaTaiGiangDay == maTaiGiangDay);
+            return await _context.TaiGiangDays
+                .Include(t => t.DoiTuongGiangDay)
+                .Include(t => t.ThoiGianGiangDay)
+                .Include(t => t.NgonNguGiangDay)
+                .Include(t => t.ChiTietGiangDays)
+                    .ThenInclude(c => c.GiaoVien)
+                        .ThenInclude(g => g.BoMon)
+                .FirstOrDefaultAsync(t => t.MaTaiGiangDay == maTaiGiangDay);
         }
 
-        public async Task<PagedResultDto<TaiGiangDayListDto>> SearchTaiGiangDayAsync(TaiGiangDaySearchDto searchDto)
+        public async Task<List<TaiGiangDay>> SearchTaiGiangDayAsync(string searchTerm = null, string namHoc = null, string he = null, string maDoiTuong = null)
         {
-            var query = from tgd in _context.TaiGiangDays
-                        join dt in _context.DoiTuongGiangDays on tgd.MaDoiTuong equals dt.MaDoiTuong into dtGroup
-                        from dt in dtGroup.DefaultIfEmpty()
-                        join tg in _context.ThoiGianGiangDays on tgd.MaThoiGian equals tg.MaThoiGian into tgGroup
-                        from tg in tgGroup.DefaultIfEmpty()
-                        join nn in _context.NgonNguGiangDays on tgd.MaNgonNgu equals nn.MaNgonNgu into nnGroup
-                        from nn in nnGroup.DefaultIfEmpty()
-                        select new TaiGiangDayListDto
-                        {
-                            MaTaiGiangDay = tgd.MaTaiGiangDay,
-                            TenHocPhan = tgd.TenHocPhan,
-                            SiSo = tgd.SiSo,
-                            He = tgd.He,
-                            Lop = tgd.Lop,
-                            SoTinChi = tgd.SoTinChi,
-                            GhiChu = tgd.GhiChu,
-                            NamHoc = tgd.NamHoc,
-                            TenDoiTuong = dt != null ? dt.TenDoiTuong : "",
-                            TenThoiGian = tg != null ? tg.TenThoiGian : "",
-                            TenNgonNgu = nn != null ? nn.TenNgonNgu : "",
-                            SoGiaoVienPhanCong = _context.ChiTietGiangDays.Count(c => c.MaTaiGiangDay == tgd.MaTaiGiangDay),
-                            TrangThai = _context.ChiTietGiangDays.Any(c => c.MaTaiGiangDay == tgd.MaTaiGiangDay) ? "Đã phân công" : "Chưa phân công"
-                        };
+            var query = _context.TaiGiangDays
+                .Include(t => t.DoiTuongGiangDay)
+                .Include(t => t.ThoiGianGiangDay)
+                .Include(t => t.NgonNguGiangDay)
+                .Include(t => t.ChiTietGiangDays)
+                .AsQueryable();
 
-            // Apply filters
-            if (!string.IsNullOrEmpty(searchDto.SearchText))
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                query = query.Where(x => x.TenHocPhan.Contains(searchDto.SearchText) ||
-                                        x.Lop.Contains(searchDto.SearchText));
+                query = query.Where(t => t.TenHocPhan.Contains(searchTerm) ||
+                                        t.Lop.Contains(searchTerm) ||
+                                        t.MaTaiGiangDay.Contains(searchTerm));
             }
 
-            if (!string.IsNullOrEmpty(searchDto.NamHoc))
+            if (!string.IsNullOrEmpty(namHoc))
             {
-                query = query.Where(x => x.NamHoc == searchDto.NamHoc);
+                query = query.Where(t => t.NamHoc == namHoc);
             }
 
-            if (!string.IsNullOrEmpty(searchDto.He))
+            if (!string.IsNullOrEmpty(he))
             {
-                query = query.Where(x => x.He == searchDto.He);
+                query = query.Where(t => t.He == he);
             }
 
-            if (!string.IsNullOrEmpty(searchDto.MaDoiTuong))
+            if (!string.IsNullOrEmpty(maDoiTuong))
             {
-                query = query.Where(x => x.TenDoiTuong.Contains(searchDto.MaDoiTuong));
+                query = query.Where(t => t.MaDoiTuong == maDoiTuong);
             }
 
-            // Apply sorting
-            switch (searchDto.SortBy?.ToLower())
-            {
-                case "tenhocphan":
-                    query = searchDto.SortDesc ? query.OrderByDescending(x => x.TenHocPhan) : query.OrderBy(x => x.TenHocPhan);
-                    break;
-                case "namhoc":
-                    query = searchDto.SortDesc ? query.OrderByDescending(x => x.NamHoc) : query.OrderBy(x => x.NamHoc);
-                    break;
-                case "lop":
-                    query = searchDto.SortDesc ? query.OrderByDescending(x => x.Lop) : query.OrderBy(x => x.Lop);
-                    break;
-                default:
-                    query = query.OrderBy(x => x.TenHocPhan);
-                    break;
-            }
-
-            var totalRecords = await query.CountAsync();
-            var data = await query
-                .Skip((searchDto.PageNumber - 1) * searchDto.PageSize)
-                .Take(searchDto.PageSize)
+            return await query
+                .OrderByDescending(t => t.NamHoc)
+                .ThenBy(t => t.TenHocPhan)
                 .ToListAsync();
-
-            return new PagedResultDto<TaiGiangDayListDto>(data, totalRecords, searchDto.PageNumber, searchDto.PageSize);
         }
 
-        public async Task<(bool success, string message, string maTaiGiangDay)> AddTaiGiangDayAsync(TaiGiangDayCreateDto dto)
+        public async Task<(bool success, string message, string maTaiGiangDay)> AddTaiGiangDayAsync(TaiGiangDay taiGiangDay)
         {
             var maTaiGiangDayParam = new SqlParameter
             {
@@ -128,16 +102,16 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_TaiGiangDay_ThemMoi @TenHocPhan, @SiSo, @He, @Lop, @SoTinChi, @GhiChu, @NamHoc, @MaDoiTuong, @MaThoiGian, @MaNgonNgu, @MaTaiGiangDay OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@TenHocPhan", dto.TenHocPhan),
-                    new SqlParameter("@SiSo", dto.SiSo),
-                    new SqlParameter("@He", dto.He),
-                    new SqlParameter("@Lop", dto.Lop),
-                    new SqlParameter("@SoTinChi", dto.SoTinChi),
-                    new SqlParameter("@GhiChu", dto.GhiChu ?? (object)DBNull.Value),
-                    new SqlParameter("@NamHoc", dto.NamHoc),
-                    new SqlParameter("@MaDoiTuong", dto.MaDoiTuong),
-                    new SqlParameter("@MaThoiGian", dto.MaThoiGian),
-                    new SqlParameter("@MaNgonNgu", dto.MaNgonNgu),
+                    new SqlParameter("@TenHocPhan", taiGiangDay.TenHocPhan),
+                    new SqlParameter("@SiSo", taiGiangDay.SiSo),
+                    new SqlParameter("@He", taiGiangDay.He),
+                    new SqlParameter("@Lop", taiGiangDay.Lop),
+                    new SqlParameter("@SoTinChi", taiGiangDay.SoTinChi),
+                    new SqlParameter("@GhiChu", taiGiangDay.GhiChu ?? (object)DBNull.Value),
+                    new SqlParameter("@NamHoc", taiGiangDay.NamHoc),
+                    new SqlParameter("@MaDoiTuong", taiGiangDay.MaDoiTuong),
+                    new SqlParameter("@MaThoiGian", taiGiangDay.MaThoiGian),
+                    new SqlParameter("@MaNgonNgu", taiGiangDay.MaNgonNgu),
                     maTaiGiangDayParam,
                     errorMessageParam);
 
@@ -153,26 +127,26 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        public async Task<(bool success, string message)> UpdateTaiGiangDayAsync(TaiGiangDayUpdateDto dto)
+        public async Task<(bool success, string message)> UpdateTaiGiangDayAsync(TaiGiangDay taiGiangDay)
         {
             try
             {
-                var taiGiangDay = await _context.TaiGiangDays.FindAsync(dto.MaTaiGiangDay);
-                if (taiGiangDay == null)
+                var existing = await _context.TaiGiangDays.FindAsync(taiGiangDay.MaTaiGiangDay);
+                if (existing == null)
                 {
                     return (false, "Không tìm thấy tài giảng dạy");
                 }
 
-                taiGiangDay.TenHocPhan = dto.TenHocPhan;
-                taiGiangDay.SiSo = dto.SiSo;
-                taiGiangDay.He = dto.He;
-                taiGiangDay.Lop = dto.Lop;
-                taiGiangDay.SoTinChi = dto.SoTinChi;
-                taiGiangDay.GhiChu = dto.GhiChu;
-                taiGiangDay.NamHoc = dto.NamHoc;
-                taiGiangDay.MaDoiTuong = dto.MaDoiTuong;
-                taiGiangDay.MaThoiGian = dto.MaThoiGian;
-                taiGiangDay.MaNgonNgu = dto.MaNgonNgu;
+                existing.TenHocPhan = taiGiangDay.TenHocPhan;
+                existing.SiSo = taiGiangDay.SiSo;
+                existing.He = taiGiangDay.He;
+                existing.Lop = taiGiangDay.Lop;
+                existing.SoTinChi = taiGiangDay.SoTinChi;
+                existing.GhiChu = taiGiangDay.GhiChu;
+                existing.NamHoc = taiGiangDay.NamHoc;
+                existing.MaDoiTuong = taiGiangDay.MaDoiTuong;
+                existing.MaThoiGian = taiGiangDay.MaThoiGian;
+                existing.MaNgonNgu = taiGiangDay.MaNgonNgu;
 
                 await _context.SaveChangesAsync();
                 return (true, "Cập nhật tài giảng dạy thành công");
@@ -187,7 +161,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
         {
             try
             {
-                // Kiểm tra xem có chi tiết giảng dạy nào không
+                // Kiểm tra có chi tiết giảng dạy không
                 var hasChiTiet = await _context.ChiTietGiangDays.AnyAsync(c => c.MaTaiGiangDay == maTaiGiangDay);
                 if (hasChiTiet)
                 {
@@ -214,7 +188,40 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         #region ChiTietGiangDay Operations
 
-        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(ChiTietGiangDayCreateDto dto)
+        public async Task<List<ChiTietGiangDay>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay)
+        {
+            return await _context.ChiTietGiangDays
+                .Include(c => c.GiaoVien)
+                    .ThenInclude(g => g.BoMon)
+                .Include(c => c.TaiGiangDay)
+                .Where(c => c.MaTaiGiangDay == maTaiGiangDay)
+                .OrderBy(c => c.GiaoVien.HoTen)
+                .ToListAsync();
+        }
+
+        public async Task<List<ChiTietGiangDay>> GetChiTietGiangDayByGiaoVienAsync(string maGV, string namHoc = null)
+        {
+            var query = _context.ChiTietGiangDays
+                .Include(c => c.TaiGiangDay)
+                    .ThenInclude(t => t.DoiTuongGiangDay)
+                .Include(c => c.TaiGiangDay)
+                    .ThenInclude(t => t.ThoiGianGiangDay)
+                .Include(c => c.TaiGiangDay)
+                    .ThenInclude(t => t.NgonNguGiangDay)
+                .Where(c => c.MaGV == maGV);
+
+            if (!string.IsNullOrEmpty(namHoc))
+            {
+                query = query.Where(c => c.TaiGiangDay.NamHoc == namHoc);
+            }
+
+            return await query
+                .OrderByDescending(c => c.TaiGiangDay.NamHoc)
+                .ThenBy(c => c.TaiGiangDay.TenHocPhan)
+                .ToListAsync();
+        }
+
+        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string maNoiDungGiangDay = null, bool checkConflict = true)
         {
             var maChiTietGiangDayParam = new SqlParameter
             {
@@ -236,12 +243,12 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_GiangDay_PhanCong @MaGV, @MaTaiGiangDay, @SoTiet, @GhiChu, @MaNoiDungGiangDay, @CheckConflict, @MaChiTietGiangDay OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", dto.MaGV),
-                    new SqlParameter("@MaTaiGiangDay", dto.MaTaiGiangDay),
-                    new SqlParameter("@SoTiet", dto.SoTiet),
-                    new SqlParameter("@GhiChu", dto.GhiChu ?? (object)DBNull.Value),
-                    new SqlParameter("@MaNoiDungGiangDay", dto.MaNoiDungGiangDay ?? (object)DBNull.Value),
-                    new SqlParameter("@CheckConflict", dto.CheckConflict),
+                    new SqlParameter("@MaGV", maGV),
+                    new SqlParameter("@MaTaiGiangDay", maTaiGiangDay),
+                    new SqlParameter("@SoTiet", soTiet),
+                    new SqlParameter("@GhiChu", ghiChu ?? (object)DBNull.Value),
+                    new SqlParameter("@MaNoiDungGiangDay", maNoiDungGiangDay ?? (object)DBNull.Value),
+                    new SqlParameter("@CheckConflict", checkConflict),
                     maChiTietGiangDayParam,
                     errorMessageParam);
 
@@ -257,7 +264,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        public async Task<(bool success, string message)> UpdateChiTietGiangDayAsync(ChiTietGiangDayUpdateDto dto)
+        public async Task<(bool success, string message)> UpdateChiTietGiangDayAsync(string maChiTietGiangDay, int soTiet, string ghiChu)
         {
             var errorMessageParam = new SqlParameter
             {
@@ -271,9 +278,9 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             {
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_GiangDay_CapNhat @MaChiTietGiangDay, @SoTiet, @GhiChu, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaChiTietGiangDay", dto.MaChiTietGiangDay),
-                    new SqlParameter("@SoTiet", dto.SoTiet),
-                    new SqlParameter("@GhiChu", dto.GhiChu ?? (object)DBNull.Value),
+                    new SqlParameter("@MaChiTietGiangDay", maChiTietGiangDay),
+                    new SqlParameter("@SoTiet", soTiet),
+                    new SqlParameter("@GhiChu", ghiChu ?? (object)DBNull.Value),
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
@@ -313,101 +320,23 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        public async Task<PagedResultDto<ChiTietGiangDayListDto>> GetDanhSachGiangDayAsync(string maGV = null, string namHoc = null, int pageNumber = 1, int pageSize = 20)
-        {
-            var totalRecordsParam = new SqlParameter
-            {
-                ParameterName = "@TotalRecords",
-                SqlDbType = SqlDbType.Int,
-                Direction = ParameterDirection.Output
-            };
-
-            var result = new List<ChiTietGiangDayListDto>();
-
-            try
-            {
-                using (var command = _context.Database.GetDbConnection().CreateCommand())
-                {
-                    command.CommandText = "sp_GiangDay_DanhSach";
-                    command.CommandType = CommandType.StoredProcedure;
-
-                    command.Parameters.Add(new SqlParameter("@MaGV", maGV ?? (object)DBNull.Value));
-                    command.Parameters.Add(new SqlParameter("@NamHoc", namHoc ?? (object)DBNull.Value));
-                    command.Parameters.Add(new SqlParameter("@PageNumber", pageNumber));
-                    command.Parameters.Add(new SqlParameter("@PageSize", pageSize));
-                    command.Parameters.Add(totalRecordsParam);
-
-                    await _context.Database.OpenConnectionAsync();
-
-                    using (var reader = await command.ExecuteReaderAsync())
-                    {
-                        while (await reader.ReadAsync())
-                        {
-                            result.Add(new ChiTietGiangDayListDto
-                            {
-                                MaChiTietGiangDay = reader["MaChiTietGiangDay"].ToString(),
-                                MaGV = reader["MaGV"].ToString(),
-                                HoTen = reader["HoTen"].ToString(),
-                                MaTaiGiangDay = reader["MaTaiGiangDay"].ToString(),
-                                TenHocPhan = reader["TenHocPhan"].ToString(),
-                                Lop = reader["Lop"].ToString(),
-                                SiSo = Convert.ToInt32(reader["SiSo"]),
-                                SoTinChi = Convert.ToInt32(reader["SoTinChi"]),
-                                He = reader["He"].ToString(),
-                                NamHoc = reader["NamHoc"].ToString(),
-                                SoTiet = Convert.ToInt32(reader["SoTiet"]),
-                                SoTietQuyDoi = Convert.ToSingle(reader["SoTietQuyDoi"]),
-                                GhiChu = reader["GhiChu"].ToString(),
-                                TenDoiTuong = reader["TenDoiTuong"].ToString(),
-                                TenThoiGian = reader["TenThoiGian"].ToString(),
-                                TenNgonNgu = reader["TenNgonNgu"].ToString()
-                            });
-                        }
-                    }
-                }
-
-                var totalRecords = totalRecordsParam.Value != DBNull.Value ? Convert.ToInt32(totalRecordsParam.Value) : 0;
-                return new PagedResultDto<ChiTietGiangDayListDto>(result, totalRecords, pageNumber, pageSize);
-            }
-            catch (Exception ex)
-            {
-                return new PagedResultDto<ChiTietGiangDayListDto>(new List<ChiTietGiangDayListDto>(), 0, pageNumber, pageSize);
-            }
-        }
-
-        public async Task<List<ChiTietGiangDay>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay)
-        {
-            return await _context.ChiTietGiangDays
-                .Include(c => c.GiaoVien)
-                .Where(c => c.MaTaiGiangDay == maTaiGiangDay)
-                .ToListAsync();
-        }
-
-        public async Task<List<ChiTietGiangDay>> GetChiTietGiangDayByGiaoVienAsync(string maGV)
-        {
-            return await _context.ChiTietGiangDays
-                .Include(c => c.TaiGiangDay)
-                .Where(c => c.MaGV == maGV)
-                .ToListAsync();
-        }
-
         #endregion
 
         #region Lookup Data
 
         public async Task<List<DoiTuongGiangDay>> GetAllDoiTuongGiangDayAsync()
         {
-            return await _context.DoiTuongGiangDays.ToListAsync();
+            return await _context.DoiTuongGiangDays.OrderBy(d => d.TenDoiTuong).ToListAsync();
         }
 
         public async Task<List<ThoiGianGiangDay>> GetAllThoiGianGiangDayAsync()
         {
-            return await _context.ThoiGianGiangDays.ToListAsync();
+            return await _context.ThoiGianGiangDays.OrderBy(t => t.TenThoiGian).ToListAsync();
         }
 
         public async Task<List<NgonNguGiangDay>> GetAllNgonNguGiangDayAsync()
         {
-            return await _context.NgonNguGiangDays.ToListAsync();
+            return await _context.NgonNguGiangDays.OrderBy(n => n.TenNgonNgu).ToListAsync();
         }
 
         public async Task<List<string>> GetDistinctNamHocAsync()
@@ -426,6 +355,59 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 .Distinct()
                 .OrderBy(h => h)
                 .ToListAsync();
+        }
+
+        #endregion
+
+        #region Statistics
+
+        public async Task<object> GetThongKeGiangDayAsync(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null)
+        {
+            try
+            {
+                // Sử dụng stored procedure báo cáo nếu có, hoặc tính toán từ dữ liệu
+                var query = _context.ChiTietGiangDays
+                    .Include(c => c.TaiGiangDay)
+                    .Include(c => c.GiaoVien)
+                        .ThenInclude(g => g.BoMon)
+                            .ThenInclude(b => b.Khoa)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(maGV))
+                    query = query.Where(c => c.MaGV == maGV);
+
+                if (!string.IsNullOrEmpty(maBM))
+                    query = query.Where(c => c.GiaoVien.MaBM == maBM);
+
+                if (!string.IsNullOrEmpty(maKhoa))
+                    query = query.Where(c => c.GiaoVien.BoMon.MaKhoa == maKhoa);
+
+                if (!string.IsNullOrEmpty(namHoc))
+                    query = query.Where(c => c.TaiGiangDay.NamHoc == namHoc);
+
+                var data = await query.ToListAsync();
+
+                return new
+                {
+                    TongSoTiet = data.Sum(c => c.SoTiet),
+                    TongSoTietQuyDoi = data.Sum(c => c.SoTietQuyDoi),
+                    SoTaiGiangDay = data.Select(c => c.MaTaiGiangDay).Distinct().Count(),
+                    SoGiaoVien = data.Select(c => c.MaGV).Distinct().Count(),
+                    ChiTiet = data.GroupBy(c => new { c.MaGV, c.GiaoVien.HoTen })
+                        .Select(g => new
+                        {
+                            MaGV = g.Key.MaGV,
+                            HoTen = g.Key.HoTen,
+                            SoTiet = g.Sum(c => c.SoTiet),
+                            SoTietQuyDoi = g.Sum(c => c.SoTietQuyDoi),
+                            SoTaiGiangDay = g.Select(c => c.MaTaiGiangDay).Distinct().Count()
+                        }).ToList()
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi lấy thống kê giảng dạy: {ex.Message}");
+            }
         }
 
         #endregion

@@ -9,162 +9,161 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>Xác nhận xóa tải giảng dạy</h3>
+                    <h3>Xóa tải giảng dạy</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item">
                             <a asp-controller="Home" asp-action="Index">
-                                <svg class="stroke-icon">
-                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
-                                </svg>
+                                <i data-feather="home"></i>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a></li>
-                        <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Details" asp-route-id="@Model.MaTaiGiangDay">Chi tiết</a></li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="GiangDay" asp-action="Details" asp-route-id="@Model.MaTaiGiangDay">Chi tiết</a>
+                        </li>
                         <li class="breadcrumb-item active">Xóa</li>
                     </ol>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Container-fluid starts-->
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
-                <!-- Warning Alert -->
-                <div class="alert alert-danger" role="alert">
-                    <h4 class="alert-heading">
-                        <i data-feather="alert-triangle"></i> Cảnh báo!
-                    </h4>
-                    <p>Bạn đang thực hiện thao tác <strong>XÓA</strong> tải giảng dạy. Hành động này sẽ:</p>
-                    <hr>
-                    <ul class="mb-0">
-                        <li>Xóa vĩnh viễn thông tin tải giảng dạy</li>
-                        <li>Xóa tất cả phân công giáo viên liên quan (nếu có)</li>
-                        <li><strong>KHÔNG THỂ KHÔI PHỤC</strong> sau khi xóa</li>
-                    </ul>
-                </div>
-
                 <div class="card">
                     <div class="card-header bg-danger text-white">
-                        <h5 class="mb-0">
-                            <i data-feather="trash-2"></i> Thông tin tải giảng dạy sẽ bị xóa
-                        </h5>
+                        <h5><i data-feather="alert-triangle"></i> Xác nhận xóa tải giảng dạy</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Mã tải giảng dạy</label>
-                                    <div class="p-2 bg-light rounded">
-                                        <span class="badge bg-danger fs-6">@Model.MaTaiGiangDay</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Tên học phần</label>
-                                    <div class="p-2 bg-light rounded">
-                                        <strong>@Model.TenHocPhan</strong>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="alert alert-danger">
+                            <h5><i data-feather="alert-circle"></i> Cảnh báo!</h5>
+                            <p class="mb-0">
+                                Bạn có chắc chắn muốn xóa tải giảng dạy này?
+                                <strong>Hành động này không thể hoàn tác!</strong>
+                            </p>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Hệ đào tạo</label>
-                                    <div class="p-2 bg-light rounded">@Model.He</div>
-                                </div>
+                            <div class="col-md-6">
+                                <h6>Thông tin tải giảng dạy:</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-bold" width="40%">Mã tải GD:</td>
+                                        <td><span class="badge bg-info">@Model.MaTaiGiangDay</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Tên học phần:</td>
+                                        <td class="fw-bold text-primary">@Model.TenHocPhan</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Lớp:</td>
+                                        <td><span class="badge bg-secondary">@Model.Lop</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Hệ đào tạo:</td>
+                                        <td><span class="badge bg-primary">@Model.He</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Năm học:</td>
+                                        <td>@Model.NamHoc</td>
+                                    </tr>
+                                </table>
                             </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Lớp</label>
-                                    <div class="p-2 bg-light rounded">@Model.Lop</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Sĩ số</label>
-                                    <div class="p-2 bg-light rounded">
-                                        <span class="fw-bold">@Model.SiSo</span> sinh viên
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Số tín chỉ</label>
-                                    <div class="p-2 bg-light rounded">
-                                        <span class="badge bg-success">@Model.SoTinChi TC</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Năm học</label>
-                                    <div class="p-2 bg-light rounded">@Model.NamHoc</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Mã đối tượng</label>
-                                    <div class="p-2 bg-light rounded">@Model.MaDoiTuong</div>
-                                </div>
+                            <div class="col-md-6">
+                                <h6>Thông tin khác:</h6>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td class="fw-bold" width="40%">Sĩ số:</td>
+                                        <td><span class="fw-bold">@Model.SiSo</span> sinh viên</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Số tín chỉ:</td>
+                                        <td><span class="badge bg-success">@Model.SoTinChi TC</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Đối tượng GD:</td>
+                                        <td>@Model.DoiTuongGiangDay?.TenDoiTuong</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Thời gian GD:</td>
+                                        <td>@Model.ThoiGianGiangDay?.TenThoiGian</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Ngôn ngữ GD:</td>
+                                        <td>@Model.NgonNguGiangDay?.TenNgonNgu</td>
+                                    </tr>
+                                </table>
                             </div>
                         </div>
 
                         @if (!string.IsNullOrEmpty(Model.GhiChu))
                         {
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="mb-3">
-                                            <label class="form-label fw-bold">Ghi chú</label>
-                                            <div class="p-2 bg-light rounded">@Model.GhiChu</div>
-                                        </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <h6>Ghi chú:</h6>
+                                    <div class="alert alert-info">
+                                        @Model.GhiChu
                                     </div>
                                 </div>
+                            </div>
                         }
 
-                        <!-- Thông tin phân công (nếu có) -->
-                        <div class="mt-4">
-                            <h6 class="text-danger">
-                                <i data-feather="users"></i> Thông tin phân công sẽ bị xóa
-                            </h6>
-                            <div id="phanCongInfo" class="border border-danger rounded p-3">
-                                <div class="d-flex justify-content-center">
-                                    <div class="spinner-border text-danger" role="status">
-                                        <span class="visually-hidden">Đang tải...</span>
+                        <!-- Kiểm tra phân công -->
+                        @if (Model.SoGiaoVienPhanCong > 0)
+                        {
+                            <div class="alert alert-warning">
+                                <h6><i data-feather="alert-triangle"></i> Không thể xóa!</h6>
+                                <p class="mb-0">
+                                    Tải giảng dạy này đã có <strong>@Model.SoGiaoVienPhanCong giáo viên</strong> được phân công.
+                                    Bạn cần xóa tất cả phân công trước khi xóa tải giảng dạy.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success">
+                                <h6><i data-feather="check-circle"></i> Có thể xóa!</h6>
+                                <p class="mb-0">
+                                    Tải giảng dạy này chưa có giáo viên nào được phân công. Bạn có thể xóa an toàn.
+                                </p>
+                            </div>
+                        }
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <a asp-action="Details" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-secondary">
+                                            <i data-feather="arrow-left"></i> Quay lại
+                                        </a>
+                                        <a asp-action="Index" class="btn btn-outline-secondary">
+                                            <i data-feather="list"></i> Danh sách
+                                        </a>
+                                    </div>
+                                    <div>
+                                        @if (Model.SoGiaoVienPhanCong == 0)
+                                        {
+                                            <form asp-action="Delete" method="post" style="display: inline;">
+                                                <input type="hidden" name="id" value="@Model.MaTaiGiangDay" />
+                                                <button type="submit" class="btn btn-danger" id="deleteButton">
+                                                    <i data-feather="trash-2"></i> Xác nhận xóa
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-danger" disabled title="Không thể xóa vì còn phân công">
+                                                <i data-feather="trash-2"></i> Không thể xóa
+                                            </button>
+                                        }
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card-footer bg-light">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <div class="form-check form-check-danger">
-                                    <input class="form-check-input" type="checkbox" id="confirmDelete" required>
-                                    <label class="form-check-label text-danger fw-bold" for="confirmDelete">
-                                        Tôi hiểu rằng hành động này không thể hoàn tác và đồng ý xóa tải giảng dạy này
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <form asp-action="Delete" method="post" style="display: inline;">
-                                    <input type="hidden" asp-for="MaTaiGiangDay" />
-                                    <button type="submit" class="btn btn-danger" id="btnDelete" disabled>
-                                        <i data-feather="trash-2"></i> Xác nhận xóa
-                                    </button>
-                                </form>
-                                <a asp-action="Details" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-secondary">
-                                    <i data-feather="arrow-left"></i> Hủy bỏ
-                                </a>
                             </div>
                         </div>
                     </div>
@@ -172,82 +171,35 @@
             </div>
         </div>
     </div>
-    <!-- Container-fluid Ends-->
 </div>
 
 @section Script {
-        <script>
-            $(document).ready(function() {
-                // Load thông tin phân công
-                loadPhanCongInfo();
+    <script>
+        $(document).ready(function() {
+            // Initialize feather icons
+            feather.replace();
 
-                // Enable/disable delete button based on checkbox
-                $('#confirmDelete').change(function() {
-                    $('#btnDelete').prop('disabled', !this.checked);
-                });
+            // Confirm delete with SweetAlert2
+            $('#deleteButton').on('click', function(e) {
+                e.preventDefault();
 
-                // Confirm before delete
-                $('form').submit(function(e) {
-                    if (!confirm('BẠN CÓ CHẮC CHẮN MUỐN XÓA TẢI GIẢNG DẠY NÀY?\n\nHành động này không thể hoàn tác!')) {
-                        e.preventDefault();
-                        return false;
+                Swal.fire({
+                    title: 'Xác nhận xóa',
+                    text: 'Bạn có chắc chắn muốn xóa tải giảng dạy "@Model.TenHocPhan"?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Đồng ý xóa',
+                    cancelButtonText: 'Hủy bỏ',
+                    reverseButtons: true
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Submit form
+                        $(this).closest('form').submit();
                     }
-
-                    // Show loading state
-                    var submitBtn = $('#btnDelete');
-                    submitBtn.prop('disabled', true);
-                    submitBtn.html('<i class="spinner-border spinner-border-sm me-2"></i>Đang xóa...');
                 });
             });
-
-            function loadPhanCongInfo() {
-                $.ajax({
-                    url: '@Url.Action("GetChiTietGiangDayJson", "GiangDay")',
-                    type: 'GET',
-                    data: { maTaiGiangDay: '@Model.MaTaiGiangDay' },
-                    success: function(response) {
-                        if (response.success && response.data && response.data.length > 0) {
-                            var html = '<div class="alert alert-warning">';
-                            html += '<h6 class="alert-heading"><i data-feather="alert-triangle"></i> Cảnh báo: Có ' + response.data.length + ' giáo viên đã được phân công</h6>';
-                            html += '<div class="table-responsive">';
-                            html += '<table class="table table-sm table-striped">';
-                            html += '<thead><tr><th>Mã GV</th><th>Họ tên</th><th>Số tiết</th><th>Số tiết quy đổi</th></tr></thead>';
-                            html += '<tbody>';
-
-                            var totalTiet = 0;
-                            var totalQuyDoi = 0;
-
-                            response.data.forEach(function(item) {
-                                html += '<tr>';
-                                html += '<td><span class="badge bg-info">' + item.maGV + '</span></td>';
-                                html += '<td>' + (item.giaovien ? item.giaovien.hoTen : 'N/A') + '</td>';
-                                html += '<td><span class="fw-bold text-primary">' + item.soTiet + '</span></td>';
-                                html += '<td><span class="fw-bold text-success">' + item.soTietQuyDoi.toFixed(2) + '</span></td>';
-                                html += '</tr>';
-                                totalTiet += item.soTiet;
-                                totalQuyDoi += item.soTietQuyDoi;
-                            });
-
-                            html += '</tbody>';
-                            html += '<tfoot class="table-danger">';
-                            html += '<tr><th colspan="2">Tổng cộng</th><th class="fw-bold">' + totalTiet + '</th><th class="fw-bold">' + totalQuyDoi.toFixed(2) + '</th></tr>';
-                            html += '</tfoot>';
-                            html += '</table>';
-                            html += '</div>';
-                            html += '<p class="mb-0"><strong>Tất cả thông tin phân công này sẽ bị xóa vĩnh viễn!</strong></p>';
-                            html += '</div>';
-
-                            $('#phanCongInfo').html(html);
-                        } else {
-                            $('#phanCongInfo').html('<div class="alert alert-info"><i data-feather="info"></i> Chưa có giáo viên nào được phân công cho tải giảng dạy này.</div>');
-                        }
-                        feather.replace();
-                    },
-                    error: function() {
-                        $('#phanCongInfo').html('<div class="alert alert-secondary"><i data-feather="alert-circle"></i> Không thể tải thông tin phân công.</div>');
-                        feather.replace();
-                    }
-                });
-            }
-        </script>
+        });
+    </script>
 }

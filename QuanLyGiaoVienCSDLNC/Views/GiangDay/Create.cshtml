@@ -1,4 +1,4 @@
-﻿@model QuanLyGiaoVienCSDLNC.DTOs.TaiGiangDay.TaiGiangDayCreateDto
+﻿@model QuanLyGiaoVienCSDLNC.Models.TaiGiangDay
 @{
     ViewData["Title"] = "Thêm tải giảng dạy";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -15,132 +15,146 @@
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item">
                             <a asp-controller="Home" asp-action="Index">
-                                <svg class="stroke-icon">
-                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
-                                </svg>
+                                <i data-feather="home"></i>
                             </a>
                         </li>
-                        <li class="breadcrumb-item"><a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a></li>
-                        <li class="breadcrumb-item active">Thêm mới</li>
+                        <li class="breadcrumb-item">
+                            <a asp-controller="GiangDay" asp-action="Index">Quản lý giảng dạy</a>
+                        </li>
+                        <li class="breadcrumb-item active">Thêm tải GD</li>
                     </ol>
                 </div>
             </div>
         </div>
     </div>
-    <!-- Container-fluid starts-->
+
     <div class="container-fluid">
         <div class="row">
             <div class="col-sm-12">
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
                 <div class="card">
                     <div class="card-header">
                         <h5>Thông tin tải giảng dạy</h5>
                     </div>
                     <div class="card-body">
                         <form asp-action="Create" method="post">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label asp-for="TenHocPhan" class="form-label">Tên học phần</label>
+                                        <label asp-for="TenHocPhan" class="form-label">Tên học phần <span class="text-danger">*</span></label>
                                         <input asp-for="TenHocPhan" class="form-control" placeholder="Nhập tên học phần" />
                                         <span asp-validation-for="TenHocPhan" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label asp-for="SiSo" class="form-label">Sĩ số</label>
-                                        <input asp-for="SiSo" class="form-control" type="number" min="1" max="500" placeholder="Nhập sĩ số" />
-                                        <span asp-validation-for="SiSo" class="text-danger"></span>
+                                        <label asp-for="Lop" class="form-label">Lớp <span class="text-danger">*</span></label>
+                                        <input asp-for="Lop" class="form-control" placeholder="VD: CT101" />
+                                        <span asp-validation-for="Lop" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="mb-3">
+                                        <label asp-for="NamHoc" class="form-label">Năm học <span class="text-danger">*</span></label>
+                                        <input asp-for="NamHoc" class="form-control" placeholder="VD: 2023-2024" />
+                                        <span asp-validation-for="NamHoc" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label asp-for="He" class="form-label">Hệ đào tạo</label>
-                                        <select asp-for="He" class="form-select" asp-items="ViewBag.Hes">
+                                        <label asp-for="He" class="form-label">Hệ đào tạo <span class="text-danger">*</span></label>
+                                        <select asp-for="He" class="form-select">
                                             <option value="">-- Chọn hệ đào tạo --</option>
-                                            <option value="Đại học">Đại học</option>
-                                            <option value="Cao học">Cao học</option>
-                                            <option value="Liên thông">Liên thông</option>
-                                            <option value="Từ xa">Từ xa</option>
+                                            <option value="Đại học chính quy">Đại học chính quy</option>
+                                            <option value="Đại học liên thông">Đại học liên thông</option>
+                                            <option value="Thạc sĩ">Thạc sĩ</option>
+                                            <option value="Tiến sĩ">Tiến sĩ</option>
                                         </select>
                                         <span asp-validation-for="He" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label asp-for="Lop" class="form-label">Lớp</label>
-                                        <input asp-for="Lop" class="form-control" placeholder="Nhập tên lớp" />
-                                        <span asp-validation-for="Lop" class="text-danger"></span>
+                                        <label asp-for="SiSo" class="form-label">Sĩ số <span class="text-danger">*</span></label>
+                                        <input asp-for="SiSo" class="form-control" type="number" min="1" max="500" />
+                                        <span asp-validation-for="SiSo" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label asp-for="SoTinChi" class="form-label">Số tín chỉ</label>
-                                        <input asp-for="SoTinChi" class="form-control" type="number" min="1" max="10" placeholder="Nhập số tín chỉ" />
+                                        <label asp-for="SoTinChi" class="form-label">Số tín chỉ <span class="text-danger">*</span></label>
+                                        <input asp-for="SoTinChi" class="form-control" type="number" min="1" max="10" />
                                         <span asp-validation-for="SoTinChi" class="text-danger"></span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <div class="mb-3">
-                                        <label asp-for="NamHoc" class="form-label">Năm học</label>
-                                        <select asp-for="NamHoc" class="form-select" asp-items="ViewBag.NamHocs">
-                                            <option value="">-- Chọn năm học --</option>
-                                            <option value="2022-2023">2022-2023</option>
-                                            <option value="2023-2024">2023-2024</option>
-                                            <option value="2024-2025">2024-2025</option>
-                                            <option value="2025-2026">2025-2026</option>
-                                        </select>
-                                        <span asp-validation-for="NamHoc" class="text-danger"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label asp-for="MaDoiTuong" class="form-label">Đối tượng giảng dạy</label>
+                                        <label asp-for="MaDoiTuong" class="form-label">Đối tượng giảng dạy <span class="text-danger">*</span></label>
                                         <select asp-for="MaDoiTuong" class="form-select" asp-items="ViewBag.DoiTuongs">
                                             <option value="">-- Chọn đối tượng --</option>
                                         </select>
                                         <span asp-validation-for="MaDoiTuong" class="text-danger"></span>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label asp-for="MaThoiGian" class="form-label">Thời gian giảng dạy</label>
+                                        <label asp-for="MaThoiGian" class="form-label">Thời gian giảng dạy <span class="text-danger">*</span></label>
                                         <select asp-for="MaThoiGian" class="form-select" asp-items="ViewBag.ThoiGians">
                                             <option value="">-- Chọn thời gian --</option>
                                         </select>
                                         <span asp-validation-for="MaThoiGian" class="text-danger"></span>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
-                                        <label asp-for="MaNgonNgu" class="form-label">Ngôn ngữ giảng dạy</label>
+                                        <label asp-for="MaNgonNgu" class="form-label">Ngôn ngữ giảng dạy <span class="text-danger">*</span></label>
                                         <select asp-for="MaNgonNgu" class="form-select" asp-items="ViewBag.NgonNgus">
                                             <option value="">-- Chọn ngôn ngữ --</option>
                                         </select>
                                         <span asp-validation-for="MaNgonNgu" class="text-danger"></span>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="GhiChu" class="form-label">Ghi chú</label>
-                                        <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Nhập ghi chú (tùy chọn)"></textarea>
+                                        <input asp-for="GhiChu" class="form-control" placeholder="Ghi chú thêm..." />
                                         <span asp-validation-for="GhiChu" class="text-danger"></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer text-end">
-                                <button type="submit" class="btn btn-primary">
-                                    <i data-feather="save"></i> Lưu
-                                </button>
-                                <a asp-action="Index" class="btn btn-outline-secondary">
-                                    <i data-feather="arrow-left"></i> Quay lại
-                                </a>
+
+                            <hr>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between">
+                                        <a asp-action="Index" class="btn btn-secondary">
+                                            <i data-feather="arrow-left"></i> Quay lại
+                                        </a>
+                                        <div>
+                                            <button type="reset" class="btn btn-warning me-2">
+                                                <i data-feather="refresh-cw"></i> Làm mới
+                                            </button>
+                                            <button type="submit" class="btn btn-success">
+                                                <i data-feather="save"></i> Lưu tải GD
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -148,32 +162,52 @@
             </div>
         </div>
     </div>
-    <!-- Container-fluid Ends-->
 </div>
 
 @section Script {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
     <script>
         $(document).ready(function() {
-            // Auto-generate current academic year
-            const currentYear = new Date().getFullYear();
-            const currentMonth = new Date().getMonth() + 1; // 0-based month
+            // Initialize feather icons
+            feather.replace();
 
-            if (currentMonth >= 8) { // From August onwards
-                const namHoc = currentYear + "-" + (currentYear + 1);
-                if ($('#NamHoc option[value="' + namHoc + '"]').length === 0) {
-                    $('#NamHoc').append('<option value="' + namHoc + '">' + namHoc + '</option>');
-                }
-                $('#NamHoc').val(namHoc);
-            } else {
-                const namHoc = (currentYear - 1) + "-" + currentYear;
-                if ($('#NamHoc option[value="' + namHoc + '"]').length === 0) {
-                    $('#NamHoc').append('<option value="' + namHoc + '">' + namHoc + '</option>');
-                }
-                $('#NamHoc').val(namHoc);
+            // Auto-generate năm học
+            if (!$('#NamHoc').val()) {
+                var currentYear = new Date().getFullYear();
+                var nextYear = currentYear + 1;
+                $('#NamHoc').val(currentYear + '-' + nextYear);
             }
+
+            // Form validation enhancement
+            $('form').on('submit', function(e) {
+                var isValid = true;
+
+                // Check required fields
+                $('input[required], select[required]').each(function() {
+                    if (!$(this).val()) {
+                        $(this).addClass('is-invalid');
+                        isValid = false;
+                    } else {
+                        $(this).removeClass('is-invalid').addClass('is-valid');
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    TM.utils.showNotification('Vui lòng điền đầy đủ thông tin bắt buộc!', 'error');
+                }
+            });
+
+            // Real-time validation
+            $('input, select').on('blur change', function() {
+                if ($(this).attr('required')) {
+                    if ($(this).val()) {
+                        $(this).removeClass('is-invalid').addClass('is-valid');
+                    } else {
+                        $(this).removeClass('is-valid').addClass('is-invalid');
+                    }
+                }
+            });
         });
     </script>
 }
