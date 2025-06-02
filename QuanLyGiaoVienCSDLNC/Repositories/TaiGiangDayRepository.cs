@@ -221,7 +221,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 .ToListAsync();
         }
 
-        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string maNoiDungGiangDay = null, bool checkConflict = true)
+        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string NoiDungGiangDay = null, bool checkConflict = true)
         {
             var maChiTietGiangDayParam = new SqlParameter
             {
@@ -242,12 +242,12 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             try
             {
                 await _context.Database.ExecuteSqlRawAsync(
-                    "EXEC sp_GiangDay_PhanCong @MaGV, @MaTaiGiangDay, @SoTiet, @GhiChu, @MaNoiDungGiangDay, @CheckConflict, @MaChiTietGiangDay OUTPUT, @ErrorMessage OUTPUT",
+                    "EXEC sp_GiangDay_PhanCong @MaGV, @MaTaiGiangDay, @SoTiet, @GhiChu, @NoiDungGiangDay, @CheckConflict, @MaChiTietGiangDay OUTPUT, @ErrorMessage OUTPUT",
                     new SqlParameter("@MaGV", maGV),
                     new SqlParameter("@MaTaiGiangDay", maTaiGiangDay),
                     new SqlParameter("@SoTiet", soTiet),
                     new SqlParameter("@GhiChu", ghiChu ?? (object)DBNull.Value),
-                    new SqlParameter("@MaNoiDungGiangDay", maNoiDungGiangDay ?? (object)DBNull.Value),
+                    new SqlParameter("@NoiDungGiangDay", NoiDungGiangDay ?? (object)DBNull.Value),
                     new SqlParameter("@CheckConflict", checkConflict),
                     maChiTietGiangDayParam,
                     errorMessageParam);
@@ -387,14 +387,10 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
                 var data = await query.ToListAsync();
 
-                return new
-                {
-                    TongSoTiet = data.Sum(c => c.SoTiet),
-                    TongSoTietQuyDoi = data.Sum(c => c.SoTietQuyDoi),
-                    SoTaiGiangDay = data.Select(c => c.MaTaiGiangDay).Distinct().Count(),
-                    SoGiaoVien = data.Select(c => c.MaGV).Distinct().Count(),
-                    ChiTiet = data.GroupBy(c => new { c.MaGV, c.GiaoVien.HoTen })
-                        .Select(g => new
+                // Chuyển đổi kết quả thành List<object> để tránh lỗi kiểu
+                var chiTietList = data.Any()
+                    ? data.GroupBy(c => new { c.MaGV, c.GiaoVien.HoTen })
+                        .Select(g => (object)new
                         {
                             MaGV = g.Key.MaGV,
                             HoTen = g.Key.HoTen,
@@ -402,14 +398,31 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                             SoTietQuyDoi = g.Sum(c => c.SoTietQuyDoi),
                             SoTaiGiangDay = g.Select(c => c.MaTaiGiangDay).Distinct().Count()
                         }).ToList()
+                    : new List<object>(); // Danh sách rỗng kiểu List<object>
+
+                return new
+                {
+                    TongSoTiet = data.Sum(c => c.SoTiet),
+                    TongSoTietQuyDoi = data.Sum(c => c.SoTietQuyDoi),
+                    SoTaiGiangDay = data.Select(c => c.MaTaiGiangDay).Distinct().Count(),
+                    SoGiaoVien = data.Select(c => c.MaGV).Distinct().Count(),
+                    ChiTiet = chiTietList // Luôn có property ChiTiet
                 };
             }
             catch (Exception ex)
             {
-                throw new Exception($"Lỗi khi lấy thống kê giảng dạy: {ex.Message}");
+                // Trả về object với cấu trúc mặc định khi có lỗi
+                return new
+                {
+                    TongSoTiet = 0,
+                    TongSoTietQuyDoi = 0.0,
+                    SoTaiGiangDay = 0,
+                    SoGiaoVien = 0,
+                    ChiTiet = new List<object>(),
+                    ErrorMessage = $"Lỗi khi lấy thống kê giảng dạy: {ex.Message}"
+                };
             }
         }
-
         #endregion
     }
 }

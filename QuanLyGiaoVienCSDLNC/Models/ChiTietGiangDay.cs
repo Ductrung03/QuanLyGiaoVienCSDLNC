@@ -9,6 +9,8 @@ namespace QuanLyGiaoVienCSDLNC.Models
         [StringLength(15)]
         public string MaChiTietGiangDay { get; set; }
 
+        [Required(ErrorMessage = "Số tiết không được để trống")]
+        [Range(1, 200, ErrorMessage = "Số tiết phải từ 1 đến 200")]
         [Display(Name = "Số tiết")]
         public int SoTiet { get; set; }
 
@@ -19,17 +21,19 @@ namespace QuanLyGiaoVienCSDLNC.Models
         [Display(Name = "Ghi chú")]
         public string GhiChu { get; set; }
 
+        [Required(ErrorMessage = "Giáo viên không được để trống")]
         [StringLength(15)]
         [Display(Name = "Mã giáo viên")]
         public string MaGV { get; set; }
 
+        [Required(ErrorMessage = "Tài giảng dạy không được để trống")]
         [StringLength(15)]
         [Display(Name = "Mã tải giảng dạy")]
         public string MaTaiGiangDay { get; set; }
 
-        [StringLength(15)]
-        [Display(Name = "Mã nội dung giảng dạy")]
-        public string MaNoiDungGiangDay { get; set; }
+        [StringLength(200)]
+        [Display(Name = "Nội dung giảng dạy")]
+        public string NoiDungGiangDay { get; set; }
 
         [ForeignKey("MaGV")]
         public virtual GiaoVien GiaoVien { get; set; }

@@ -25,7 +25,7 @@ namespace QuanLyGiaoVienCSDLNC.DTOs.ChiTietGiangDay
 
         [StringLength(15)]
         [Display(Name = "Mã nội dung giảng dạy")]
-        public string MaNoiDungGiangDay { get; set; }
+        public string NoiDungGiangDay { get; set; }
 
         [Display(Name = "Kiểm tra trùng lịch")]
         public bool CheckConflict { get; set; } = true;

@@ -91,25 +91,73 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(TaiGiangDay taiGiangDay)
         {
-            if (ModelState.IsValid)
+            // Debug ModelState errors
+            if (!ModelState.IsValid)
             {
-                try
+                var errors = ModelState
+                    .Where(x => x.Value.Errors.Count > 0)
+                    .Select(x => new { Field = x.Key, Errors = x.Value.Errors.Select(e => e.ErrorMessage) })
+                    .ToList();
+
+                foreach (var error in errors)
                 {
-                    var result = await _giangDayService.AddTaiGiangDayAsync(taiGiangDay);
-                    if (result.success)
-                    {
-                        TempData["SuccessMessage"] = result.message;
-                        return RedirectToAction(nameof(Details), new { id = result.maTaiGiangDay });
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = result.message;
-                    }
+                    System.Diagnostics.Debug.WriteLine($"Validation Error - Field: {error.Field}, Errors: {string.Join(", ", error.Errors)}");
                 }
-                catch (Exception ex)
+            }
+
+            // Manual validation check for required fields
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.TenHocPhan))
+                validationErrors.Add("Tên học phần không được để trống");
+
+            if (taiGiangDay.SiSo <= 0 || taiGiangDay.SiSo > 500)
+                validationErrors.Add("Sĩ số phải từ 1 đến 500");
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.He))
+                validationErrors.Add("Hệ đào tạo không được để trống");
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.Lop))
+                validationErrors.Add("Lớp không được để trống");
+
+            if (taiGiangDay.SoTinChi <= 0 || taiGiangDay.SoTinChi > 10)
+                validationErrors.Add("Số tín chỉ phải từ 1 đến 10");
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.NamHoc))
+                validationErrors.Add("Năm học không được để trống");
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.MaDoiTuong))
+                validationErrors.Add("Đối tượng giảng dạy không được để trống");
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.MaThoiGian))
+                validationErrors.Add("Thời gian giảng dạy không được để trống");
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.MaNgonNgu))
+                validationErrors.Add("Ngôn ngữ giảng dạy không được để trống");
+
+            if (validationErrors.Any())
+            {
+                TempData["ErrorMessage"] = string.Join("; ", validationErrors);
+                await LoadLookupDataAsync();
+                return View(taiGiangDay);
+            }
+
+            try
+            {
+                var result = await _giangDayService.AddTaiGiangDayAsync(taiGiangDay);
+                if (result.success)
                 {
-                    TempData["ErrorMessage"] = ex.Message;
+                    TempData["SuccessMessage"] = result.message;
+                    return RedirectToAction(nameof(Details), new { id = result.maTaiGiangDay });
                 }
+                else
+                {
+                    TempData["ErrorMessage"] = result.message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             await LoadLookupDataAsync();
@@ -148,25 +196,38 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(TaiGiangDay taiGiangDay)
         {
-            if (ModelState.IsValid)
+            // Manual validation for edit
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(taiGiangDay.TenHocPhan))
+                validationErrors.Add("Tên học phần không được để trống");
+
+            if (taiGiangDay.SiSo <= 0 || taiGiangDay.SiSo > 500)
+                validationErrors.Add("Sĩ số phải từ 1 đến 500");
+
+            if (validationErrors.Any())
             {
-                try
+                TempData["ErrorMessage"] = string.Join("; ", validationErrors);
+                await LoadLookupDataAsync();
+                return View(taiGiangDay);
+            }
+
+            try
+            {
+                var result = await _giangDayService.UpdateTaiGiangDayAsync(taiGiangDay);
+                if (result.success)
                 {
-                    var result = await _giangDayService.UpdateTaiGiangDayAsync(taiGiangDay);
-                    if (result.success)
-                    {
-                        TempData["SuccessMessage"] = result.message;
-                        return RedirectToAction(nameof(Details), new { id = taiGiangDay.MaTaiGiangDay });
-                    }
-                    else
-                    {
-                        TempData["ErrorMessage"] = result.message;
-                    }
+                    TempData["SuccessMessage"] = result.message;
+                    return RedirectToAction(nameof(Details), new { id = taiGiangDay.MaTaiGiangDay });
                 }
-                catch (Exception ex)
+                else
                 {
-                    TempData["ErrorMessage"] = ex.Message;
+                    TempData["ErrorMessage"] = result.message;
                 }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
             }
 
             await LoadLookupDataAsync();
@@ -275,7 +336,20 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PhanCong(ChiTietGiangDay model)
         {
-            if (ModelState.IsValid)
+            // Manual validation
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(model.MaGV))
+                validationErrors.Add("Vui lòng chọn giáo viên");
+
+            if (model.SoTiet <= 0 || model.SoTiet > 200)
+                validationErrors.Add("Số tiết phải từ 1 đến 200");
+
+            if (validationErrors.Any())
+            {
+                TempData["ErrorMessage"] = string.Join("; ", validationErrors);
+            }
+            else
             {
                 try
                 {
@@ -284,7 +358,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                         model.MaTaiGiangDay,
                         model.SoTiet,
                         model.GhiChu,
-                        model.MaNoiDungGiangDay,
+                        model.NoiDungGiangDay, 
                         true);
 
                     if (result.success)
@@ -392,6 +466,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             }
         }
 
+        // Thay thế method ThongKe trong GiangDayController
         // GET: GiangDay/ThongKe
         public async Task<IActionResult> ThongKe(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null)
         {
@@ -399,24 +474,68 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             {
                 var thongKe = await _giangDayService.GetThongKeGiangDayAsync(maGV, maBM, maKhoa, namHoc);
 
-                // Load data cho filter nếu cần
-                var namHocs = await _giangDayService.GetDistinctNamHocAsync();
-                ViewBag.NamHocs = new SelectList(namHocs, namHoc);
+                // Debug: Log thông tin về thongKe
+                System.Diagnostics.Debug.WriteLine($"ThongKe result: {thongKe}");
+                System.Diagnostics.Debug.WriteLine($"ThongKe type: {thongKe?.GetType()}");
 
-                ViewBag.MaGV = maGV;
-                ViewBag.MaBM = maBM;
-                ViewBag.MaKhoa = maKhoa;
-                ViewBag.NamHoc = namHoc;
+                // Đảm bảo thongKe không null và có đủ properties
+                if (thongKe == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("ThongKe is null, creating empty result");
+                    thongKe = new
+                    {
+                        TongSoTiet = 0,
+                        TongSoTietQuyDoi = 0.0,
+                        SoTaiGiangDay = 0,
+                        SoGiaoVien = 0,
+                        ChiTiet = new List<object>()
+                    };
+                }
+
+                // Load data cho filter
+                try
+                {
+                    var namHocs = await _giangDayService.GetDistinctNamHocAsync();
+                    ViewBag.NamHocs = new SelectList(namHocs, namHoc);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Error loading namHocs: {ex.Message}");
+                    ViewBag.NamHocs = new SelectList(new List<string>());
+                }
+
+                ViewBag.MaGV = maGV ?? "";
+                ViewBag.MaBM = maBM ?? "";
+                ViewBag.MaKhoa = maKhoa ?? "";
+                ViewBag.NamHoc = namHoc ?? "";
 
                 return View(thongKe);
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = ex.Message;
-                return View();
+                System.Diagnostics.Debug.WriteLine($"ThongKe Controller Error: {ex.Message}");
+                TempData["ErrorMessage"] = $"Lỗi khi lấy thống kê: {ex.Message}";
+
+                // Trả về object rỗng với cấu trúc đúng
+                var emptyModel = new
+                {
+                    TongSoTiet = 0,
+                    TongSoTietQuyDoi = 0.0,
+                    SoTaiGiangDay = 0,
+                    SoGiaoVien = 0,
+                    ChiTiet = new List<object>()
+                };
+
+                // Load empty data cho filter để tránh lỗi view
+                ViewBag.NamHocs = new SelectList(new List<string>());
+                ViewBag.MaGV = maGV ?? "";
+                ViewBag.MaBM = maBM ?? "";
+                ViewBag.MaKhoa = maKhoa ?? "";
+                ViewBag.NamHoc = namHoc ?? "";
+
+                return View(emptyModel);
             }
         }
-
         #endregion
 
         #region Private Methods

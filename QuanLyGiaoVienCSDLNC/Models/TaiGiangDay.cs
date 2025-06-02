@@ -69,12 +69,12 @@ namespace QuanLyGiaoVienCSDLNC.Models
         public virtual NgonNguGiangDay NgonNguGiangDay { get; set; }
 
         // Collection navigation properties
-        public virtual ICollection<ChiTietGiangDay> ChiTietGiangDays { get; set; }
+        public virtual ICollection<ChiTietGiangDay> ChiTietGiangDays { get; set; } = new List<ChiTietGiangDay>();
 
         // Computed properties
         [NotMapped]
         [Display(Name = "Trạng thái")]
-        public string TrangThai => ChiTietGiangDays?.Any() == true ? "Đã phân công" : "Chưa phân công";
+        public string TrangThai => (ChiTietGiangDays?.Any() == true) ? "Đã phân công" : "Chưa phân công";
 
         [NotMapped]
         [Display(Name = "Số giáo viên")]

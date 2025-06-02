@@ -15,7 +15,7 @@ namespace QuanLyGiaoVienCSDLNC.Services.Interfaces
         // ChiTietGiangDay operations
         Task<List<ChiTietGiangDay>> GetChiTietGiangDayByTaiGiangDayAsync(string maTaiGiangDay);
         Task<List<ChiTietGiangDay>> GetChiTietGiangDayByGiaoVienAsync(string maGV, string namHoc = null);
-        Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string maNoiDungGiangDay = null, bool checkConflict = true);
+        Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string noiDungGiangDay = null, bool checkConflict = true);
         Task<(bool success, string message)> UpdateChiTietGiangDayAsync(string maChiTietGiangDay, int soTiet, string ghiChu);
         Task<(bool success, string message)> XoaPhanCongGiangDayAsync(string maChiTietGiangDay);
 

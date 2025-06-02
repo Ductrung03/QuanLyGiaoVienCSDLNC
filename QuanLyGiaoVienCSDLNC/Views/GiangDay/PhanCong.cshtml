@@ -112,7 +112,7 @@
 
                                     <div class="mb-3">
                                         <label asp-for="MaGV" class="form-label">Giáo viên <span class="text-danger">*</span></label>
-                                        <select asp-for="MaGV" class="form-select" asp-items="ViewBag.GiaoViens">
+                                        <select asp-for="MaGV" class="form-select" asp-items="ViewBag.GiaoViens" required>
                                             <option value="">-- Chọn giáo viên --</option>
                                         </select>
                                         <span asp-validation-for="MaGV" class="text-danger"></span>
@@ -120,15 +120,16 @@
 
                                     <div class="mb-3">
                                         <label asp-for="SoTiet" class="form-label">Số tiết <span class="text-danger">*</span></label>
-                                        <input asp-for="SoTiet" class="form-control" type="number" min="1" max="200" placeholder="Nhập số tiết" />
+                                        <input asp-for="SoTiet" class="form-control" type="number" min="1" max="200" placeholder="Nhập số tiết" required />
                                         <span asp-validation-for="SoTiet" class="text-danger"></span>
                                         <div class="form-text">Số tiết phải từ 1 đến 200</div>
                                     </div>
 
                                     <div class="mb-3">
-                                        <label asp-for="MaNoiDungGiangDay" class="form-label">Nội dung giảng dạy</label>
-                                        <input asp-for="MaNoiDungGiangDay" class="form-control" placeholder="Mã nội dung (tùy chọn)" />
-                                        <span asp-validation-for="MaNoiDungGiangDay" class="text-danger"></span>
+                                        <label asp-for="NoiDungGiangDay" class="form-label">Nội dung giảng dạy</label>
+                                        <textarea asp-for="NoiDungGiangDay" class="form-control" rows="2" placeholder="Nội dung chi tiết về phần giảng dạy..."></textarea>
+                                        <span asp-validation-for="NoiDungGiangDay" class="text-danger"></span>
+                                        <div class="form-text">Mô tả nội dung cụ thể mà giáo viên sẽ giảng dạy</div>
                                     </div>
 
                                     <div class="mb-3">
@@ -176,6 +177,7 @@
                                                     <th>Giáo viên</th>
                                                     <th>Số tiết</th>
                                                     <th>Quy đổi</th>
+                                                    <th>Nội dung</th>
                                                     <th></th>
                                                 </tr>
                                             </thead>
@@ -194,6 +196,16 @@
                                                         </td>
                                                         <td>
                                                             <span class="badge bg-success">@item.SoTietQuyDoi.ToString("F1")</span>
+                                                        </td>
+                                                        <td>
+                                                            @if (!string.IsNullOrEmpty(item.NoiDungGiangDay))
+                                                            {
+                                                                <small class="text-info">@item.NoiDungGiangDay</small>
+                                                            }
+                                                            else
+                                                            {
+                                                                <small class="text-muted">--</small>
+                                                            }
                                                         </td>
                                                         <td>
                                                             <form asp-action="XoaPhanCong" method="post" style="display: inline;">
@@ -274,14 +286,14 @@
                 if (!maGV) {
                     e.preventDefault();
                     $('#MaGV').addClass('is-invalid');
-                    TM.utils.showNotification('Vui lòng chọn giáo viên!', 'error');
+                    alert('Vui lòng chọn giáo viên!');
                     return false;
                 }
 
                 if (!soTiet || soTiet < 1 || soTiet > 200) {
                     e.preventDefault();
                     $('#SoTiet').addClass('is-invalid');
-                    TM.utils.showNotification('Số tiết phải từ 1 đến 200!', 'error');
+                    alert('Số tiết phải từ 1 đến 200!');
                     return false;
                 }
             });
@@ -312,12 +324,6 @@
                     $(this).next('.form-text').html('Số tiết phải từ 1 đến 200');
                 }
             });
-
-            // Auto-refresh phân công list mỗi 30 giây
-            setInterval(function() {
-                // Optional: auto-refresh the assignment list
-                console.log('Auto refresh assignments could be implemented here');
-            }, 30000);
         });
     </script>
 }

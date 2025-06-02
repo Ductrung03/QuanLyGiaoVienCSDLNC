@@ -156,7 +156,7 @@ namespace QuanLyGiaoVienCSDLNC.Services
             }
         }
 
-        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string maNoiDungGiangDay = null, bool checkConflict = true)
+        public async Task<(bool success, string message, string maChiTietGiangDay)> PhanCongGiangDayAsync(string maGV, string maTaiGiangDay, int soTiet, string ghiChu = null, string noiDungGiangDay = null, bool checkConflict = true)
         {
             // Validation
             var validationResult = await ValidatePhanCongAsync(maGV, maTaiGiangDay, soTiet, checkConflict);
@@ -167,7 +167,7 @@ namespace QuanLyGiaoVienCSDLNC.Services
 
             try
             {
-                return await _giangDayRepository.PhanCongGiangDayAsync(maGV, maTaiGiangDay, soTiet, ghiChu, maNoiDungGiangDay, checkConflict);
+                return await _giangDayRepository.PhanCongGiangDayAsync(maGV, maTaiGiangDay, soTiet, ghiChu, noiDungGiangDay, checkConflict);
             }
             catch (Exception ex)
             {
@@ -286,14 +286,40 @@ namespace QuanLyGiaoVienCSDLNC.Services
         {
             try
             {
-                return await _giangDayRepository.GetThongKeGiangDayAsync(maGV, maBM, maKhoa, namHoc);
+                var result = await _giangDayRepository.GetThongKeGiangDayAsync(maGV, maBM, maKhoa, namHoc);
+
+                // Đảm bảo result không null và có cấu trúc đúng
+                if (result == null)
+                {
+                    return new
+                    {
+                        TongSoTiet = 0,
+                        TongSoTietQuyDoi = 0.0,
+                        SoTaiGiangDay = 0,
+                        SoGiaoVien = 0,
+                        ChiTiet = new List<object>()
+                    };
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
-                throw new Exception($"Lỗi khi lấy thống kê giảng dạy: {ex.Message}");
+                // Log error nếu cần
+                Console.WriteLine($"Error in GetThongKeGiangDayAsync: {ex.Message}");
+
+                // Trả về object mặc định với thông báo lỗi
+                return new
+                {
+                    TongSoTiet = 0,
+                    TongSoTietQuyDoi = 0.0,
+                    SoTaiGiangDay = 0,
+                    SoGiaoVien = 0,
+                    ChiTiet = new List<object>(),
+                    ErrorMessage = $"Lỗi khi lấy thống kê giảng dạy: {ex.Message}"
+                };
             }
         }
-
         #endregion
 
         #region Validation
