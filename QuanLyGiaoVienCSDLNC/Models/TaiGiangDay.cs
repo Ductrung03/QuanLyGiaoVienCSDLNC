@@ -86,6 +86,6 @@ namespace QuanLyGiaoVienCSDLNC.Models
 
         [NotMapped]
         [Display(Name = "Tổng giờ quy đổi")]
-        public float TongGioQuyDoi => ChiTietGiangDays?.Sum(x => x.SoTietQuyDoi) ?? 0;
+        public double TongGioQuyDoi => ChiTietGiangDays?.Sum(x => x.SoTietQuyDoi) ?? 0;
     }
 }

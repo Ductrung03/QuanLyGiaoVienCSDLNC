@@ -24,7 +24,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddScoped<IGiaoVienRepository, GiaoVienRepository>();
 builder.Services.AddScoped<IBoMonRepository, BoMonRepository>();
 builder.Services.AddScoped<IKhoaRepository, KhoaRepository>();
-builder.Services.AddScoped<ITaiGiangDayRepository, TaiGiangDayRepository>();
+builder.Services.AddScoped<IGiangDayRepository, GiangDayRepository>();
 builder.Services.AddScoped<IThongKeRepository, ThongKeRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
@@ -39,7 +39,7 @@ builder.Services.AddScoped<IKhaoThiRepository, KhaoThiRepository>();
 builder.Services.AddScoped<IGiaoVienService, GiaoVienService>();
 builder.Services.AddScoped<IBoMonService, BoMonService>();
 builder.Services.AddScoped<IKhoaService, KhoaService>();
-builder.Services.AddScoped<ITaiGiangDayService, TaiGiangDayService>();
+builder.Services.AddScoped<IGiangDayService, GiangDayService>();
 builder.Services.AddScoped<IThongKeService, ThongKeService>();
 builder.Services.AddScoped<IUserService, UserService>();
 

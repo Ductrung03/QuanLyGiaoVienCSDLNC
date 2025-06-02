@@ -13,7 +13,7 @@ namespace QuanLyGiaoVienCSDLNC.Models
         public int SoTiet { get; set; }
 
         [Display(Name = "Số tiết quy đổi")]
-        public float SoTietQuyDoi { get; set; }
+        public double SoTietQuyDoi { get; set; }
 
         [StringLength(200)]
         [Display(Name = "Ghi chú")]

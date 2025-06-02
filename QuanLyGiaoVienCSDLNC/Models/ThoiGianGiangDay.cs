@@ -14,7 +14,7 @@ namespace QuanLyGiaoVienCSDLNC.Models
         public string TenThoiGian { get; set; }
 
         [Display(Name = "Hệ số quy chuẩn")]
-        public float HeSoQuyChuan { get; set; }
+        public double HeSoQuyChuan { get; set; }
 
         [StringLength(200)]
         [Display(Name = "Mô tả")]

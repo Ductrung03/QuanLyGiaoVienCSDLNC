@@ -13,7 +13,7 @@ namespace QuanLyGiaoVienCSDLNC.Models
         public int SoBai { get; set; }
 
         [Display(Name = "Số giờ quy chuẩn")]
-        public float SoGioQuyChuan { get; set; }
+        public double SoGioQuyChuan { get; set; }
 
         [StringLength(15)]
         [Display(Name = "Mã giáo viên")]

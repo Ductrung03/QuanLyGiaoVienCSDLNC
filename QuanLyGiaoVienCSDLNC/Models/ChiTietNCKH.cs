@@ -22,7 +22,7 @@ namespace QuanLyGiaoVienCSDLNC.Models
         public string MaTaiNCKH { get; set; }
 
         [Display(Name = "Số giờ")]
-        public float SoGio { get; set; }
+        public double SoGio { get; set; }
 
         [ForeignKey("MaGV")]
         public virtual GiaoVien GiaoVien { get; set; }
