@@ -23,8 +23,8 @@ namespace QuanLyGiaoVienCSDLNC.Models
         [Display(Name = "Nhóm công việc")]
         public string NhomCongViec { get; set; }
 
-        [StringLength(15)]
-        [Display(Name = "Mã nội dung")]
-        public string MaNoiDung { get; set; }
+        [StringLength(200)]
+        [Display(Name = "Nội dung")]
+        public string NoiDung { get; set; }
     }
 }
