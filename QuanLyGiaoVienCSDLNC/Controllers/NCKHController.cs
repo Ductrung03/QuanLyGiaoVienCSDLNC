@@ -215,18 +215,19 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 if (success)
                 {
                     TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(Index));
                 }
                 else
                 {
                     TempData["ErrorMessage"] = message;
+                    return RedirectToAction(nameof(Details), new { id });
                 }
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Lỗi khi xóa tài NCKH: {ex.Message}";
+                return RedirectToAction(nameof(Details), new { id });
             }
-
-            return RedirectToAction(nameof(Index));
         }
         #endregion
 

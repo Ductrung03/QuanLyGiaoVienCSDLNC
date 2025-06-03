@@ -271,19 +271,24 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
         {
             try
             {
+                // Kiểm tra có chi tiết giảng dạy không
+                var hasChiTiet = await _context.ChiTietNCKHs.AnyAsync(c => c.MaTaiNCKH== maTaiNCKH);
+                if (hasChiTiet)
+                {
+                    return (false, "Không thể xóa tài giảng dạy đã có phân công giáo viên");
+                }
+
                 var taiNCKH = await _context.TaiNCKHs.FindAsync(maTaiNCKH);
                 if (taiNCKH == null)
-                    return (false, "Không tìm thấy tài NCKH");
-
-                // Kiểm tra có chi tiết NCKH không
-                var hasDetails = await _context.ChiTietNCKHs.AnyAsync(ct => ct.MaTaiNCKH == maTaiNCKH);
-                if (hasDetails)
-                    return (false, "Không thể xóa vì có chi tiết NCKH liên quan");
+                {
+                    return (false, "Không tìm thấy tài giảng dạy");
+                }
 
                 _context.TaiNCKHs.Remove(taiNCKH);
                 await _context.SaveChangesAsync();
-                return (true, "Xóa tài NCKH thành công");
+                return (true, "Xóa tài giảng dạy thành công");
             }
+            
             catch (Exception ex)
             {
                 return (false, $"Lỗi khi xóa tài NCKH: {ex.Message}");
@@ -296,8 +301,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
         {
             return await _context.ChiTietNCKHs
                 .Include(ct => ct.GiaoVien)
-                .ThenInclude(gv => gv.BoMon)
-                .ThenInclude(bm => bm.Khoa)
+
                 .Where(ct => ct.MaTaiNCKH == maTaiNCKH)
                 .OrderBy(ct => ct.VaiTro)
                 .ThenBy(ct => ct.GiaoVien.HoTen)

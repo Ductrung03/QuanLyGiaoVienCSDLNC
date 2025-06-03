@@ -1,0 +1,340 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.LoaiNCKH
+
+@{
+    ViewData["Title"] = "Thêm loại NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Thêm loại NCKH mới</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">NCKH</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="LoaiNCKH">Loại NCKH</a></li>
+                        <li class="breadcrumb-item active">Thêm mới</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i data-feather="check-circle"></i>
+                        @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                }
+                <div class="card">
+                    <div class="card-header bg-success">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="plus-circle" class="me-2"></i>Thông tin loại NCKH
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="CreateLoaiNCKH" method="post" class="needs-validation" novalidate>
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="TenLoaiNCKH" class="form-label">
+                                        Tên loại NCKH <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="TenLoaiNCKH" type="text" class="form-control"
+                                           placeholder="Nhập tên loại NCKH..." required>
+                                    <span asp-validation-for="TenLoaiNCKH" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng nhập tên loại NCKH.
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Ví dụ: Bài báo ISI/SCOPUS, Bài báo trong nước, Sách chuyên khảo...
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="MoTa" class="form-label">Mô tả</label>
+                                    <textarea asp-for="MoTa" class="form-control" rows="3"
+                                              placeholder="Nhập mô tả chi tiết về loại NCKH này..."></textarea>
+                                    <span asp-validation-for="MoTa" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        Mô tả chi tiết về đặc điểm, yêu cầu của loại NCKH này
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="MaQuyDoi" class="form-label">
+                                        Quy đổi giờ chuẩn <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="MaQuyDoi" class="form-select" asp-items="ViewBag.QuyDoiList" required>
+                                        <option value="">-- Chọn quy đổi giờ chuẩn --</option>
+                                    </select>
+                                    <span asp-validation-for="MaQuyDoi" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn quy đổi giờ chuẩn.
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        Quy định cách tính giờ chuẩn cho loại NCKH này
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin quy đổi được chọn -->
+                            <div class="row" id="quyDoiInfo" style="display: none;">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h6><i data-feather="info"></i> Thông tin quy đổi được chọn</h6>
+                                        <div id="quyDoiDetails">
+                                            <!-- Thông tin sẽ được load bằng JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <a asp-action="LoaiNCKH" class="btn btn-secondary">
+                                            <i data-feather="arrow-left"></i> Quay lại
+                                        </a>
+                                        <div>
+                                            <button type="reset" class="btn btn-warning me-2">
+                                                <i data-feather="refresh-cw"></i> Làm mới
+                                            </button>
+                                            <button type="submit" class="btn btn-success">
+                                                <i data-feather="save"></i> Lưu loại NCKH
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hướng dẫn và gợi ý -->
+        <div class="row justify-content-center mt-3">
+            <div class="col-xl-8 col-lg-10">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="help-circle" class="me-2"></i>Hướng dẫn và gợi ý
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Loại NCKH phổ biến:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• <strong>Bài báo ISI/SCOPUS:</strong> Bài báo đăng trên tạp chí quốc tế có chỉ số</li>
+                                    <li>• <strong>Bài báo trong nước:</strong> Bài báo đăng trên tạp chí Việt Nam</li>
+                                    <li>• <strong>Báo cáo hội nghị quốc tế:</strong> Tham dự hội nghị khoa học quốc tế</li>
+                                    <li>• <strong>Sách chuyên khảo:</strong> Xuất bản sách học thuật</li>
+                                    <li>• <strong>Giáo trình:</strong> Biên soạn giáo trình giảng dạy</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Lưu ý khi tạo:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Tên loại phải rõ ràng, dễ hiểu</li>
+                                    <li>• Mô tả chi tiết để phân biệt với loại khác</li>
+                                    <li>• Chọn quy đổi giờ chuẩn phù hợp</li>
+                                    <li>• Tuân thủ quy định của trường</li>
+                                    <li>• Có thể chỉnh sửa sau khi tạo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách loại NCKH mẫu -->
+        <div class="row justify-content-center mt-3">
+            <div class="col-xl-8 col-lg-10">
+                <div class="card border-secondary">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="list" class="me-2"></i>Các loại NCKH mẫu (có thể tham khảo)
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button type="button" class="btn btn-outline-primary btn-sm sample-btn"
+                                            data-name="Bài báo ISI/SCOPUS"
+                                            data-desc="Bài báo đăng trên tạp chí quốc tế có chỉ số ISI hoặc SCOPUS">
+                                        Bài báo ISI/SCOPUS
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm sample-btn"
+                                            data-name="Bài báo hội nghị quốc tế"
+                                            data-desc="Báo cáo khoa học tại hội nghị/hội thảo quốc tế">
+                                        Bài báo hội nghị quốc tế
+                                    </button>
+                                    <button type="button" class="btn btn-outline-success btn-sm sample-btn"
+                                            data-name="Bài báo tạp chí trong nước"
+                                            data-desc="Bài báo đăng trên tạp chí khoa học trong nước">
+                                        Bài báo trong nước
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning btn-sm sample-btn"
+                                            data-name="Sách chuyên khảo"
+                                            data-desc="Xuất bản sách chuyên khảo, sách tham khảo chuyên ngành">
+                                        Sách chuyên khảo
+                                    </button>
+                                    <button type="button" class="btn btn-outline-info btn-sm sample-btn"
+                                            data-name="Giáo trình"
+                                            data-desc="Biên soạn giáo trình giảng dạy cho sinh viên">
+                                        Giáo trình
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger btn-sm sample-btn"
+                                            data-name="Bằng sáng chế"
+                                            data-desc="Đăng ký bằng sáng chế, giải pháp hữu ích">
+                                        Bằng sáng chế
+                                    </button>
+                                </div>
+                                <small class="text-muted mt-2 d-block">
+                                    Nhấn vào các nút trên để tự động điền thông tin mẫu
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons
+            feather.replace();
+
+            // Form validation
+            const form = document.querySelector('.needs-validation');
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+
+            // Load quy đổi info when selection changes
+            $('#MaQuyDoi').change(function() {
+                var maQuyDoi = $(this).val();
+                if (maQuyDoi) {
+                    loadQuyDoiInfo(maQuyDoi);
+                    $('#quyDoiInfo').show();
+                } else {
+                    $('#quyDoiInfo').hide();
+                }
+            });
+
+            // Sample buttons click handlers
+            $('.sample-btn').click(function() {
+                var name = $(this).data('name');
+                var desc = $(this).data('desc');
+
+                $('#TenLoaiNCKH').val(name);
+                $('#MoTa').val(desc);
+
+                // Remove validation classes
+                form.classList.remove('was-validated');
+
+                TM.utils.showNotification('Đã áp dụng mẫu: ' + name, 'success');
+
+                // Focus on next field
+                $('#MaQuyDoi').focus();
+            });
+
+            // Auto-focus first input
+            $('#TenLoaiNCKH').focus();
+
+            // Auto-generate suggestions based on input
+            $('#TenLoaiNCKH').on('input', function() {
+                var value = $(this).val().toLowerCase();
+
+                if (value.includes('isi') || value.includes('scopus')) {
+                    if (!$('#MoTa').val()) {
+                        $('#MoTa').val('Bài báo khoa học đăng trên tạp chí quốc tế có chỉ số ISI hoặc SCOPUS');
+                    }
+                } else if (value.includes('trong nước')) {
+                    if (!$('#MoTa').val()) {
+                        $('#MoTa').val('Bài báo khoa học đăng trên tạp chí trong nước được công nhận');
+                    }
+                } else if (value.includes('hội nghị')) {
+                    if (!$('#MoTa').val()) {
+                        $('#MoTa').val('Báo cáo khoa học tại hội nghị, hội thảo chuyên ngành');
+                    }
+                } else if (value.includes('sách')) {
+                    if (!$('#MoTa').val()) {
+                        $('#MoTa').val('Xuất bản sách chuyên khảo, sách tham khảo chuyên ngành');
+                    }
+                } else if (value.includes('giáo trình')) {
+                    if (!$('#MoTa').val()) {
+                        $('#MoTa').val('Biên soạn giáo trình phục vụ giảng dạy cho sinh viên');
+                    }
+                }
+            });
+        });
+
+        function loadQuyDoiInfo(maQuyDoi) {
+            $.ajax({
+                url: '@Url.Action("GetQuyDoiInfo", "NCKH")',
+                type: 'GET',
+                data: { id: maQuyDoi },
+                success: function(data) {
+                    if (data) {
+                        var html = `
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Đơn vị tính:</strong> ${data.donViTinh || 'Chưa xác định'}
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Quy ra giờ chuẩn:</strong>
+                                    <span class="badge bg-success">${data.quyRaGioChuan || 0}</span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Nhóm công việc:</strong> ${data.nhomCongViec || 'Chưa xác định'}
+                                </div>
+                            </div>
+                            ${data.noiDung ? `<div class="mt-2"><strong>Nội dung:</strong> ${data.noiDung}</div>` : ''}
+                            ${data.ghiChu ? `<div class="mt-1"><strong>Ghi chú:</strong> ${data.ghiChu}</div>` : ''}
+                        `;
+                        $('#quyDoiDetails').html(html);
+                    }
+                },
+                error: function() {
+                    $('#quyDoiDetails').html('<p class="text-muted">Không thể tải thông tin quy đổi.</p>');
+                }
+            });
+        }
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

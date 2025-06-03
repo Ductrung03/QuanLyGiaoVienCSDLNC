@@ -1,4 +1,5 @@
 ﻿using QuanLyGiaoVienCSDLNC.Models;
+using QuanLyGiaoVienCSDLNC.Repositories;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 
@@ -120,10 +121,19 @@ namespace QuanLyGiaoVienCSDLNC.Services
 
         public async Task<(bool success, string message)> DeleteTaiNCKHAsync(string maTaiNCKH)
         {
-            if (!await CanDeleteTaiNCKHAsync(maTaiNCKH))
-                return (false, "Không thể xóa tài NCKH này");
+            if (string.IsNullOrEmpty(maTaiNCKH))
+            {
+                return (false, "Mã tài nghiên cứu khoa học không được để trống");
+            }
 
-            return await _nckhRepository.DeleteTaiNCKHAsync(maTaiNCKH);
+            try
+            {
+                return await _nckhRepository.DeleteTaiNCKHAsync(maTaiNCKH);
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi xóa tải nghiên cứu khoa học: {ex.Message}");
+            }
         }
         #endregion
 

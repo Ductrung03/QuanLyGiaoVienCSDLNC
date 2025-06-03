@@ -1,7 +1,7 @@
 ﻿@model QuanLyGiaoVienCSDLNC.Models.TaiNCKH
 
 @{
-    ViewData["Title"] = "Sửa tài NCKH";
+    ViewData["Title"] = "Xóa tài NCKH";
 }
 
 <div class="page-body">
@@ -9,14 +9,14 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>Sửa tài NCKH</h3>
+                    <h3>Xóa tài NCKH</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
                         <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">NCKH</a></li>
                         <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Details" asp-route-id="@Model.MaTaiNCKH">Chi tiết</a></li>
-                        <li class="breadcrumb-item active">Sửa</li>
+                        <li class="breadcrumb-item active">Xóa</li>
                     </ol>
                 </div>
             </div>
@@ -26,187 +26,172 @@
     <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-xl-8 col-lg-10">
+                <!-- Warning Alert -->
+                <div class="alert alert-danger border-0" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i data-feather="alert-triangle" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="alert-heading mb-1">Cảnh báo!</h5>
+                            <p class="mb-0">
+                                Bạn đang thực hiện thao tác xóa tài NCKH. Hành động này không thể hoàn tác.
+                                Vui lòng kiểm tra kỹ thông tin trước khi xác nhận xóa.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin tài NCKH -->
                 <div class="card">
-                    <div class="card-header bg-warning">
+                    <div class="card-header bg-danger">
                         <h5 class="text-white mb-0">
-                            <i data-feather="edit" class="me-2"></i>Chỉnh sửa thông tin tài NCKH
+                            <i data-feather="trash-2" class="me-2"></i>Thông tin tài NCKH sẽ bị xóa
                         </h5>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Edit" method="post" class="needs-validation" novalidate>
+                        <dl class="row">
+                            <dt class="col-sm-3">Mã tài NCKH:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-primary fs-6">@Model.MaTaiNCKH</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Tên công trình:</dt>
+                            <dd class="col-sm-9">
+                                <strong>@Model.TenCongTrinhKhoaHoc</strong>
+                            </dd>
+
+                            <dt class="col-sm-3">Năm học:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-info">@Model.NamHoc</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Loại NCKH:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.LoaiNCKH != null)
+                                {
+                                    <span class="badge bg-secondary">@Model.LoaiNCKH.TenLoaiNCKH</span>
+                                    @if (!string.IsNullOrEmpty(Model.LoaiNCKH.MoTa))
+                                    {
+                                        <br>
+
+                                        <small class="text-muted">@Model.LoaiNCKH.MoTa</small>
+                                    }
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Số tác giả:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-primary">@Model.SoTacGia</span>
+                                <span class="text-muted">người</span>
+                            </dd>
+
+                            @if (Model.LoaiNCKH?.QuyDoiGioChuanNCKH != null)
+                            {
+                                <dt class="col-sm-3">Quy đổi giờ chuẩn:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-success">@Model.LoaiNCKH.QuyDoiGioChuanNCKH.QuyRaGioChuan</span>
+                                    <span class="text-muted">@Model.LoaiNCKH.QuyDoiGioChuanNCKH.DonViTinh</span>
+                                </dd>
+                            }
+                        </dl>
+
+                        <hr>
+
+                        <!-- Form xóa -->
+                        <form asp-action="Delete" method="post">
                             <input type="hidden" asp-for="MaTaiNCKH" />
 
-                            <!-- Mã tài NCKH (readonly) -->
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label class="form-label">Mã tài NCKH</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light">
-                                            <i data-feather="hash"></i>
-                                        </span>
-                                        <input type="text" class="form-control bg-light"
-                                               value="@Model.MaTaiNCKH" readonly>
-                                    </div>
-                                    <small class="form-text text-muted">Mã tài NCKH không thể thay đổi</small>
-                                </div>
-                            </div>
-
-                            <!-- Tên công trình -->
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label asp-for="TenCongTrinhKhoaHoc" class="form-label">
-                                        Tên công trình khoa học <span class="text-danger">*</span>
-                                    </label>
-                                    <textarea asp-for="TenCongTrinhKhoaHoc" class="form-control" rows="3"
-                                              placeholder="Nhập tên công trình khoa học..." required></textarea>
-                                    <span asp-validation-for="TenCongTrinhKhoaHoc" class="text-danger"></span>
-                                    <div class="invalid-feedback">
-                                        Vui lòng nhập tên công trình khoa học.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Năm học và Số tác giả -->
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="NamHoc" class="form-label">
-                                        Năm học <span class="text-danger">*</span>
-                                    </label>
-                                    <select asp-for="NamHoc" class="form-select" required>
-                                        <option value="">-- Chọn năm học --</option>
-                                        @for (int year = DateTime.Now.Year + 1; year >= DateTime.Now.Year - 10; year--)
-                                        {
-                                            <option value="@($"{year}-{year + 1}")"
-                                                    selected="@(Model.NamHoc == $"{year}-{year + 1}")">
-                                                @($"{year}-{year + 1}")
-                                            </option>
-                                        }
-                                    </select>
-                                    <span asp-validation-for="NamHoc" class="text-danger"></span>
-                                    <div class="invalid-feedback">
-                                        Vui lòng chọn năm học.
-                                    </div>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-                                    <label asp-for="SoTacGia" class="form-label">
-                                        Số tác giả <span class="text-danger">*</span>
-                                    </label>
-                                    <input asp-for="SoTacGia" type="number" class="form-control"
-                                           min="1" max="20" placeholder="Nhập số tác giả..." required>
-                                    <span asp-validation-for="SoTacGia" class="text-danger"></span>
-                                    <div class="invalid-feedback">
-                                        Số tác giả phải từ 1 đến 20.
-                                    </div>
-                                    <small class="form-text text-muted">
-                                        <i data-feather="alert-triangle" style="width: 14px; height: 14px;"></i>
-                                        Cần cân nhắc khi thay đổi nếu đã có tác giả được phân công
-                                    </small>
-                                </div>
-                            </div>
-
-                            <!-- Loại NCKH -->
-                            <div class="row">
-                                <div class="col-md-12 mb-3">
-                                    <label asp-for="MaLoaiNCKH" class="form-label">
-                                        Loại NCKH <span class="text-danger">*</span>
-                                    </label>
-                                    <select asp-for="MaLoaiNCKH" class="form-select"
-                                            asp-items="ViewBag.LoaiNCKHList" required>
-                                        <option value="">-- Chọn loại NCKH --</option>
-                                    </select>
-                                    <span asp-validation-for="MaLoaiNCKH" class="text-danger"></span>
-                                    <div class="invalid-feedback">
-                                        Vui lòng chọn loại NCKH.
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Thông tin quy đổi giờ chuẩn -->
-                            <div class="row" id="quyDoiInfo">
+                            <div class="row mb-4">
                                 <div class="col-12">
-                                    <div class="alert alert-info">
-                                        <h6><i data-feather="info"></i> Thông tin quy đổi giờ chuẩn hiện tại</h6>
-                                        <div id="quyDoiDetails">
-                                            @if (Model.LoaiNCKH?.QuyDoiGioChuanNCKH != null)
-                                            {
-                                                <div class="row">
-                                                    <div class="col-md-6">
-                                                        <strong>Đơn vị tính:</strong> @Model.LoaiNCKH.QuyDoiGioChuanNCKH.DonViTinh
-                                                    </div>
-                                                    <div class="col-md-6">
-                                                        <strong>Quy ra giờ chuẩn:</strong>
-                                                        <span class="badge bg-success">@Model.LoaiNCKH.QuyDoiGioChuanNCKH.QuyRaGioChuan</span>
-                                                    </div>
-                                                </div>
-                                                @if (!string.IsNullOrEmpty(Model.LoaiNCKH.QuyDoiGioChuanNCKH.GhiChu))
-                                                {
-                                                    <div class="mt-2">
-                                                        <strong>Ghi chú:</strong> @Model.LoaiNCKH.QuyDoiGioChuanNCKH.GhiChu
-                                                    </div>
-                                                }
-                                            }
-                                        </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                        <label class="form-check-label" for="confirmDelete">
+                                            <strong>Tôi hiểu rằng việc xóa này không thể hoàn tác</strong>
+                                        </label>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Action buttons -->
-                            <div class="row">
-                                <div class="col-12">
-                                    <hr>
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <a asp-action="Details" asp-route-id="@Model.MaTaiNCKH" class="btn btn-secondary">
-                                                <i data-feather="arrow-left"></i> Quay lại chi tiết
-                                            </a>
-                                            <a asp-action="Index" class="btn btn-outline-secondary">
-                                                <i data-feather="list"></i> Danh sách
-                                            </a>
-                                        </div>
-                                        <div>
-                                            <button type="reset" class="btn btn-warning me-2">
-                                                <i data-feather="refresh-cw"></i> Khôi phục
-                                            </button>
-                                            <button type="submit" class="btn btn-success">
-                                                <i data-feather="save"></i> Lưu thay đổi
-                                            </button>
-                                        </div>
-                                    </div>
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a asp-action="Details" asp-route-id="@Model.MaTaiNCKH" class="btn btn-secondary">
+                                        <i data-feather="arrow-left"></i> Quay lại chi tiết
+                                    </a>
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i data-feather="list"></i> Danh sách
+                                    </a>
+                                </div>
+                                <div>
+                                    <button type="submit" class="btn btn-danger" id="deleteButton" >
+                                        <i data-feather="trash-2"></i> Xác nhận xóa
+                                    </button>
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Cảnh báo quan trọng -->
-        <div class="row justify-content-center mt-3">
-            <div class="col-xl-8 col-lg-10">
-                <div class="card border-warning">
+                <!-- Thông tin tác động -->
+                <div class="card mt-3 border-warning">
                     <div class="card-header bg-warning text-dark">
                         <h6 class="mb-0">
-                            <i data-feather="alert-triangle" class="me-2"></i>Lưu ý quan trọng
+                            <i data-feather="info" class="me-2"></i>Tác động của việc xóa
                         </h6>
                     </div>
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6>Thay đổi số tác giả:</h6>
-                                <ul class="list-unstyled text-muted">
-                                    <li>• Nếu giảm số tác giả, có thể cần xóa một số phân công</li>
-                                    <li>• Nếu tăng số tác giả, có thể phân công thêm tác giả mới</li>
-                                    <li>• Kiểm tra lại danh sách tác giả sau khi lưu</li>
+                                <h6 class="text-danger">Dữ liệu sẽ bị xóa:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i data-feather="x" class="text-danger me-1" style="width: 16px; height: 16px;"></i> Thông tin tài NCKH</li>
+                                    <li><i data-feather="x" class="text-danger me-1" style="width: 16px; height: 16px;"></i> Tất cả phân công tác giả</li>
+                                    <li><i data-feather="x" class="text-danger me-1" style="width: 16px; height: 16px;"></i> Lịch sử thay đổi (nếu có)</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
-                                <h6>Thay đổi loại NCKH:</h6>
-                                <ul class="list-unstyled text-muted">
-                                    <li>• Ảnh hưởng đến quy đổi giờ chuẩn</li>
-                                    <li>• Có thể thay đổi cách tính điểm NCKH</li>
-                                    <li>• Cần cân nhắc kỹ trước khi thay đổi</li>
+                                <h6 class="text-warning">Ảnh hưởng:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i data-feather="alert-triangle" class="text-warning me-1" style="width: 16px; height: 16px;"></i> Giảm khối lượng NCKH của giáo viên</li>
+                                    <li><i data-feather="alert-triangle" class="text-warning me-1" style="width: 16px; height: 16px;"></i> Thay đổi thống kê NCKH</li>
+                                    <li><i data-feather="alert-triangle" class="text-warning me-1" style="width: 16px; height: 16px;"></i> Ảnh hưởng đến báo cáo</li>
                                 </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gợi ý thay thế -->
+                <div class="card mt-3 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="lightbulb" class="me-2"></i>Gợi ý thay thế
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">Thay vì xóa hoàn toàn, bạn có thể cân nhắc các phương án sau:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a asp-action="Edit" asp-route-id="@Model.MaTaiNCKH"
+                                       class="btn btn-outline-warning">
+                                        <i data-feather="edit"></i> Chỉnh sửa thông tin
+                                    </a>
+                                </div>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    Sửa thông tin nếu có sai sót
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a asp-action="PhanCong" asp-route-id="@Model.MaTaiNCKH"
+                                       class="btn btn-outline-success">
+                                        <i data-feather="users"></i> Xem phân công
+                                    </a>
+                                </div>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    Quản lý danh sách tác giả
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -222,108 +207,73 @@
             // Initialize feather icons
             feather.replace();
 
-            // Form validation
-            const form = document.querySelector('.needs-validation');
-            form.addEventListener('submit', function(event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            });
+                  $(document).on('change', '#confirmDelete', function () {
+            $('#deleteButton').prop('disabled', !this.checked);
+        });
 
-            // Store original values for reset functionality
-            const originalValues = {
-                tenCongTrinh: $('#TenCongTrinhKhoaHoc').val(),
-                namHoc: $('#NamHoc').val(),
-                soTacGia: $('#SoTacGia').val(),
-                maLoaiNCKH: $('#MaLoaiNCKH').val()
-            };
 
-            // Custom reset functionality
-            $('button[type="reset"]').click(function(e) {
+            // Add extra confirmation on form submit
+            $('form').submit(function(e) {
                 e.preventDefault();
 
                 Swal.fire({
-                    title: 'Khôi phục dữ liệu?',
-                    text: 'Bạn có muốn khôi phục về dữ liệu ban đầu không?',
-                    icon: 'question',
+                    title: 'Xác nhận xóa cuối cùng',
+                    html: `
+                        <p>Bạn có chắc chắn muốn xóa tài NCKH:</p>
+                        <p><strong>"@Model.TenCongTrinhKhoaHoc"</strong></p>
+                        <p class="text-danger">Hành động này không thể hoàn tác!</p>
+                    `,
+                    icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Khôi phục',
-                    cancelButtonText: 'Hủy'
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xóa ngay',
+                    cancelButtonText: 'Hủy bỏ',
+                    reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        $('#TenCongTrinhKhoaHoc').val(originalValues.tenCongTrinh);
-                        $('#NamHoc').val(originalValues.namHoc);
-                        $('#SoTacGia').val(originalValues.soTacGia);
-                        $('#MaLoaiNCKH').val(originalValues.maLoaiNCKH).trigger('change');
+                        // Show loading
+                        Swal.fire({
+                            title: 'Đang xóa...',
+                            text: 'Vui lòng đợi',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
 
-                        // Remove validation classes
-                        form.classList.remove('was-validated');
-
-                        TM.utils.showNotification('Đã khôi phục dữ liệu ban đầu', 'success');
+                        // Submit form
+                        this.submit();
                     }
                 });
             });
 
-            // Load quy đổi info when loại NCKH changes
-            $('#MaLoaiNCKH').change(function() {
-                var selectedOption = $(this).find('option:selected');
-                if (selectedOption.val() && selectedOption.val() !== originalValues.maLoaiNCKH) {
-                    loadQuyDoiInfo(selectedOption.val());
-                    showChangeWarning();
-                }
-            });
-
-            // Warn when changing số tác giả
-            $('#SoTacGia').change(function() {
-                if ($(this).val() !== originalValues.soTacGia) {
-                    showSoTacGiaWarning();
-                }
-            });
+            // Highlight dangerous action
+            setTimeout(function() {
+                $('#deleteButton').addClass('btn-pulse');
+            }, 1000);
         });
-
-        function loadQuyDoiInfo(maLoaiNCKH) {
-            $.ajax({
-                url: '@Url.Action("GetLoaiNCKHInfo", "NCKH")',
-                type: 'GET',
-                data: { id: maLoaiNCKH },
-                success: function(data) {
-                    if (data) {
-                        var html = `
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Đơn vị tính:</strong> ${data.donViTinh || 'Chưa xác định'}
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Quy ra giờ chuẩn:</strong>
-                                    <span class="badge bg-success">${data.quyRaGioChuan || 0}</span>
-                                </div>
-                            </div>
-                            ${data.ghiChu ? `<div class="mt-2"><strong>Ghi chú:</strong> ${data.ghiChu}</div>` : ''}
-                        `;
-                        $('#quyDoiDetails').html(html);
-                    }
-                }
-            });
-        }
-
-        function showChangeWarning() {
-            TM.utils.showNotification(
-                'Thay đổi loại NCKH sẽ ảnh hưởng đến quy đổi giờ chuẩn!',
-                'warning'
-            );
-        }
-
-        function showSoTacGiaWarning() {
-            TM.utils.showNotification(
-                'Thay đổi số tác giả có thể ảnh hưởng đến danh sách phân công hiện tại!',
-                'warning'
-            );
-        }
     </script>
 
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <style>
+        .btn-pulse {
+            animation: pulse-red 2s infinite;
+        }
+
+        @@keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+            }
+        }
+    </style>
 }

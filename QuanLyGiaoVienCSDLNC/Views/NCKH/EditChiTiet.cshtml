@@ -1,0 +1,270 @@
+﻿@model QuanLyGiaoVienCSDLNC.Models.ChiTietNCKH
+
+@{
+    ViewData["Title"] = "Sửa chi tiết NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Sửa chi tiết NCKH</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">NCKH</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Details" asp-route-id="@Model.MaTaiNCKH">Chi tiết</a></li>
+                        <li class="breadcrumb-item active">Sửa tác giả</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="edit" class="me-2"></i>Chỉnh sửa thông tin tác giả
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="EditChiTiet" method="post" class="needs-validation" novalidate>
+                            <input type="hidden" asp-for="MaChiTietNCKH" />
+                            <input type="hidden" asp-for="MaTaiNCKH" />
+
+                            <!-- Mã chi tiết (readonly) -->
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Mã chi tiết NCKH</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i data-feather="hash"></i>
+                                        </span>
+                                        <input type="text" class="form-control bg-light"
+                                               value="@Model.MaChiTietNCKH" readonly>
+                                    </div>
+                                    <small class="form-text text-muted">Mã chi tiết không thể thay đổi</small>
+                                </div>
+                            </div>
+
+                            <!-- Thông tin tài NCKH -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h6><i data-feather="info"></i> Thông tin tài NCKH</h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <strong>Mã tài NCKH:</strong> @Model.MaTaiNCKH
+                                            </div>
+                                            <div class="col-md-6">
+                                                <strong>Tên công trình:</strong> @Model.TenCongTrinh
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Chọn giáo viên -->
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label asp-for="MaGV" class="form-label">
+                                        Giáo viên <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="MaGV" class="form-select" asp-items="ViewBag.GiaoVienList" required>
+                                        <option value="">-- Chọn giáo viên --</option>
+                                    </select>
+                                    <span asp-validation-for="MaGV" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn giáo viên.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Vai trò và số giờ -->
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="VaiTro" class="form-label">
+                                        Vai trò <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="VaiTro" class="form-select" asp-items="ViewBag.VaiTroList" required>
+                                        <option value="">-- Chọn vai trò --</option>
+                                    </select>
+                                    <span asp-validation-for="VaiTro" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn vai trò.
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="SoGio" class="form-label">
+                                        Số giờ <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="SoGio" type="number" class="form-control"
+                                           min="0.1" max="500" step="0.5" placeholder="Nhập số giờ..." required>
+                                    <span asp-validation-for="SoGio" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Số giờ phải từ 0.1 đến 500.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action buttons -->
+                            <div class="row">
+                                <div class="col-12">
+                                    <hr>
+                                    <div class="d-flex justify-content-between">
+                                        <a asp-action="Details" asp-route-id="@Model.MaTaiNCKH" class="btn btn-secondary">
+                                            <i data-feather="arrow-left"></i> Quay lại chi tiết
+                                        </a>
+                                        <div>
+                                            <button type="reset" class="btn btn-warning me-2">
+                                                <i data-feather="refresh-cw"></i> Khôi phục
+                                            </button>
+                                            <button type="submit" class="btn btn-success">
+                                                <i data-feather="save"></i> Lưu thay đổi
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lưu ý -->
+        <div class="row justify-content-center mt-3">
+            <div class="col-xl-8 col-lg-10">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                            <i data-feather="alert-triangle" class="me-2"></i>Lưu ý quan trọng
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Thay đổi giáo viên:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Kiểm tra giáo viên mới có phù hợp không</li>
+                                    <li>• Đảm bảo không trùng lặp tác giả</li>
+                                    <li>• Cân nhắc về chuyên môn và kinh nghiệm</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Thay đổi vai trò:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Mỗi công trình chỉ có 1 chủ nhiệm</li>
+                                    <li>• Vai trò ảnh hưởng đến số giờ</li>
+                                    <li>• Kiểm tra quyền hạn của giáo viên</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons
+            feather.replace();
+
+            // Form validation
+            const form = document.querySelector('.needs-validation');
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+
+            // Store original values for reset
+            const originalValues = {
+                maGV: $('#MaGV').val(),
+                vaiTro: $('#VaiTro').val(),
+                soGio: $('#SoGio').val()
+            };
+
+            // Custom reset functionality
+            $('button[type="reset"]').click(function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Khôi phục dữ liệu?',
+                    text: 'Bạn có muốn khôi phục về dữ liệu ban đầu không?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Khôi phục',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $('#MaGV').val(originalValues.maGV);
+                        $('#VaiTro').val(originalValues.vaiTro);
+                        $('#SoGio').val(originalValues.soGio);
+
+                        // Remove validation classes
+                        form.classList.remove('was-validated');
+
+                        TM.utils.showNotification('Đã khôi phục dữ liệu ban đầu', 'success');
+                    }
+                });
+            });
+
+            // Validate role selection
+            $('#VaiTro').change(function() {
+                var vaiTro = $(this).val();
+                if (vaiTro === 'Chủ nhiệm') {
+                    checkChuNhiemExists();
+                }
+            });
+
+            // Auto-focus first input
+            $('#MaGV').focus();
+        });
+
+        function checkChuNhiemExists() {
+            var maTaiNCKH = '@Model.MaTaiNCKH';
+            var maChiTietNCKH = '@Model.MaChiTietNCKH';
+
+            $.ajax({
+                url: '@Url.Action("CheckChuNhiemExists", "NCKH")',
+                type: 'GET',
+                data: {
+                    maTaiNCKH: maTaiNCKH,
+                    excludeChiTiet: maChiTietNCKH
+                },
+                success: function(response) {
+                    if (response.exists) {
+                        Swal.fire({
+                            title: 'Cảnh báo!',
+                            text: 'Công trình này đã có chủ nhiệm. Bạn có muốn thay đổi không?',
+                            icon: 'warning',
+                            showCancelButton: true,
+                            confirmButtonText: 'Thay đổi',
+                            cancelButtonText: 'Hủy'
+                        }).then((result) => {
+                            if (!result.isConfirmed) {
+                                $('#VaiTro').val('').focus();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

@@ -1,0 +1,363 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "Top giáo viên NCKH xuất sắc";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Top giáo viên NCKH xuất sắc</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">NCKH</a></li>
+                        <li class="breadcrumb-item active">Top giáo viên</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Filter Section -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="filter" class="me-2"></i>Bộ lọc
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="TopGiaoVien" method="get" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Năm học</label>
+                                <select class="form-select" name="namHoc" asp-items="ViewBag.AvailableNamHoc">
+                                    <option value="">-- Tất cả năm học --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Khoa</label>
+                                <select class="form-select" name="maKhoa" asp-items="ViewBag.KhoaList">
+                                    <option value="">-- Tất cả khoa --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Top N</label>
+                                <select class="form-select" name="topN">
+                                    <option value="10" selected="@(ViewBag.SelectedTopN == 10)">Top 10</option>
+                                    <option value="20" selected="@(ViewBag.SelectedTopN == 20)">Top 20</option>
+                                    <option value="30" selected="@(ViewBag.SelectedTopN == 30)">Top 30</option>
+                                    <option value="50" selected="@(ViewBag.SelectedTopN == 50)">Top 50</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i data-feather="search"></i> Tìm kiếm
+                                </button>
+                                <a asp-action="TopGiaoVien" class="btn btn-secondary">
+                                    <i data-feather="refresh-cw"></i> Làm mới
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i data-feather="arrow-left"></i> Quay lại NCKH
+                        </a>
+                        <a asp-action="ThongKe" class="btn btn-info">
+                            <i data-feather="bar-chart-2"></i> Thống kê tổng quan
+                        </a>
+                    </div>
+                    <div>
+                        <button onclick="exportToExcel()" class="btn btn-outline-success">
+                            <i data-feather="download"></i> Xuất Excel
+                        </button>
+                        <button onclick="printPage()" class="btn btn-outline-primary">
+                            <i data-feather="printer"></i> In báo cáo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Teachers List -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="award" class="me-2"></i>Danh sách top giáo viên NCKH xuất sắc
+                            @if (!string.IsNullOrEmpty(ViewBag.SelectedNamHoc as string))
+                            {
+                                <span class="badge bg-light text-dark ms-2">@ViewBag.SelectedNamHoc</span>
+                            }
+                            <span class="badge bg-light text-dark ms-2">Top @ViewBag.SelectedTopN</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="topGiaoVienTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th class="text-center">Hạng</th>
+                                            <th>Mã GV</th>
+                                            <th>Họ tên</th>
+                                            <th>Bộ môn</th>
+                                            <th>Khoa</th>
+                                            <th class="text-center">Số công trình</th>
+                                            <th class="text-center">Tổng số giờ</th>
+                                            <th class="text-center">Chủ nhiệm</th>
+                                            <th class="text-center">Tham gia</th>
+                                            <th class="text-center">Điểm TB</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int rank = 1;
+                                        }
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr class="@(rank <= 3 ? $"table-{(rank == 1 ? "warning" : rank == 2 ? "secondary" : "success")}" : "")">
+                                                <td class="text-center">
+                                                    @if (rank == 1)
+                                                    {
+                                                        <span class="badge bg-warning fs-5">
+                                                            <i data-feather="award"></i> @rank
+                                                        </span>
+                                                    }
+                                                    else if (rank == 2)
+                                                    {
+                                                        <span class="badge bg-secondary fs-6">
+                                                            <i data-feather="award"></i> @rank
+                                                        </span>
+                                                    }
+                                                    else if (rank == 3)
+                                                    {
+                                                        <span class="badge bg-success fs-6">
+                                                            <i data-feather="award"></i> @rank
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-primary">@rank</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <strong>@item.MaGV</strong>
+                                                </td>
+                                                <td>
+                                                    <div>
+                                                        <strong>@item.HoTen</strong>
+                                                        @if (!string.IsNullOrEmpty(item.Email))
+                                                        {
+                                                            <br>
+
+                                                            <small class="text-muted">@item.Email</small>
+                                                        }
+                                                    </div>
+                                                </td>
+                                                <td>@item.TenBM</td>
+                                                <td>@item.TenKhoa</td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-primary fs-6">@item.SoCongTrinh</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info fs-6">@item.TongSoGio</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-danger">@item.SoCongTrinhChuNhiem</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">@item.SoCongTrinhThamGia</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-warning text-dark fs-6">
+                                                        @(Math.Round((double)(item.DiemTrungBinh ?? 0), 2))
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            rank++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Statistics Summary -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="alert alert-light">
+                                        <h6><i data-feather="bar-chart-2"></i> Thống kê tóm tắt</h6>
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <strong>Tổng số GV:</strong> @Model.Count()
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Tổng công trình:</strong> @Model.Sum(x => x.SoCongTrinh)
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Tổng số giờ:</strong> @Model.Sum(x => x.TongSoGio)
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>TB giờ/GV:</strong>
+                                                @(Model.Count() > 0 ? Math.Round((double)Model.Sum(x => x.TongSoGio) / Model.Count(), 1) : 0) giờ
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i data-feather="users" style="width: 64px; height: 64px;" class="text-muted"></i>
+                                <h5 class="text-muted mt-3">Không có dữ liệu</h5>
+                                <p class="text-muted">
+                                    Không tìm thấy giáo viên nào phù hợp với điều kiện lọc.
+                                    <br>Hãy thử thay đổi bộ lọc hoặc kiểm tra dữ liệu NCKH.
+                                </p>
+                                <a asp-action="Index" class="btn btn-primary">
+                                    <i data-feather="arrow-left"></i> Quay lại danh sách NCKH
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ranking Explanation -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="info" class="me-2"></i>Tiêu chí đánh giá
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Các chỉ số đánh giá:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• <strong>Số công trình:</strong> Tổng số NCKH tham gia</li>
+                                    <li>• <strong>Tổng số giờ:</strong> Tổng khối lượng công việc</li>
+                                    <li>• <strong>Chủ nhiệm:</strong> Số công trình làm chủ nhiệm</li>
+                                    <li>• <strong>Tham gia:</strong> Số công trình tham gia khác</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Cách tính điểm:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Điểm = (Số CT × 2) + (Giờ/10) + (Chủ nhiệm × 5)</li>
+                                    <li>• Ưu tiên giáo viên có nhiều chủ nhiệm</li>
+                                    <li>• Xem xét cả số lượng và chất lượng</li>
+                                    <li>• Cập nhật theo thời gian thực</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons
+            feather.replace();
+
+            // Initialize DataTable for large datasets
+        @if (Model.Count() > 10)
+        {
+            <text>
+                    TM.utils.initDataTable('topGiaoVienTable', {
+                        pageLength: 25,
+                        order: [[0, 'asc']], // Sort by rank
+                        columnDefs: [
+                            { orderable: false, targets: [0] } // Disable sorting for rank column
+                        ]
+                    });
+            </text>
+        }
+
+            // Set selected filter values
+            var selectedNamHoc = '@ViewBag.SelectedNamHoc';
+            var selectedMaKhoa = '@ViewBag.SelectedMaKhoa';
+            var selectedTopN = '@ViewBag.SelectedTopN';
+
+            if (selectedNamHoc) $('select[name="namHoc"]').val(selectedNamHoc);
+            if (selectedMaKhoa) $('select[name="maKhoa"]').val(selectedMaKhoa);
+            if (selectedTopN) $('select[name="topN"]').val(selectedTopN);
+
+            // Add hover effects for top 3
+            $('.table tbody tr').hover(
+                function() {
+                    if ($(this).hasClass('table-warning') || $(this).hasClass('table-secondary') || $(this).hasClass('table-success')) {
+                        $(this).addClass('table-hover-effect');
+                    }
+                },
+                function() {
+                    $(this).removeClass('table-hover-effect');
+                }
+            );
+        });
+
+        function exportToExcel() {
+            TM.utils.exportToExcel('topGiaoVienTable', 'TopGiaoVienNCKH_' + moment().format('YYYYMMDD'));
+        }
+
+        function printPage() {
+            window.print();
+        }
+
+        // Chart visualization (optional)
+        function showChart() {
+            // Implementation for showing chart visualization
+            console.log('Show chart functionality');
+        }
+    </script>
+
+    <style>
+        .table-hover-effect {
+            transform: scale(1.02);
+            transition: transform 0.2s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .badge.fs-5 {
+            font-size: 1.1rem !important;
+        }
+
+        .badge.fs-6 {
+            font-size: 0.9rem !important;
+        }
+
+        @@media print {
+            .card-header, .btn, .alert
+
+        {
+            background-color: transparent !important;
+            color: #000 !important;
+            border: 1px solid #000 !important;
+        }
+
+        }
+    </style>
+}

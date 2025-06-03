@@ -29,8 +29,9 @@
 <!-- SweetAlert2 for beautiful alerts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/11.7.1/sweetalert2.all.min.js"></script>
 <!-- DataTables for advanced table features (optional) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/js/dataTables.bootstrap5.min.js"></script>
+<<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
 
 <!-- Plugins JS Ends-->
 <!-- Theme js-->
@@ -142,9 +143,7 @@
             // Initialize DataTable with Vietnamese language
             initDataTable: function(tableId, options = {}) {
                 const defaultOptions = {
-                    language: {
-                        url: 'https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.21/i18n/Vietnamese.json'
-                    },
+                   
                     responsive: true,
                     pageLength: 25,
                     lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Tất cả"]],

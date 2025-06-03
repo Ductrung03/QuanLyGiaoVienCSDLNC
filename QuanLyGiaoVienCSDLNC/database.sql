@@ -94,7 +94,7 @@ CREATE TABLE ChiTietGiangDay (
     GhiChu NVARCHAR(200),
     MaGV CHAR(15) REFERENCES GiaoVien(MaGV),
     MaTaiGiangDay CHAR(15) REFERENCES TaiGiangDay(MaTaiGiangDay),
-    MaNoiDungGiangDay CHAR(15)
+    NoiDungGiangDay nvarchar(200)
 );
 
 CREATE TABLE HocHam (
@@ -133,7 +133,7 @@ CREATE TABLE QuyDoiGioChuanNCKH (
     QuyRaGioChuan FLOAT,
     GhiChu NVARCHAR(200),
     NhomCongViec NVARCHAR(100),
-    MaNoiDung CHAR(15) -- Có thể liên kết đến bảng "Nội dung công việc" nếu có
+    NoiDung nvarchar(200) -- Có thể liên kết đến bảng "Nội dung công việc" nếu có
 );
 
 CREATE TABLE LoaiNCKH (

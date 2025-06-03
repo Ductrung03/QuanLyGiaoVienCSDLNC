@@ -25,6 +25,22 @@
     <div class="container-fluid">
         <div class="row justify-content-center">
             <div class="col-xl-8 col-lg-10">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i data-feather="check-circle"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h5 class="text-white mb-0">
@@ -202,38 +218,38 @@
             $('#TenCongTrinhKhoaHoc').focus();
         });
 
-        function loadQuyDoiInfo(maLoaiNCKH) {
-            // This would typically make an AJAX call to get detailed info
-            // For now, we'll show basic info
-            $.ajax({
-                url: '@Url.Action("GetLoaiNCKHInfo", "NCKH")',
-                type: 'GET',
-                data: { id: maLoaiNCKH },
-                success: function(data) {
-                    if (data) {
-                        var html = `
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Đơn vị tính:</strong> ${data.donViTinh || 'Chưa xác định'}
-                                </div>
-                                <div class="col-md-6">
-                                    <strong>Quy ra giờ chuẩn:</strong>
-                                    <span class="badge bg-success">${data.quyRaGioChuan || 0}</span>
-                                </div>
-                            </div>
-                            ${data.ghiChu ? `<div class="mt-2"><strong>Ghi chú:</strong> ${data.ghiChu}</div>` : ''}
-                        `;
-                        $('#quyDoiDetails').html(html);
-                        $('#quyDoiInfo').show();
-                    }
-                },
-                error: function() {
-                    // If AJAX fails, just show the selection
-                    $('#quyDoiInfo').show();
-                    $('#quyDoiDetails').html('<p>Đã chọn loại NCKH. Thông tin chi tiết sẽ hiển thị sau khi lưu.</p>');
-                }
-            });
-        }
+        // function loadQuyDoiInfo(maLoaiNCKH) {
+        //     This would typically make an AJAX call to get detailed info
+        //     For now, we'll show basic info
+        //     $.ajax({
+        //         url: '@Url.Action("LoadViewData", "NCKH")',
+        //         type: 'GET',
+        //         data: { id: maLoaiNCKH },
+        //         success: function(data) {
+        //             if (data) {
+        //                 var html = `
+        //                     <div class="row">
+        //                         <div class="col-md-6">
+        //                             <strong>Đơn vị tính:</strong> ${data.donViTinh || 'Chưa xác định'}
+        //                         </div>
+        //                         <div class="col-md-6">
+        //                             <strong>Quy ra giờ chuẩn:</strong>
+        //                             <span class="badge bg-success">${data.quyRaGioChuan || 0}</span>
+        //                         </div>
+        //                     </div>
+        //                     ${data.ghiChu ? `<div class="mt-2"><strong>Ghi chú:</strong> ${data.ghiChu}</div>` : ''}
+        //                 `;
+        //                 $('#quyDoiDetails').html(html);
+        //                 $('#quyDoiInfo').show();
+        //             }
+        //         },
+        //         error: function() {
+        //             If AJAX fails, just show the selection
+        //             $('#quyDoiInfo').show();
+        //             $('#quyDoiDetails').html('<p>Đã chọn loại NCKH. Thông tin chi tiết sẽ hiển thị sau khi lưu.</p>');
+        //         }
+        //     });
+        // }
     </script>
 
     @{

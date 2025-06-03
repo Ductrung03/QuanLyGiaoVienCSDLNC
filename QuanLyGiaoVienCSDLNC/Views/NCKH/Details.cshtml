@@ -27,6 +27,22 @@
         <!-- Thông tin cơ bản -->
         <div class="row">
             <div class="col-xl-8 col-lg-7">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i data-feather="check-circle"></i>
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i data-feather="alert-circle"></i>
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h5 class="text-white mb-0">
@@ -281,20 +297,7 @@
             // Initialize feather icons
             feather.replace();
 
-            // Show success/error messages
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <text>
-                    TM.utils.showNotification('@TempData["SuccessMessage"]', 'success');
-            </text>
-        }
-
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <text>
-                    TM.utils.showNotification('@TempData["ErrorMessage"]', 'error');
-            </text>
-        }
+            
         });
     </script>
 }

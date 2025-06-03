@@ -349,14 +349,12 @@
             const ctx = document.getElementById('chartTheoKhoa');
             if (!ctx) return;
 
-            const data = @Html.Raw(Json.Serialize(thongKeTheoKhoa?.Select(x => new
-            {
-                TenKhoa = x.TenKhoa,
-                SoCongTrinh = x.SoCongTrinh
-            }) ?? new object[0]));
+            const data = @Html.Raw(Json.Serialize(thongKeTheoKhoa != null && thongKeTheoKhoa.Any()
+        ? thongKeTheoKhoa.Select(x => new { x.TenKhoa, x.SoCongTrinh })
+        : new object[0]));
 
-            const labels = data.map(item => item.tenKhoa);
-            const values = data.map(item => item.soCongTrinh);
+            const labels = data.map(item => item.TenKhoa);
+            const values = data.map(item => item.SoCongTrinh);
             const colors = generateColors(labels.length);
 
             chartTheoKhoa = new Chart(ctx, {
@@ -397,16 +395,13 @@
             const ctx = document.getElementById('chartTheoBoMon');
             if (!ctx) return;
 
-            const data = @Html.Raw(Json.Serialize(thongKeTheoBoMon?.Take(10).Select(x => new
-            {
-                TenBM = x.TenBM,
-                SoCongTrinh = x.SoCongTrinh,
-                SoGiaoVienThamGia = x.SoGiaoVienThamGia
-            }) ?? new object[0]));
+            const data = @Html.Raw(Json.Serialize(thongKeTheoBoMon != null && thongKeTheoBoMon.Any()
+        ? thongKeTheoBoMon.Take(10).Select(x => new { x.TenBM, x.SoCongTrinh, x.SoGiaoVienThamGia })
+        : new object[0]));
 
-            const labels = data.map(item => item.tenBM);
-            const congTrinhData = data.map(item => item.soCongTrinh);
-            const giaoVienData = data.map(item => item.soGiaoVienThamGia);
+            const labels = data.map(item => item.TenBM);
+            const congTrinhData = data.map(item => item.SoCongTrinh);
+            const giaoVienData = data.map(item => item.SoGiaoVienThamGia);
 
             chartTheoBoMon = new Chart(ctx, {
                 type: 'bar',

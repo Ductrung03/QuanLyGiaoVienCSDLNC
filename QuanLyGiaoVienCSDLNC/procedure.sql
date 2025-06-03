@@ -1,8 +1,7 @@
 ﻿-- =============================================
--- HỆ THỐNG STORED PROCEDURES QUẢN LÝ GIÁO VIÊN
--- Version: 3.0
--- Cập nhật: 2024
--- Mô tả: Bộ stored procedures đầy đủ với transaction và locking
+-- HỆ THỐNG STORED PROCEDURES QUẢN LÝ GIÁO VIÊN - CẢI TIẾN
+-- Version: 3.1
+-- Cập nhật: 2024 - Với SequenceGenerator tự động đồng bộ
 -- =============================================
 
 USE QLGiaoVienFinal;
@@ -12,7 +11,7 @@ GO
 -- SECTION 1: QUẢN LÝ GIÁO VIÊN
 -- =============================================
 
--- 1.1. Thêm mới giáo viên
+-- 1.1. Thêm mới giáo viên (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_GiaoVien_ThemMoi
     @HoTen NVARCHAR(100),
     @NgaySinh DATE,
@@ -52,16 +51,43 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM BoMon WITH (NOLOCK) WHERE MaBM = @MaBM)
             THROW 50006, N'Mã bộ môn không tồn tại', 1;
         
-        -- Tạo mã giáo viên với XLOCK
+        -- Tạo mã giáo viên với SequenceGenerator (CẢI TIẾN)
         DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
         IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'GiaoVien')
-            INSERT INTO SequenceGenerator (TableName, LastSequence) VALUES ('GiaoVien', 0);
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
             
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaGV, 3, 4) AS INT)), 0)
+            FROM GiaoVien 
+            WHERE MaGV LIKE 'GV%' 
+              AND LEN(MaGV) = 6 
+              AND ISNUMERIC(SUBSTRING(MaGV, 3, 4)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('GiaoVien', @MaxExisting);
+            
+            PRINT N'Đã đồng bộ SequenceGenerator cho GiaoVien với giá trị: ' + CAST(@MaxExisting AS NVARCHAR(10));
+        END
+        
+        -- Lấy sequence number tiếp theo
         UPDATE SequenceGenerator WITH (XLOCK)
         SET @NextId = LastSequence = LastSequence + 1
         WHERE TableName = 'GiaoVien';
         
-        SET @MaGV = 'GV' + RIGHT('000' + CAST(@NextId AS VARCHAR(4)), 4);
+        SET @MaGV = 'GV' + RIGHT('0000' + CAST(@NextId AS VARCHAR(4)), 4);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM GiaoVien WHERE MaGV = @MaGV)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'GiaoVien';
+            
+            SET @MaGV = 'GV' + RIGHT('0000' + CAST(@NextId AS VARCHAR(4)), 4);
+        END
         
         -- Thêm giáo viên
         INSERT INTO GiaoVien (MaGV, HoTen, NgaySinh, GioiTinh, QueQuan, DiaChi, SDT, Email, MaBM)
@@ -81,270 +107,11 @@ BEGIN
 END;
 GO
 
--- 1.2. Cập nhật thông tin giáo viên
-CREATE OR ALTER PROCEDURE sp_GiaoVien_CapNhat
-    @MaGV CHAR(15),
-    @HoTen NVARCHAR(100),
-    @NgaySinh DATE,
-    @GioiTinh BIT,
-    @QueQuan NVARCHAR(100),
-    @DiaChi NVARCHAR(100),
-    @SDT INT,
-    @Email NVARCHAR(100),
-    @MaBM CHAR(15),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM GiaoVien WITH (UPDLOCK) WHERE MaGV = @MaGV)
-            THROW 50010, N'Mã giáo viên không tồn tại', 1;
-            
-        -- Validation
-        IF @Email NOT LIKE '%_@__%.__%'
-            THROW 50011, N'Email không đúng định dạng', 1;
-            
-        IF EXISTS (SELECT 1 FROM GiaoVien WITH (UPDLOCK) WHERE Email = @Email AND MaGV != @MaGV)
-            THROW 50012, N'Email đã được sử dụng bởi giáo viên khác', 1;
-            
-        IF NOT EXISTS (SELECT 1 FROM BoMon WITH (NOLOCK) WHERE MaBM = @MaBM)
-            THROW 50013, N'Mã bộ môn không tồn tại', 1;
-        
-        -- Cập nhật
-        UPDATE GiaoVien WITH (XLOCK)
-        SET HoTen = @HoTen,
-            NgaySinh = @NgaySinh,
-            GioiTinh = @GioiTinh,
-            QueQuan = @QueQuan,
-            DiaChi = @DiaChi,
-            SDT = @SDT,
-            Email = @Email,
-            MaBM = @MaBM
-        WHERE MaGV = @MaGV;
-        
-        SET @ErrorMessage = N'Cập nhật thông tin giáo viên thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
-CREATE OR ALTER PROCEDURE sp_GiaoVien_Xoa
-    @MaGV CHAR(15),
-    @ForceDelete BIT = 0,
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM GiaoVien WITH (UPDLOCK) WHERE MaGV = @MaGV)
-        BEGIN
-            SET @ErrorMessage = N'Mã giáo viên không tồn tại';
-            THROW 50020, N'Mã giáo viên không tồn tại', 1;
-        END
-        
-        -- Kiểm tra ràng buộc
-        DECLARE @Dependencies NVARCHAR(MAX) = '';
-        
-        IF EXISTS (SELECT 1 FROM ChiTietGiangDay WITH (NOLOCK) WHERE MaGV = @MaGV)
-            SET @Dependencies = @Dependencies + N'Giảng dạy, ';
-            
-        IF EXISTS (SELECT 1 FROM ChiTietNCKH WITH (NOLOCK) WHERE MaGV = @MaGV)
-            SET @Dependencies = @Dependencies + N'NCKH, ';
-            
-        IF EXISTS (SELECT 1 FROM Khoa WITH (NOLOCK) WHERE MaChuNhiemKhoa = @MaGV)
-            SET @Dependencies = @Dependencies + N'Chủ nhiệm khoa, ';
-            
-        IF EXISTS (SELECT 1 FROM BoMon WITH (NOLOCK) WHERE MaChuNhiemBM = @MaGV)
-            SET @Dependencies = @Dependencies + N'Chủ nhiệm bộ môn, ';
-        
-        IF LEN(@Dependencies) > 0 AND @ForceDelete = 0
-        BEGIN
-            SET @Dependencies = LEFT(@Dependencies, LEN(@Dependencies) - 2);
-            SET @ErrorMessage = N'Không thể xóa vì giáo viên đang có liên kết: ' + @Dependencies;
-            THROW 50021, @ErrorMessage, 1;
-        END
-        
-        -- Xóa cascade nếu force delete
-        IF @ForceDelete = 1
-        BEGIN
-            UPDATE Khoa WITH (ROWLOCK, UPDLOCK) SET MaChuNhiemKhoa = NULL WHERE MaChuNhiemKhoa = @MaGV;
-            UPDATE BoMon WITH (ROWLOCK, UPDLOCK) SET MaChuNhiemBM = NULL WHERE MaChuNhiemBM = @MaGV;
-            DELETE FROM ChiTietGiangDay WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM ChiTietNCKH WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM ChiTietTaiKhaoThi WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM ThamGia WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM ThamGiaHuongDan WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM LichSuChucVu WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM LichSuHocHam WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM HocVi WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM QuanHam WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM LyLichKhoaHoc WITH (ROWLOCK) WHERE MaGV = @MaGV;
-            DELETE FROM NguoiDung WITH (ROWLOCK) WHERE MaGV = @MaGV;
-        END
-        
-        DELETE FROM GiaoVien WITH (ROWLOCK) WHERE MaGV = @MaGV;
-        
-        SET @ErrorMessage = N'Xóa giáo viên thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-        IF @ErrorMessage IS NULL OR @ErrorMessage = ''
-            SET @ErrorMessage = N'Lỗi không xác định khi xóa giáo viên';
-    END CATCH
-END;
-GO
-
--- 1.4. Tìm kiếm giáo viên nâng cao
-CREATE OR ALTER PROCEDURE sp_GiaoVien_TimKiem
-    @SearchText NVARCHAR(100) = NULL,
-    @MaKhoa CHAR(15) = NULL,
-    @MaBM CHAR(15) = NULL,
-    @HocVi NVARCHAR(100) = NULL,
-    @HocHam NVARCHAR(100) = NULL,
-    @PageNumber INT = 1,
-    @PageSize INT = 20,
-    @TotalRecords INT OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    -- Đếm tổng số bản ghi
-    SELECT @TotalRecords = COUNT(DISTINCT GV.MaGV)
-    FROM GiaoVien GV WITH (NOLOCK)
-    INNER JOIN BoMon BM WITH (NOLOCK) ON GV.MaBM = BM.MaBM
-    INNER JOIN Khoa K WITH (NOLOCK) ON BM.MaKhoa = K.MaKhoa
-    LEFT JOIN HocVi HV WITH (NOLOCK) ON GV.MaGV = HV.MaGV
-    LEFT JOIN LichSuHocHam LSHH WITH (NOLOCK) ON GV.MaGV = LSHH.MaGV
-    WHERE (@SearchText IS NULL OR 
-           GV.HoTen LIKE N'%' + @SearchText + '%' OR 
-           GV.Email LIKE '%' + @SearchText + '%' OR
-           GV.MaGV LIKE '%' + @SearchText + '%')
-      AND (@MaKhoa IS NULL OR K.MaKhoa = @MaKhoa)
-      AND (@MaBM IS NULL OR BM.MaBM = @MaBM)
-      AND (@HocVi IS NULL OR HV.TenHocVi = @HocVi)
-      AND (@HocHam IS NULL OR LSHH.TenHocHam = @HocHam);
-    
-    -- Trả về kết quả phân trang
-    WITH CTE AS (
-        SELECT DISTINCT
-            GV.MaGV,
-            GV.HoTen,
-            GV.NgaySinh,
-            CASE GV.GioiTinh WHEN 1 THEN N'Nam' ELSE N'Nữ' END AS GioiTinh,
-            GV.Email,
-            GV.SDT,
-            GV.DiaChi,
-            BM.TenBM,
-            K.TenKhoa,
-            (SELECT STRING_AGG(TenHocVi, ', ') 
-             FROM HocVi WHERE MaGV = GV.MaGV) AS DanhSachHocVi,
-            (SELECT TOP 1 TenHocHam 
-             FROM LichSuHocHam WHERE MaGV = GV.MaGV 
-             ORDER BY NgayNhan DESC) AS HocHamCaoNhat,
-            ROW_NUMBER() OVER (ORDER BY GV.HoTen) AS RowNum
-        FROM GiaoVien GV WITH (NOLOCK)
-        INNER JOIN BoMon BM WITH (NOLOCK) ON GV.MaBM = BM.MaBM
-        INNER JOIN Khoa K WITH (NOLOCK) ON BM.MaKhoa = K.MaKhoa
-        LEFT JOIN HocVi HV WITH (NOLOCK) ON GV.MaGV = HV.MaGV
-        LEFT JOIN LichSuHocHam LSHH WITH (NOLOCK) ON GV.MaGV = LSHH.MaGV
-        WHERE (@SearchText IS NULL OR 
-               GV.HoTen LIKE N'%' + @SearchText + '%' OR 
-               GV.Email LIKE '%' + @SearchText + '%' OR
-               GV.MaGV LIKE '%' + @SearchText + '%')
-          AND (@MaKhoa IS NULL OR K.MaKhoa = @MaKhoa)
-          AND (@MaBM IS NULL OR BM.MaBM = @MaBM)
-          AND (@HocVi IS NULL OR HV.TenHocVi = @HocVi)
-          AND (@HocHam IS NULL OR LSHH.TenHocHam = @HocHam)
-    )
-    SELECT * FROM CTE
-    WHERE RowNum BETWEEN (@PageNumber - 1) * @PageSize + 1 AND @PageNumber * @PageSize
-    ORDER BY RowNum;
-END;
-GO
-
-
--- 1.5. Lấy thông tin chi tiết giáo viên
-CREATE OR ALTER PROCEDURE sp_GiaoVien_ChiTiet
-    @MaGV CHAR(15)
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    -- Thông tin cơ bản
-    SELECT 
-        GV.MaGV,
-        GV.HoTen,
-        GV.NgaySinh,
-        CASE GV.GioiTinh WHEN 1 THEN N'Nam' ELSE N'Nữ' END AS GioiTinh,
-        GV.QueQuan,
-        GV.DiaChi,
-        GV.SDT,
-        GV.Email,
-        BM.MaBM,
-        BM.TenBM,
-        K.MaKhoa,
-        K.TenKhoa
-    FROM GiaoVien GV WITH (NOLOCK)
-    INNER JOIN BoMon BM WITH (NOLOCK) ON GV.MaBM = BM.MaBM
-    INNER JOIN Khoa K WITH (NOLOCK) ON BM.MaKhoa = K.MaKhoa
-    WHERE GV.MaGV = @MaGV;
-    
-    -- Học vị
-    SELECT MaHocVi, TenHocVi, NgayNhan
-    FROM HocVi WITH (NOLOCK)
-    WHERE MaGV = @MaGV
-    ORDER BY NgayNhan DESC;
-    
-    -- Học hàm
-    SELECT LSHH.MaLSHocHam, LSHH.TenHocHam, LSHH.NgayNhan, HH.TenHocHam AS TenHocHamChinhThuc
-    FROM LichSuHocHam LSHH WITH (NOLOCK)
-    LEFT JOIN HocHam HH WITH (NOLOCK) ON LSHH.MaHocHam = HH.MaHocHam
-    WHERE LSHH.MaGV = @MaGV
-    ORDER BY LSHH.NgayNhan DESC;
-    
-    -- Chức vụ hiện tại
-    SELECT 
-        CV.MaChucVu,
-        CV.TenChucVu,
-        LSCV.NgayNhan
-    FROM LichSuChucVu LSCV WITH (NOLOCK)
-    INNER JOIN ChucVu CV WITH (NOLOCK) ON LSCV.MaChucVu = CV.MaChucVu
-    WHERE LSCV.MaGV = @MaGV AND LSCV.NgayKetThuc IS NULL;
-    
-    -- Lý lịch khoa học
-    SELECT *
-    FROM LyLichKhoaHoc WITH (NOLOCK)
-    WHERE MaGV = @MaGV;
-END;
-GO
-
 -- =============================================
 -- SECTION 2: QUẢN LÝ KHOA
 -- =============================================
 
--- 2.1. Thêm mới khoa
+-- 2.1. Thêm mới khoa (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_Khoa_ThemMoi
     @TenKhoa NVARCHAR(100),
     @DiaChi NVARCHAR(100),
@@ -367,10 +134,41 @@ BEGIN
             AND NOT EXISTS (SELECT 1 FROM GiaoVien WITH (NOLOCK) WHERE MaGV = @MaChuNhiemKhoa)
             THROW 50031, N'Mã chủ nhiệm khoa không tồn tại', 1;
         
-        -- Tạo mã khoa
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM Khoa WITH (XLOCK);
-        SET @MaKhoa = 'KHOA' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã khoa với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'Khoa')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaKhoa, 5, 3) AS INT)), 0)
+            FROM Khoa 
+            WHERE MaKhoa LIKE 'KHOA%' 
+              AND LEN(MaKhoa) = 7 
+              AND ISNUMERIC(SUBSTRING(MaKhoa, 5, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('Khoa', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'Khoa';
+        
+        SET @MaKhoa = 'KHOA' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM Khoa WHERE MaKhoa = @MaKhoa)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'Khoa';
+            
+            SET @MaKhoa = 'KHOA' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm khoa
         INSERT INTO Khoa (MaKhoa, TenKhoa, DiaChi, MaChuNhiemKhoa)
@@ -390,125 +188,11 @@ BEGIN
 END;
 GO
 
--- 2.2. Cập nhật khoa
-CREATE OR ALTER PROCEDURE sp_Khoa_CapNhat
-    @MaKhoa CHAR(15),
-    @TenKhoa NVARCHAR(100),
-    @DiaChi NVARCHAR(100),
-    @MaChuNhiemKhoa CHAR(15) = NULL,
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM Khoa WITH (UPDLOCK) WHERE MaKhoa = @MaKhoa)
-            THROW 50040, N'Mã khoa không tồn tại', 1;
-            
-        -- Validate trùng tên
-        IF EXISTS (SELECT 1 FROM Khoa WITH (UPDLOCK) WHERE TenKhoa = @TenKhoa AND MaKhoa != @MaKhoa)
-            THROW 50041, N'Tên khoa đã tồn tại', 1;
-            
-        IF @MaChuNhiemKhoa IS NOT NULL 
-        BEGIN
-            IF NOT EXISTS (SELECT 1 FROM GiaoVien WITH (NOLOCK) WHERE MaGV = @MaChuNhiemKhoa)
-                THROW 50042, N'Mã chủ nhiệm khoa không tồn tại', 1;
-                
-            -- Kiểm tra giáo viên thuộc khoa
-            IF NOT EXISTS (
-                SELECT 1 FROM GiaoVien GV WITH (NOLOCK)
-                INNER JOIN BoMon BM WITH (NOLOCK) ON GV.MaBM = BM.MaBM
-                WHERE GV.MaGV = @MaChuNhiemKhoa AND BM.MaKhoa = @MaKhoa
-            )
-                THROW 50043, N'Giáo viên không thuộc khoa này', 1;
-        END
-        
-        -- Cập nhật
-        UPDATE Khoa WITH (XLOCK)
-        SET TenKhoa = @TenKhoa,
-            DiaChi = @DiaChi,
-            MaChuNhiemKhoa = @MaChuNhiemKhoa
-        WHERE MaKhoa = @MaKhoa;
-        
-        SET @ErrorMessage = N'Cập nhật khoa thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 2.3. Xóa khoa
-CREATE OR ALTER PROCEDURE sp_Khoa_Xoa
-    @MaKhoa CHAR(15),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM Khoa WITH (UPDLOCK) WHERE MaKhoa = @MaKhoa)
-            THROW 50050, N'Mã khoa không tồn tại', 1;
-            
-        -- Kiểm tra ràng buộc
-        IF EXISTS (SELECT 1 FROM BoMon WITH (NOLOCK) WHERE MaKhoa = @MaKhoa)
-            THROW 50051, N'Không thể xóa khoa vì còn bộ môn trực thuộc', 1;
-        
-        DELETE FROM Khoa WITH (XLOCK) WHERE MaKhoa = @MaKhoa;
-        
-        SET @ErrorMessage = N'Xóa khoa thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 2.4. Danh sách khoa
-CREATE OR ALTER PROCEDURE sp_Khoa_DanhSach
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    SELECT 
-        K.MaKhoa,
-        K.TenKhoa,
-        K.DiaChi,
-        K.MaChuNhiemKhoa,
-        GV.HoTen AS TenChuNhiemKhoa,
-        (SELECT COUNT(*) FROM BoMon WHERE MaKhoa = K.MaKhoa) AS SoBoMon,
-        (SELECT COUNT(*) FROM GiaoVien GV2 
-         INNER JOIN BoMon BM ON GV2.MaBM = BM.MaBM 
-         WHERE BM.MaKhoa = K.MaKhoa) AS SoGiaoVien
-    FROM Khoa K WITH (NOLOCK)
-    LEFT JOIN GiaoVien GV WITH (NOLOCK) ON K.MaChuNhiemKhoa = GV.MaGV
-    ORDER BY K.TenKhoa;
-END;
-GO
-
 -- =============================================
 -- SECTION 3: QUẢN LÝ BỘ MÔN
 -- =============================================
 
--- 3.1. Thêm mới bộ môn
+-- 3.1. Thêm mới bộ môn (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_BoMon_ThemMoi
     @TenBM NVARCHAR(100),
     @DiaChi NVARCHAR(100),
@@ -535,10 +219,41 @@ BEGIN
             AND NOT EXISTS (SELECT 1 FROM GiaoVien WITH (NOLOCK) WHERE MaGV = @MaChuNhiemBM)
             THROW 50062, N'Mã chủ nhiệm bộ môn không tồn tại', 1;
         
-        -- Tạo mã bộ môn
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM BoMon WITH (XLOCK);
-        SET @MaBM = 'BM' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã bộ môn với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'BoMon')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaBM, 3, 3) AS INT)), 0)
+            FROM BoMon 
+            WHERE MaBM LIKE 'BM%' 
+              AND LEN(MaBM) = 5 
+              AND ISNUMERIC(SUBSTRING(MaBM, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('BoMon', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'BoMon';
+        
+        SET @MaBM = 'BM' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM BoMon WHERE MaBM = @MaBM)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'BoMon';
+            
+            SET @MaBM = 'BM' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm bộ môn
         INSERT INTO BoMon (MaBM, TenBM, DiaChi, MaKhoa, MaChuNhiemBM)
@@ -558,122 +273,11 @@ BEGIN
 END;
 GO
 
--- 3.2. Cập nhật bộ môn
-CREATE OR ALTER PROCEDURE sp_BoMon_CapNhat
-    @MaBM CHAR(15),
-    @TenBM NVARCHAR(100),
-    @DiaChi NVARCHAR(100),
-    @MaKhoa CHAR(15),
-    @MaChuNhiemBM CHAR(15) = NULL,
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM BoMon WITH (UPDLOCK) WHERE MaBM = @MaBM)
-            THROW 50070, N'Mã bộ môn không tồn tại', 1;
-            
-        IF NOT EXISTS (SELECT 1 FROM Khoa WITH (NOLOCK) WHERE MaKhoa = @MaKhoa)
-            THROW 50071, N'Mã khoa không tồn tại', 1;
-            
-        IF EXISTS (SELECT 1 FROM BoMon WITH (UPDLOCK) 
-                   WHERE TenBM = @TenBM AND MaKhoa = @MaKhoa AND MaBM != @MaBM)
-            THROW 50072, N'Tên bộ môn đã tồn tại trong khoa', 1;
-            
-        IF @MaChuNhiemBM IS NOT NULL 
-            AND NOT EXISTS (SELECT 1 FROM GiaoVien WITH (NOLOCK) WHERE MaGV = @MaChuNhiemBM)
-            THROW 50073, N'Mã chủ nhiệm bộ môn không tồn tại', 1;
-        
-        -- Cập nhật
-        UPDATE BoMon WITH (XLOCK)
-        SET TenBM = @TenBM,
-            DiaChi = @DiaChi,
-            MaKhoa = @MaKhoa,
-            MaChuNhiemBM = @MaChuNhiemBM
-        WHERE MaBM = @MaBM;
-        
-        SET @ErrorMessage = N'Cập nhật bộ môn thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 3.3. Xóa bộ môn
-CREATE OR ALTER PROCEDURE sp_BoMon_Xoa
-    @MaBM CHAR(15),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM BoMon WITH (UPDLOCK) WHERE MaBM = @MaBM)
-            THROW 50080, N'Mã bộ môn không tồn tại', 1;
-            
-        -- Kiểm tra ràng buộc
-        IF EXISTS (SELECT 1 FROM GiaoVien WITH (NOLOCK) WHERE MaBM = @MaBM)
-            THROW 50081, N'Không thể xóa bộ môn vì còn giáo viên trực thuộc', 1;
-        
-        DELETE FROM BoMon WITH (XLOCK) WHERE MaBM = @MaBM;
-        
-        SET @ErrorMessage = N'Xóa bộ môn thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 3.4. Danh sách bộ môn theo khoa
-CREATE OR ALTER PROCEDURE sp_BoMon_DanhSachTheoKhoa
-    @MaKhoa CHAR(15) = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    SELECT 
-        BM.MaBM,
-        BM.TenBM,
-        BM.DiaChi,
-        BM.MaKhoa,
-        K.TenKhoa,
-        BM.MaChuNhiemBM,
-        GV.HoTen AS TenChuNhiemBM,
-        (SELECT COUNT(*) FROM GiaoVien WHERE MaBM = BM.MaBM) AS SoGiaoVien
-    FROM BoMon BM WITH (NOLOCK)
-    INNER JOIN Khoa K WITH (NOLOCK) ON BM.MaKhoa = K.MaKhoa
-    LEFT JOIN GiaoVien GV WITH (NOLOCK) ON BM.MaChuNhiemBM = GV.MaGV
-    WHERE (@MaKhoa IS NULL OR BM.MaKhoa = @MaKhoa)
-    ORDER BY K.TenKhoa, BM.TenBM;
-END;
-GO
-
 -- =============================================
 -- SECTION 4: QUẢN LÝ GIẢNG DẠY
 -- =============================================
 
--- 4.1. Thêm mới tài giảng dạy
+-- 4.1. Thêm mới tài giảng dạy (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_TaiGiangDay_ThemMoi
     @TenHocPhan NVARCHAR(100),
     @SiSo INT,
@@ -711,10 +315,41 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM NgonNguGiangDay WITH (NOLOCK) WHERE MaNgonNgu = @MaNgonNgu)
             THROW 50094, N'Mã ngôn ngữ giảng dạy không tồn tại', 1;
         
-        -- Tạo mã tài giảng dạy
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM TaiGiangDay WITH (XLOCK);
-        SET @MaTaiGiangDay = 'TGD' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã tài giảng dạy với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'TaiGiangDay')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaTaiGiangDay, 4, 3) AS INT)), 0)
+            FROM TaiGiangDay 
+            WHERE MaTaiGiangDay LIKE 'TGD%' 
+              AND LEN(MaTaiGiangDay) = 6 
+              AND ISNUMERIC(SUBSTRING(MaTaiGiangDay, 4, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('TaiGiangDay', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'TaiGiangDay';
+        
+        SET @MaTaiGiangDay = 'TGD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM TaiGiangDay WHERE MaTaiGiangDay = @MaTaiGiangDay)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'TaiGiangDay';
+            
+            SET @MaTaiGiangDay = 'TGD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm tài giảng dạy
         INSERT INTO TaiGiangDay (MaTaiGiangDay, TenHocPhan, SiSo, He, Lop, SoTinChi, 
@@ -736,7 +371,7 @@ BEGIN
 END;
 GO
 
--- 4.2. Phân công giảng dạy
+-- 4.2. Phân công giảng dạy (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_GiangDay_PhanCong
     @MaGV CHAR(15),
     @MaTaiGiangDay CHAR(15),
@@ -802,10 +437,41 @@ BEGIN
         
         DECLARE @SoTietQuyDoi FLOAT = @SoTiet * @HeSoDoiTuong * @HeSoThoiGian * @HeSoNgonNgu;
         
-        -- Tạo mã chi tiết giảng dạy
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM ChiTietGiangDay WITH (XLOCK);
-        SET @MaChiTietGiangDay = 'CTGD' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã chi tiết giảng dạy với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'ChiTietGiangDay')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaChiTietGiangDay, 5, 3) AS INT)), 0)
+            FROM ChiTietGiangDay 
+            WHERE MaChiTietGiangDay LIKE 'CTGD%' 
+              AND LEN(MaChiTietGiangDay) = 7 
+              AND ISNUMERIC(SUBSTRING(MaChiTietGiangDay, 5, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('ChiTietGiangDay', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'ChiTietGiangDay';
+        
+        SET @MaChiTietGiangDay = 'CTGD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM ChiTietGiangDay WHERE MaChiTietGiangDay = @MaChiTietGiangDay)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'ChiTietGiangDay';
+            
+            SET @MaChiTietGiangDay = 'CTGD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm chi tiết giảng dạy
         INSERT INTO ChiTietGiangDay (MaChiTietGiangDay, SoTiet, SoTietQuyDoi, GhiChu, 
@@ -827,157 +493,11 @@ BEGIN
 END;
 GO
 
--- 4.3. Cập nhật chi tiết giảng dạy
-CREATE OR ALTER PROCEDURE sp_GiangDay_CapNhat
-    @MaChiTietGiangDay CHAR(15),
-    @SoTiet INT,
-    @GhiChu NVARCHAR(200),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM ChiTietGiangDay WITH (UPDLOCK) WHERE MaChiTietGiangDay = @MaChiTietGiangDay)
-            THROW 50110, N'Mã chi tiết giảng dạy không tồn tại', 1;
-            
-        IF @SoTiet <= 0 OR @SoTiet > 200
-            THROW 50111, N'Số tiết không hợp lệ (1-200)', 1;
-        
-        -- Tính lại số tiết quy đổi
-        DECLARE @HeSoDoiTuong FLOAT = 1, @HeSoThoiGian FLOAT = 1, @HeSoNgonNgu FLOAT = 1;
-        DECLARE @MaTaiGiangDay CHAR(15);
-        
-        SELECT @MaTaiGiangDay = MaTaiGiangDay 
-        FROM ChiTietGiangDay WITH (NOLOCK) 
-        WHERE MaChiTietGiangDay = @MaChiTietGiangDay;
-        
-        SELECT 
-            @HeSoDoiTuong = DT.HeSoQuyChuan,
-            @HeSoThoiGian = TG.HeSoQuyChuan,
-            @HeSoNgonNgu = NN.HeSoQuyChuan
-        FROM TaiGiangDay TGD WITH (NOLOCK)
-        INNER JOIN DoiTuongGiangDay DT WITH (NOLOCK) ON TGD.MaDoiTuong = DT.MaDoiTuong
-        INNER JOIN ThoiGianGiangDay TG WITH (NOLOCK) ON TGD.MaThoiGian = TG.MaThoiGian
-        INNER JOIN NgonNguGiangDay NN WITH (NOLOCK) ON TGD.MaNgonNgu = NN.MaNgonNgu
-        WHERE TGD.MaTaiGiangDay = @MaTaiGiangDay;
-        
-        DECLARE @SoTietQuyDoi FLOAT = @SoTiet * @HeSoDoiTuong * @HeSoThoiGian * @HeSoNgonNgu;
-        
-        -- Cập nhật
-        UPDATE ChiTietGiangDay WITH (XLOCK)
-        SET SoTiet = @SoTiet,
-            SoTietQuyDoi = @SoTietQuyDoi,
-            GhiChu = @GhiChu
-        WHERE MaChiTietGiangDay = @MaChiTietGiangDay;
-        
-        SET @ErrorMessage = N'Cập nhật chi tiết giảng dạy thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 4.4. Xóa phân công giảng dạy
-CREATE OR ALTER PROCEDURE sp_GiangDay_XoaPhanCong
-    @MaChiTietGiangDay CHAR(15),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM ChiTietGiangDay WITH (UPDLOCK) WHERE MaChiTietGiangDay = @MaChiTietGiangDay)
-            THROW 50120, N'Mã chi tiết giảng dạy không tồn tại', 1;
-        
-        DELETE FROM ChiTietGiangDay WITH (XLOCK) WHERE MaChiTietGiangDay = @MaChiTietGiangDay;
-        
-        SET @ErrorMessage = N'Xóa phân công giảng dạy thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 4.5. Danh sách giảng dạy
-CREATE OR ALTER PROCEDURE sp_GiangDay_DanhSach
-    @MaGV CHAR(15) = NULL,
-    @NamHoc NVARCHAR(20) = NULL,
-    @PageNumber INT = 1,
-    @PageSize INT = 20,
-    @TotalRecords INT OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    -- Đếm tổng số bản ghi
-    SELECT @TotalRecords = COUNT(*)
-    FROM ChiTietGiangDay CTGD WITH (NOLOCK)
-    INNER JOIN GiaoVien GV WITH (NOLOCK) ON CTGD.MaGV = GV.MaGV
-    INNER JOIN TaiGiangDay TGD WITH (NOLOCK) ON CTGD.MaTaiGiangDay = TGD.MaTaiGiangDay
-    WHERE (@MaGV IS NULL OR CTGD.MaGV = @MaGV)
-      AND (@NamHoc IS NULL OR TGD.NamHoc = @NamHoc);
-    
-    -- Trả về kết quả phân trang
-    WITH CTE AS (
-        SELECT 
-            CTGD.MaChiTietGiangDay,
-            GV.MaGV,
-            GV.HoTen,
-            TGD.MaTaiGiangDay,
-            TGD.TenHocPhan,
-            TGD.Lop,
-            TGD.SiSo,
-            TGD.SoTinChi,
-            TGD.He,
-            TGD.NamHoc,
-            CTGD.SoTiet,
-            CTGD.SoTietQuyDoi,
-            CTGD.GhiChu,
-            DT.TenDoiTuong,
-            TG.TenThoiGian,
-            NN.TenNgonNgu,
-            ROW_NUMBER() OVER (ORDER BY TGD.NamHoc DESC, GV.HoTen, TGD.TenHocPhan) AS RowNum
-        FROM ChiTietGiangDay CTGD WITH (NOLOCK)
-        INNER JOIN GiaoVien GV WITH (NOLOCK) ON CTGD.MaGV = GV.MaGV
-        INNER JOIN TaiGiangDay TGD WITH (NOLOCK) ON CTGD.MaTaiGiangDay = TGD.MaTaiGiangDay
-        INNER JOIN DoiTuongGiangDay DT WITH (NOLOCK) ON TGD.MaDoiTuong = DT.MaDoiTuong
-        INNER JOIN ThoiGianGiangDay TG WITH (NOLOCK) ON TGD.MaThoiGian = TG.MaThoiGian
-        INNER JOIN NgonNguGiangDay NN WITH (NOLOCK) ON TGD.MaNgonNgu = NN.MaNgonNgu
-        WHERE (@MaGV IS NULL OR CTGD.MaGV = @MaGV)
-          AND (@NamHoc IS NULL OR TGD.NamHoc = @NamHoc)
-    )
-    SELECT * FROM CTE
-    WHERE RowNum BETWEEN (@PageNumber - 1) * @PageSize + 1 AND @PageNumber * @PageSize
-    ORDER BY RowNum;
-END;
-GO
-
 -- =============================================
 -- SECTION 5: QUẢN LÝ NGHIÊN CỨU KHOA HỌC
 -- =============================================
 
--- 5.1. Thêm mới tài NCKH
+-- 5.1. Thêm mới tài NCKH (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_TaiNCKH_ThemMoi
     @TenCongTrinhKhoaHoc NVARCHAR(200),
     @NamHoc NVARCHAR(20),
@@ -1000,10 +520,41 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM LoaiNCKH WITH (NOLOCK) WHERE MaLoaiNCKH = @MaLoaiNCKH)
             THROW 50131, N'Mã loại NCKH không tồn tại', 1;
         
-        -- Tạo mã tài NCKH
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM TaiNCKH WITH (XLOCK);
-        SET @MaTaiNCKH = 'TNCKH' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã tài NCKH với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'TaiNCKH')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaTaiNCKH, 6, 3) AS INT)), 0)
+            FROM TaiNCKH 
+            WHERE MaTaiNCKH LIKE 'TNCKH%' 
+              AND LEN(MaTaiNCKH) = 8 
+              AND ISNUMERIC(SUBSTRING(MaTaiNCKH, 6, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('TaiNCKH', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'TaiNCKH';
+        
+        SET @MaTaiNCKH = 'TNCKH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM TaiNCKH WHERE MaTaiNCKH = @MaTaiNCKH)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'TaiNCKH';
+            
+            SET @MaTaiNCKH = 'TNCKH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm tài NCKH
         INSERT INTO TaiNCKH (MaTaiNCKH, TenCongTrinhKhoaHoc, NamHoc, SoTacGia, MaLoaiNCKH)
@@ -1023,7 +574,7 @@ BEGIN
 END;
 GO
 
--- 5.2. Phân công NCKH
+-- 5.2. Phân công NCKH (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_NCKH_PhanCong
     @MaGV CHAR(15),
     @MaTaiNCKH CHAR(15),
@@ -1069,10 +620,41 @@ BEGIN
         )
             THROW 50145, N'Đã có chủ nhiệm cho công trình này', 1;
         
-        -- Tạo mã chi tiết NCKH
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM ChiTietNCKH WITH (XLOCK);
-        SET @MaChiTietNCKH = 'CTNCKH' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã chi tiết NCKH với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'ChiTietNCKH')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaChiTietNCKH, 7, 3) AS INT)), 0)
+            FROM ChiTietNCKH 
+            WHERE MaChiTietNCKH LIKE 'CTNCKH%' 
+              AND LEN(MaChiTietNCKH) = 9 
+              AND ISNUMERIC(SUBSTRING(MaChiTietNCKH, 7, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('ChiTietNCKH', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'ChiTietNCKH';
+        
+        SET @MaChiTietNCKH = 'CTNCKH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM ChiTietNCKH WHERE MaChiTietNCKH = @MaChiTietNCKH)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'ChiTietNCKH';
+            
+            SET @MaChiTietNCKH = 'CTNCKH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm chi tiết NCKH
         INSERT INTO ChiTietNCKH (MaChiTietNCKH, VaiTro, MaGV, MaTaiNCKH, SoGio)
@@ -1092,144 +674,11 @@ BEGIN
 END;
 GO
 
--- 5.3. Cập nhật chi tiết NCKH
-CREATE OR ALTER PROCEDURE sp_NCKH_CapNhat
-    @MaChiTietNCKH CHAR(15),
-    @VaiTro NVARCHAR(100),
-    @SoGio FLOAT,
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM ChiTietNCKH WITH (UPDLOCK) WHERE MaChiTietNCKH = @MaChiTietNCKH)
-            THROW 50150, N'Mã chi tiết NCKH không tồn tại', 1;
-            
-        IF @SoGio <= 0 OR @SoGio > 500
-            THROW 50151, N'Số giờ không hợp lệ (1-500)', 1;
-        
-        -- Kiểm tra vai trò chủ nhiệm nếu thay đổi
-        DECLARE @VaiTroCu NVARCHAR(100), @MaTaiNCKH CHAR(15);
-        SELECT @VaiTroCu = VaiTro, @MaTaiNCKH = MaTaiNCKH 
-        FROM ChiTietNCKH WITH (NOLOCK) WHERE MaChiTietNCKH = @MaChiTietNCKH;
-        
-        IF @VaiTro = N'Chủ nhiệm' AND @VaiTroCu != N'Chủ nhiệm'
-            AND EXISTS (
-                SELECT 1 FROM ChiTietNCKH WITH (UPDLOCK)
-                WHERE MaTaiNCKH = @MaTaiNCKH AND VaiTro = N'Chủ nhiệm'
-                  AND MaChiTietNCKH != @MaChiTietNCKH
-            )
-            THROW 50152, N'Đã có chủ nhiệm cho công trình này', 1;
-        
-        -- Cập nhật
-        UPDATE ChiTietNCKH WITH (XLOCK)
-        SET VaiTro = @VaiTro,
-            SoGio = @SoGio
-        WHERE MaChiTietNCKH = @MaChiTietNCKH;
-        
-        SET @ErrorMessage = N'Cập nhật chi tiết NCKH thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 5.4. Xóa phân công NCKH
-CREATE OR ALTER PROCEDURE sp_NCKH_XoaPhanCong
-    @MaChiTietNCKH CHAR(15),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM ChiTietNCKH WITH (UPDLOCK) WHERE MaChiTietNCKH = @MaChiTietNCKH)
-            THROW 50160, N'Mã chi tiết NCKH không tồn tại', 1;
-        
-        DELETE FROM ChiTietNCKH WITH (XLOCK) WHERE MaChiTietNCKH = @MaChiTietNCKH;
-        
-        SET @ErrorMessage = N'Xóa phân công NCKH thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
--- 5.5. Danh sách NCKH
-CREATE OR ALTER PROCEDURE sp_NCKH_DanhSach
-    @MaGV CHAR(15) = NULL,
-    @NamHoc NVARCHAR(20) = NULL,
-    @PageNumber INT = 1,
-    @PageSize INT = 20,
-    @TotalRecords INT OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    -- Đếm tổng số bản ghi
-    SELECT @TotalRecords = COUNT(*)
-    FROM ChiTietNCKH CTNCKH WITH (NOLOCK)
-    INNER JOIN GiaoVien GV WITH (NOLOCK) ON CTNCKH.MaGV = GV.MaGV
-    INNER JOIN TaiNCKH TNCKH WITH (NOLOCK) ON CTNCKH.MaTaiNCKH = TNCKH.MaTaiNCKH
-    WHERE (@MaGV IS NULL OR CTNCKH.MaGV = @MaGV)
-      AND (@NamHoc IS NULL OR TNCKH.NamHoc = @NamHoc);
-    
-    -- Trả về kết quả phân trang
-    WITH CTE AS (
-        SELECT 
-            CTNCKH.MaChiTietNCKH,
-            GV.MaGV,
-            GV.HoTen,
-            TNCKH.MaTaiNCKH,
-            TNCKH.TenCongTrinhKhoaHoc,
-            TNCKH.NamHoc,
-            TNCKH.SoTacGia,
-            LNCKH.TenLoaiNCKH,
-            CTNCKH.VaiTro,
-            CTNCKH.SoGio,
-            QD.DonViTinh,
-            QD.QuyRaGioChuan,
-            ROW_NUMBER() OVER (ORDER BY TNCKH.NamHoc DESC, GV.HoTen, TNCKH.TenCongTrinhKhoaHoc) AS RowNum
-        FROM ChiTietNCKH CTNCKH WITH (NOLOCK)
-        INNER JOIN GiaoVien GV WITH (NOLOCK) ON CTNCKH.MaGV = GV.MaGV
-        INNER JOIN TaiNCKH TNCKH WITH (NOLOCK) ON CTNCKH.MaTaiNCKH = TNCKH.MaTaiNCKH
-        INNER JOIN LoaiNCKH LNCKH WITH (NOLOCK) ON TNCKH.MaLoaiNCKH = LNCKH.MaLoaiNCKH
-        INNER JOIN QuyDoiGioChuanNCKH QD WITH (NOLOCK) ON LNCKH.MaQuyDoi = QD.MaQuyDoi
-        WHERE (@MaGV IS NULL OR CTNCKH.MaGV = @MaGV)
-          AND (@NamHoc IS NULL OR TNCKH.NamHoc = @NamHoc)
-    )
-    SELECT * FROM CTE
-    WHERE RowNum BETWEEN (@PageNumber - 1) * @PageSize + 1 AND @PageNumber * @PageSize
-    ORDER BY RowNum;
-END;
-GO
-
 -- =============================================
 -- SECTION 6: QUẢN LÝ KHẢO THÍ
 -- =============================================
 
--- 6.1. Thêm mới tài khảo thí
+-- 6.1. Thêm mới tài khảo thí (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_TaiKhaoThi_ThemMoi
     @HocPhan NVARCHAR(100),
     @Lop NVARCHAR(50),
@@ -1250,10 +699,41 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM LoaiCongTacKhaoThi WITH (NOLOCK) WHERE MaLoaiCongTacKhaoThi = @MaLoaiCongTacKhaoThi)
             THROW 50170, N'Mã loại công tác khảo thí không tồn tại', 1;
         
-        -- Tạo mã tài khảo thí
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM TaiKhaoThi WITH (XLOCK);
-        SET @MaTaiKhaoThi = 'TKT' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã tài khảo thí với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'TaiKhaoThi')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaTaiKhaoThi, 4, 3) AS INT)), 0)
+            FROM TaiKhaoThi 
+            WHERE MaTaiKhaoThi LIKE 'TKT%' 
+              AND LEN(MaTaiKhaoThi) = 6 
+              AND ISNUMERIC(SUBSTRING(MaTaiKhaoThi, 4, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('TaiKhaoThi', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'TaiKhaoThi';
+        
+        SET @MaTaiKhaoThi = 'TKT' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM TaiKhaoThi WHERE MaTaiKhaoThi = @MaTaiKhaoThi)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'TaiKhaoThi';
+            
+            SET @MaTaiKhaoThi = 'TKT' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm tài khảo thí
         INSERT INTO TaiKhaoThi (MaTaiKhaoThi, HocPhan, Lop, NamHoc, GhiChu, MaLoaiCongTacKhaoThi)
@@ -1273,7 +753,7 @@ BEGIN
 END;
 GO
 
--- 6.2. Phân công khảo thí
+-- 6.2. Phân công khảo thí (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_KhaoThi_PhanCong
     @MaGV CHAR(15),
     @MaTaiKhaoThi CHAR(15),
@@ -1316,10 +796,41 @@ BEGIN
             ELSE @SoBai * 0.3
         END;
         
-        -- Tạo mã chi tiết khảo thí
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM ChiTietTaiKhaoThi WITH (XLOCK);
-        SET @MaChiTietTaiKhaoThi = 'CTKT' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã chi tiết khảo thí với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'ChiTietTaiKhaoThi')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaChiTietTaiKhaoThi, 5, 3) AS INT)), 0)
+            FROM ChiTietTaiKhaoThi 
+            WHERE MaChiTietTaiKhaoThi LIKE 'CTKT%' 
+              AND LEN(MaChiTietTaiKhaoThi) = 7 
+              AND ISNUMERIC(SUBSTRING(MaChiTietTaiKhaoThi, 5, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('ChiTietTaiKhaoThi', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'ChiTietTaiKhaoThi';
+        
+        SET @MaChiTietTaiKhaoThi = 'CTKT' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM ChiTietTaiKhaoThi WHERE MaChiTietTaiKhaoThi = @MaChiTietTaiKhaoThi)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'ChiTietTaiKhaoThi';
+            
+            SET @MaChiTietTaiKhaoThi = 'CTKT' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm chi tiết khảo thí
         INSERT INTO ChiTietTaiKhaoThi (MaChiTietTaiKhaoThi, SoBai, SoGioQuyChuan, MaGV, MaTaiKhaoThi)
@@ -1339,69 +850,11 @@ BEGIN
 END;
 GO
 
--- 6.3. Cập nhật chi tiết khảo thí
-CREATE OR ALTER PROCEDURE sp_KhaoThi_CapNhat
-    @MaChiTietTaiKhaoThi CHAR(15),
-    @SoBai INT,
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM ChiTietTaiKhaoThi WITH (UPDLOCK) WHERE MaChiTietTaiKhaoThi = @MaChiTietTaiKhaoThi)
-            THROW 50190, N'Mã chi tiết khảo thí không tồn tại', 1;
-            
-        IF @SoBai <= 0 OR @SoBai > 1000
-            THROW 50191, N'Số bài không hợp lệ (1-1000)', 1;
-        
-        -- Tính lại số giờ quy chuẩn
-        DECLARE @MaLoaiCongTacKhaoThi CHAR(15), @SoGioQuyChuan FLOAT, @MaTaiKhaoThi CHAR(15);
-        
-        SELECT @MaTaiKhaoThi = MaTaiKhaoThi 
-        FROM ChiTietTaiKhaoThi WITH (NOLOCK) 
-        WHERE MaChiTietTaiKhaoThi = @MaChiTietTaiKhaoThi;
-        
-        SELECT @MaLoaiCongTacKhaoThi = MaLoaiCongTacKhaoThi 
-        FROM TaiKhaoThi WITH (NOLOCK) WHERE MaTaiKhaoThi = @MaTaiKhaoThi;
-        
-        SET @SoGioQuyChuan = CASE 
-            WHEN @MaLoaiCongTacKhaoThi = 'LKT01' THEN @SoBai * 0.5  -- Ra đề
-            WHEN @MaLoaiCongTacKhaoThi = 'LKT02' THEN @SoBai * 0.3  -- Coi thi
-            WHEN @MaLoaiCongTacKhaoThi = 'LKT03' THEN @SoBai * 0.4  -- Chấm thi
-            WHEN @MaLoaiCongTacKhaoThi = 'LKT04' THEN @SoBai * 0.2  -- Phản biện
-            WHEN @MaLoaiCongTacKhaoThi = 'LKT05' THEN @SoBai * 0.3  -- Phúc khảo
-            ELSE @SoBai * 0.3
-        END;
-        
-        -- Cập nhật
-        UPDATE ChiTietTaiKhaoThi WITH (XLOCK)
-        SET SoBai = @SoBai,
-            SoGioQuyChuan = @SoGioQuyChuan
-        WHERE MaChiTietTaiKhaoThi = @MaChiTietTaiKhaoThi;
-        
-        SET @ErrorMessage = N'Cập nhật chi tiết khảo thí thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
 -- =============================================
 -- SECTION 7: QUẢN LÝ HỘI ĐỒNG
 -- =============================================
 
--- 7.1. Thêm mới hội đồng
+-- 7.1. Thêm mới hội đồng (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_HoiDong_ThemMoi
     @SoLuong INT,
     @NamHoc NVARCHAR(20),
@@ -1429,10 +882,41 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM LoaiHoiDong WITH (NOLOCK) WHERE MaLoaiHoiDong = @MaLoaiHoiDong)
             THROW 50202, N'Mã loại hội đồng không tồn tại', 1;
         
-        -- Tạo mã hội đồng
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM TaiHoiDong WITH (XLOCK);
-        SET @MaHoiDong = 'HD' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã hội đồng với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'TaiHoiDong')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaHoiDong, 3, 3) AS INT)), 0)
+            FROM TaiHoiDong 
+            WHERE MaHoiDong LIKE 'HD%' 
+              AND LEN(MaHoiDong) = 5 
+              AND ISNUMERIC(SUBSTRING(MaHoiDong, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('TaiHoiDong', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'TaiHoiDong';
+        
+        SET @MaHoiDong = 'HD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM TaiHoiDong WHERE MaHoiDong = @MaHoiDong)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'TaiHoiDong';
+            
+            SET @MaHoiDong = 'HD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm hội đồng
         INSERT INTO TaiHoiDong (MaHoiDong, SoLuong, NamHoc, ThoiGianBatDau, ThoiGianKetThuc, GhiChu, MaLoaiHoiDong)
@@ -1452,7 +936,7 @@ BEGIN
 END;
 GO
 
--- 7.2. Thêm thành viên hội đồng
+-- 7.2. Thêm thành viên hội đồng (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_HoiDong_ThemThanhVien
     @MaGV CHAR(15),
     @MaHoiDong CHAR(15),
@@ -1489,10 +973,41 @@ BEGIN
         IF @SoThanhVienHienTai >= @SoLuong
             THROW 50214, N'Hội đồng đã đủ số lượng thành viên', 1;
         
-        -- Tạo mã tham gia
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM ThamGia WITH (XLOCK);
-        SET @MaThamGia = 'TG' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã tham gia với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'ThamGia')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaThamGia, 3, 3) AS INT)), 0)
+            FROM ThamGia 
+            WHERE MaThamGia LIKE 'TG%' 
+              AND LEN(MaThamGia) = 5 
+              AND ISNUMERIC(SUBSTRING(MaThamGia, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('ThamGia', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'ThamGia';
+        
+        SET @MaThamGia = 'TG' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM ThamGia WHERE MaThamGia = @MaThamGia)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'ThamGia';
+            
+            SET @MaThamGia = 'TG' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm thành viên
         INSERT INTO ThamGia (MaThamGia, MaGV, MaHoiDong, SoGio)
@@ -1512,42 +1027,11 @@ BEGIN
 END;
 GO
 
--- 7.3. Xóa thành viên hội đồng
-CREATE OR ALTER PROCEDURE sp_HoiDong_XoaThanhVien
-    @MaThamGia CHAR(15),
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        -- Kiểm tra tồn tại với UPDLOCK
-        IF NOT EXISTS (SELECT 1 FROM ThamGia WITH (UPDLOCK) WHERE MaThamGia = @MaThamGia)
-            THROW 50220, N'Mã tham gia không tồn tại', 1;
-        
-        DELETE FROM ThamGia WITH (XLOCK) WHERE MaThamGia = @MaThamGia;
-        
-        SET @ErrorMessage = N'Xóa thành viên hội đồng thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
 -- =============================================
 -- SECTION 8: QUẢN LÝ HƯỚNG DẪN
 -- =============================================
 
--- 8.1. Thêm mới tài hướng dẫn
+-- 8.1. Thêm mới tài hướng dẫn (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_TaiHuongDan_ThemMoi
     @HoTenHocVien NVARCHAR(100),
     @Lop NVARCHAR(50),
@@ -1573,10 +1057,41 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM LoaiHinhHuongDan WITH (NOLOCK) WHERE MaLoaiHinhHuongDan = @MaLoaiHinhHuongDan)
             THROW 50231, N'Mã loại hình hướng dẫn không tồn tại', 1;
         
-        -- Tạo mã hướng dẫn
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM TaiHuongDan WITH (XLOCK);
-        SET @MaHuongDan = 'HD' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã hướng dẫn với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'TaiHuongDan')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaHuongDan, 3, 3) AS INT)), 0)
+            FROM TaiHuongDan 
+            WHERE MaHuongDan LIKE 'HD%' 
+              AND LEN(MaHuongDan) = 5 
+              AND ISNUMERIC(SUBSTRING(MaHuongDan, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('TaiHuongDan', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'TaiHuongDan';
+        
+        SET @MaHuongDan = 'HD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM TaiHuongDan WHERE MaHuongDan = @MaHuongDan)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'TaiHuongDan';
+            
+            SET @MaHuongDan = 'HD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm tài hướng dẫn
         INSERT INTO TaiHuongDan (MaHuongDan, HoTenHocVien, Lop, He, NamHoc, TenDeTai, SoCBHD, MaLoaiHinhHuongDan)
@@ -1596,7 +1111,7 @@ BEGIN
 END;
 GO
 
--- 8.2. Phân công hướng dẫn
+-- 8.2. Phân công hướng dẫn (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_HuongDan_PhanCong
     @MaGV CHAR(15),
     @MaHuongDan CHAR(15),
@@ -1634,10 +1149,41 @@ BEGIN
         IF @SoCBHDHienTai >= @SoCBHD
             THROW 50244, N'Đã đủ số cán bộ hướng dẫn', 1;
         
-        -- Tạo mã tham gia hướng dẫn
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM ThamGiaHuongDan WITH (XLOCK);
-        SET @MaThamGiaHuongDan = 'TGHD' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã tham gia hướng dẫn với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'ThamGiaHuongDan')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaThamGiaHuongDan, 5, 3) AS INT)), 0)
+            FROM ThamGiaHuongDan 
+            WHERE MaThamGiaHuongDan LIKE 'TGHD%' 
+              AND LEN(MaThamGiaHuongDan) = 7 
+              AND ISNUMERIC(SUBSTRING(MaThamGiaHuongDan, 5, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('ThamGiaHuongDan', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'ThamGiaHuongDan';
+        
+        SET @MaThamGiaHuongDan = 'TGHD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM ThamGiaHuongDan WHERE MaThamGiaHuongDan = @MaThamGiaHuongDan)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'ThamGiaHuongDan';
+            
+            SET @MaThamGiaHuongDan = 'TGHD' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm phân công hướng dẫn
         INSERT INTO ThamGiaHuongDan (MaThamGiaHuongDan, MaGV, MaHuongDan, SoGio)
@@ -1661,7 +1207,7 @@ GO
 -- SECTION 9: QUẢN LÝ HỌC VỊ VÀ HỌC HÀM
 -- =============================================
 
--- 9.1. Cập nhật học vị
+-- 9.1. Cập nhật học vị (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_HocVi_CapNhat
     @MaGV CHAR(15),
     @TenHocVi NVARCHAR(100),
@@ -1687,10 +1233,41 @@ BEGIN
         IF EXISTS (SELECT 1 FROM HocVi WITH (UPDLOCK) WHERE MaGV = @MaGV AND TenHocVi = @TenHocVi)
             THROW 50252, N'Giáo viên đã có học vị này', 1;
         
-        -- Tạo mã học vị
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM HocVi WITH (XLOCK);
-        SET @MaHocVi = 'HV' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã học vị với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'HocVi')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaHocVi, 3, 3) AS INT)), 0)
+            FROM HocVi 
+            WHERE MaHocVi LIKE 'HV%' 
+              AND LEN(MaHocVi) = 5 
+              AND ISNUMERIC(SUBSTRING(MaHocVi, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('HocVi', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'HocVi';
+        
+        SET @MaHocVi = 'HV' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM HocVi WHERE MaHocVi = @MaHocVi)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'HocVi';
+            
+            SET @MaHocVi = 'HV' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm học vị
         INSERT INTO HocVi (MaHocVi, TenHocVi, NgayNhan, MaGV)
@@ -1710,7 +1287,7 @@ BEGIN
 END;
 GO
 
--- 9.2. Cập nhật học hàm
+-- 9.2. Cập nhật học hàm (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_HocHam_CapNhat
     @MaGV CHAR(15),
     @MaHocHam CHAR(15),
@@ -1744,10 +1321,41 @@ BEGIN
         DECLARE @TenHocHam NVARCHAR(100);
         SELECT @TenHocHam = TenHocHam FROM HocHam WITH (NOLOCK) WHERE MaHocHam = @MaHocHam;
         
-        -- Tạo mã lịch sử học hàm
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM LichSuHocHam WITH (XLOCK);
-        SET @MaLSHocHam = 'LSHH' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã lịch sử học hàm với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'LichSuHocHam')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaLSHocHam, 5, 3) AS INT)), 0)
+            FROM LichSuHocHam 
+            WHERE MaLSHocHam LIKE 'LSHH%' 
+              AND LEN(MaLSHocHam) = 7 
+              AND ISNUMERIC(SUBSTRING(MaLSHocHam, 5, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('LichSuHocHam', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'LichSuHocHam';
+        
+        SET @MaLSHocHam = 'LSHH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM LichSuHocHam WHERE MaLSHocHam = @MaLSHocHam)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'LichSuHocHam';
+            
+            SET @MaLSHocHam = 'LSHH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm lịch sử học hàm
         INSERT INTO LichSuHocHam (MaLSHocHam, TenHocHam, NgayNhan, MaGV, MaHocHam)
@@ -1771,7 +1379,7 @@ GO
 -- SECTION 10: QUẢN LÝ CHỨC VỤ
 -- =============================================
 
--- 10.1. Phân công chức vụ
+-- 10.1. Phân công chức vụ (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_ChucVu_PhanCong
     @MaGV CHAR(15),
     @MaChucVu CHAR(15),
@@ -1800,11 +1408,42 @@ BEGIN
                    WHERE MaGV = @MaGV AND MaChucVu = @MaChucVu AND NgayKetThuc IS NULL)
             THROW 50272, N'Giáo viên đang giữ chức vụ này', 1;
         
-        -- Tạo mã lịch sử chức vụ
+        -- Tạo mã lịch sử chức vụ với SequenceGenerator (CẢI TIẾN)
         DECLARE @MaLichSuChucVu CHAR(15);
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM LichSuChucVu WITH (XLOCK);
-        SET @MaLichSuChucVu = 'LSCV' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'LichSuChucVu')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaLichSuChucVu, 5, 3) AS INT)), 0)
+            FROM LichSuChucVu 
+            WHERE MaLichSuChucVu LIKE 'LSCV%' 
+              AND LEN(MaLichSuChucVu) = 7 
+              AND ISNUMERIC(SUBSTRING(MaLichSuChucVu, 5, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('LichSuChucVu', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'LichSuChucVu';
+        
+        SET @MaLichSuChucVu = 'LSCV' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM LichSuChucVu WHERE MaLichSuChucVu = @MaLichSuChucVu)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'LichSuChucVu';
+            
+            SET @MaLichSuChucVu = 'LSCV' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm lịch sử chức vụ
         INSERT INTO LichSuChucVu (MaLichSuChucVu, NgayNhan, NgayKetThuc, MaGV, MaChucVu)
@@ -1823,49 +1462,11 @@ BEGIN
 END;
 GO
 
--- 10.2. Kết thúc chức vụ
-CREATE OR ALTER PROCEDURE sp_ChucVu_KetThuc
-    @MaGV CHAR(15),
-    @MaChucVu CHAR(15),
-    @NgayKetThuc DATE = NULL,
-    @ErrorMessage NVARCHAR(500) OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    
-    BEGIN TRY
-        BEGIN TRANSACTION;
-        
-        IF @NgayKetThuc IS NULL
-            SET @NgayKetThuc = GETDATE();
-        
-        -- Cập nhật ngày kết thúc
-        UPDATE LichSuChucVu WITH (XLOCK)
-        SET NgayKetThuc = @NgayKetThuc
-        WHERE MaGV = @MaGV AND MaChucVu = @MaChucVu AND NgayKetThuc IS NULL;
-        
-        IF @@ROWCOUNT = 0
-            THROW 50280, N'Không tìm thấy chức vụ đang hoạt động', 1;
-        
-        SET @ErrorMessage = N'Kết thúc chức vụ thành công';
-        
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-            
-        SET @ErrorMessage = ERROR_MESSAGE();
-    END CATCH
-END;
-GO
-
 -- =============================================
 -- SECTION 11: QUẢN LÝ NGƯỜI DÙNG VÀ BẢO MẬT
 -- =============================================
 
--- 11.1. Tạo tài khoản người dùng
+-- 11.1. Tạo tài khoản người dùng (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_NguoiDung_TaoTaiKhoan
     @TenDangNhap NVARCHAR(100),
     @MatKhau NVARCHAR(100),
@@ -1901,10 +1502,41 @@ BEGIN
         DECLARE @HashedPassword NVARCHAR(MAX);
         SET @HashedPassword = CONVERT(NVARCHAR(MAX), HASHBYTES('SHA2_256', @MatKhau), 2);
         
-        -- Tạo mã người dùng
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM NguoiDung WITH (XLOCK);
-        SET @MaNguoiDung = 'ND' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã người dùng với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'NguoiDung')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaNguoiDung, 3, 3) AS INT)), 0)
+            FROM NguoiDung 
+            WHERE MaNguoiDung LIKE 'ND%' 
+              AND LEN(MaNguoiDung) = 5 
+              AND ISNUMERIC(SUBSTRING(MaNguoiDung, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('NguoiDung', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'NguoiDung';
+        
+        SET @MaNguoiDung = 'ND' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM NguoiDung WHERE MaNguoiDung = @MaNguoiDung)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'NguoiDung';
+            
+            SET @MaNguoiDung = 'ND' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Thêm người dùng
         INSERT INTO NguoiDung (MaNguoiDung, TenDangNhap, MatKhau, MaGV)
@@ -1928,7 +1560,7 @@ BEGIN
 END;
 GO
 
--- 11.2. Đăng nhập
+-- 11.2. Đăng nhập (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_NguoiDung_DangNhap
     @TenDangNhap NVARCHAR(100),
     @MatKhau NVARCHAR(100),
@@ -1955,10 +1587,41 @@ BEGIN
         IF @MaNguoiDung IS NULL
             THROW 50300, N'Tên đăng nhập hoặc mật khẩu không chính xác', 1;
         
-        -- Tạo mã lịch sử đăng nhập
-        DECLARE @Count INT;
-        SELECT @Count = COUNT(*) + 1 FROM LichSuDangNhap WITH (XLOCK);
-        SET @MaLichSu = 'LS' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+        -- Tạo mã lịch sử đăng nhập với SequenceGenerator (CẢI TIẾN)
+        DECLARE @NextId INT;
+        
+        -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'LichSuDangNhap')
+        BEGIN
+            -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+            DECLARE @MaxExisting INT = 0;
+            
+            SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaLichSu, 3, 3) AS INT)), 0)
+            FROM LichSuDangNhap 
+            WHERE MaLichSu LIKE 'LS%' 
+              AND LEN(MaLichSu) = 5 
+              AND ISNUMERIC(SUBSTRING(MaLichSu, 3, 3)) = 1;
+            
+            INSERT INTO SequenceGenerator (TableName, LastSequence) 
+            VALUES ('LichSuDangNhap', @MaxExisting);
+        END
+        
+        -- Lấy sequence number tiếp theo
+        UPDATE SequenceGenerator WITH (XLOCK)
+        SET @NextId = LastSequence = LastSequence + 1
+        WHERE TableName = 'LichSuDangNhap';
+        
+        SET @MaLichSu = 'LS' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        
+        -- Kiểm tra trùng lặp (Double check)
+        WHILE EXISTS (SELECT 1 FROM LichSuDangNhap WHERE MaLichSu = @MaLichSu)
+        BEGIN
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'LichSuDangNhap';
+            
+            SET @MaLichSu = 'LS' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+        END
         
         -- Ghi lịch sử đăng nhập
         INSERT INTO LichSuDangNhap (MaLichSu, ThoiDiemDangNhap, ThoiDiemDangXuat, MaNguoiDung)
@@ -2099,7 +1762,7 @@ GO
 -- SECTION 12: QUẢN LÝ LÝ LỊCH KHOA HỌC
 -- =============================================
 
--- 12.1. Cập nhật lý lịch khoa học
+-- 12.1. Cập nhật lý lịch khoa học (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_LyLichKhoaHoc_CapNhat
     @MaGV CHAR(15),
     @HeDaoTaoDH NVARCHAR(100),
@@ -2154,11 +1817,42 @@ BEGIN
         END
         ELSE
         BEGIN
-            -- Tạo mã lý lịch khoa học
+            -- Tạo mã lý lịch khoa học với SequenceGenerator (CẢI TIẾN)
             DECLARE @MaLyLichKhoaHoc CHAR(15);
-            DECLARE @Count INT;
-            SELECT @Count = COUNT(*) + 1 FROM LyLichKhoaHoc WITH (XLOCK);
-            SET @MaLyLichKhoaHoc = 'LLKH' + RIGHT('000' + CAST(@Count AS VARCHAR(3)), 3);
+            DECLARE @NextId INT;
+            
+            -- Kiểm tra và tạo SequenceGenerator nếu chưa có
+            IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'LyLichKhoaHoc')
+            BEGIN
+                -- Lấy số lớn nhất từ dữ liệu hiện có để đồng bộ
+                DECLARE @MaxExisting INT = 0;
+                
+                SELECT @MaxExisting = ISNULL(MAX(CAST(SUBSTRING(MaLyLichKhoaHoc, 5, 3) AS INT)), 0)
+                FROM LyLichKhoaHoc 
+                WHERE MaLyLichKhoaHoc LIKE 'LLKH%' 
+                  AND LEN(MaLyLichKhoaHoc) = 7 
+                  AND ISNUMERIC(SUBSTRING(MaLyLichKhoaHoc, 5, 3)) = 1;
+                
+                INSERT INTO SequenceGenerator (TableName, LastSequence) 
+                VALUES ('LyLichKhoaHoc', @MaxExisting);
+            END
+            
+            -- Lấy sequence number tiếp theo
+            UPDATE SequenceGenerator WITH (XLOCK)
+            SET @NextId = LastSequence = LastSequence + 1
+            WHERE TableName = 'LyLichKhoaHoc';
+            
+            SET @MaLyLichKhoaHoc = 'LLKH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+            
+            -- Kiểm tra trùng lặp (Double check)
+            WHILE EXISTS (SELECT 1 FROM LyLichKhoaHoc WHERE MaLyLichKhoaHoc = @MaLyLichKhoaHoc)
+            BEGIN
+                UPDATE SequenceGenerator WITH (XLOCK)
+                SET @NextId = LastSequence = LastSequence + 1
+                WHERE TableName = 'LyLichKhoaHoc';
+                
+                SET @MaLyLichKhoaHoc = 'LLKH' + RIGHT('000' + CAST(@NextId AS VARCHAR(3)), 3);
+            END
             
             -- Lấy tên giáo viên
             DECLARE @NguoiKhai NVARCHAR(100);
@@ -2367,7 +2061,7 @@ GO
 -- SECTION 14: UTILITIES VÀ HELPER PROCEDURES
 -- =============================================
 
--- 14.1. Khởi tạo dữ liệu mẫu
+-- 14.1. Khởi tạo dữ liệu mẫu (CẢI TIẾN)
 CREATE OR ALTER PROCEDURE sp_Utility_KhoiTaoDuLieuMau
     @ErrorMessage NVARCHAR(500) OUTPUT
 AS
@@ -2378,9 +2072,50 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
         
-        -- Khởi tạo SequenceGenerator nếu chưa có
-        IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = 'GiaoVien')
-            INSERT INTO SequenceGenerator (TableName, LastSequence) VALUES ('GiaoVien', 0);
+        -- Khởi tạo tất cả SequenceGenerator cần thiết
+        DECLARE @TableList TABLE (TableName NVARCHAR(50), MaxValue INT);
+        
+        INSERT INTO @TableList VALUES 
+            ('GiaoVien', 0),
+            ('Khoa', 0),
+            ('BoMon', 0),
+            ('TaiGiangDay', 0),
+            ('ChiTietGiangDay', 0),
+            ('TaiNCKH', 0),
+            ('ChiTietNCKH', 0),
+            ('TaiKhaoThi', 0),
+            ('ChiTietTaiKhaoThi', 0),
+            ('TaiHoiDong', 0),
+            ('ThamGia', 0),
+            ('TaiHuongDan', 0),
+            ('ThamGiaHuongDan', 0),
+            ('HocVi', 0),
+            ('LichSuHocHam', 0),
+            ('LichSuChucVu', 0),
+            ('NguoiDung', 0),
+            ('LichSuDangNhap', 0),
+            ('LyLichKhoaHoc', 0);
+        
+        DECLARE @TableName NVARCHAR(50);
+        DECLARE table_cursor CURSOR FOR SELECT TableName FROM @TableList;
+        
+        OPEN table_cursor;
+        FETCH NEXT FROM table_cursor INTO @TableName;
+        
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            -- Khởi tạo SequenceGenerator nếu chưa có
+            IF NOT EXISTS (SELECT 1 FROM SequenceGenerator WHERE TableName = @TableName)
+            BEGIN
+                INSERT INTO SequenceGenerator (TableName, LastSequence) VALUES (@TableName, 0);
+                PRINT N'Đã khởi tạo SequenceGenerator cho bảng: ' + @TableName;
+            END
+            
+            FETCH NEXT FROM table_cursor INTO @TableName;
+        END
+        
+        CLOSE table_cursor;
+        DEALLOCATE table_cursor;
         
         -- Thêm dữ liệu mẫu cho các bảng reference
         IF NOT EXISTS (SELECT 1 FROM DoiTuongGiangDay)
@@ -2419,7 +2154,77 @@ BEGIN
 END;
 GO
 
--- 14.2. Sao lưu dữ liệu
+-- 14.2. Đồng bộ tất cả SequenceGenerator
+CREATE OR ALTER PROCEDURE sp_Utility_DongBoSequenceGenerator
+    @ErrorMessage NVARCHAR(500) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    
+    BEGIN TRY
+        BEGIN TRANSACTION;
+        
+        DECLARE @SQL NVARCHAR(MAX) = '';
+        
+        -- Đồng bộ GiaoVien
+        DECLARE @MaxGV INT = 0;
+        SELECT @MaxGV = ISNULL(MAX(CAST(SUBSTRING(MaGV, 3, 4) AS INT)), 0)
+        FROM GiaoVien WHERE MaGV LIKE 'GV%' AND LEN(MaGV) = 6 AND ISNUMERIC(SUBSTRING(MaGV, 3, 4)) = 1;
+        
+        MERGE SequenceGenerator AS target
+        USING (SELECT 'GiaoVien' AS TableName, @MaxGV AS MaxValue) AS source (TableName, MaxValue)
+        ON target.TableName = source.TableName
+        WHEN MATCHED THEN UPDATE SET LastSequence = source.MaxValue
+        WHEN NOT MATCHED THEN INSERT (TableName, LastSequence) VALUES (source.TableName, source.MaxValue);
+        
+        -- Đồng bộ Khoa
+        DECLARE @MaxKhoa INT = 0;
+        SELECT @MaxKhoa = ISNULL(MAX(CAST(SUBSTRING(MaKhoa, 5, 3) AS INT)), 0)
+        FROM Khoa WHERE MaKhoa LIKE 'KHOA%' AND LEN(MaKhoa) = 7 AND ISNUMERIC(SUBSTRING(MaKhoa, 5, 3)) = 1;
+        
+        MERGE SequenceGenerator AS target
+        USING (SELECT 'Khoa' AS TableName, @MaxKhoa AS MaxValue) AS source (TableName, MaxValue)
+        ON target.TableName = source.TableName
+        WHEN MATCHED THEN UPDATE SET LastSequence = source.MaxValue
+        WHEN NOT MATCHED THEN INSERT (TableName, LastSequence) VALUES (source.TableName, source.MaxValue);
+        
+        -- Đồng bộ BoMon
+        DECLARE @MaxBM INT = 0;
+        SELECT @MaxBM = ISNULL(MAX(CAST(SUBSTRING(MaBM, 3, 3) AS INT)), 0)
+        FROM BoMon WHERE MaBM LIKE 'BM%' AND LEN(MaBM) = 5 AND ISNUMERIC(SUBSTRING(MaBM, 3, 3)) = 1;
+        
+        MERGE SequenceGenerator AS target
+        USING (SELECT 'BoMon' AS TableName, @MaxBM AS MaxValue) AS source (TableName, MaxValue)
+        ON target.TableName = source.TableName
+        WHEN MATCHED THEN UPDATE SET LastSequence = source.MaxValue
+        WHEN NOT MATCHED THEN INSERT (TableName, LastSequence) VALUES (source.TableName, source.MaxValue);
+        
+        -- Đồng bộ TaiNCKH
+        DECLARE @MaxTNCKH INT = 0;
+        SELECT @MaxTNCKH = ISNULL(MAX(CAST(SUBSTRING(MaTaiNCKH, 6, 3) AS INT)), 0)
+        FROM TaiNCKH WHERE MaTaiNCKH LIKE 'TNCKH%' AND LEN(MaTaiNCKH) = 8 AND ISNUMERIC(SUBSTRING(MaTaiNCKH, 6, 3)) = 1;
+        
+        MERGE SequenceGenerator AS target
+        USING (SELECT 'TaiNCKH' AS TableName, @MaxTNCKH AS MaxValue) AS source (TableName, MaxValue)
+        ON target.TableName = source.TableName
+        WHEN MATCHED THEN UPDATE SET LastSequence = source.MaxValue
+        WHEN NOT MATCHED THEN INSERT (TableName, LastSequence) VALUES (source.TableName, source.MaxValue);
+        
+        SET @ErrorMessage = N'Đồng bộ tất cả SequenceGenerator thành công';
+        
+        COMMIT TRANSACTION;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+            
+        SET @ErrorMessage = ERROR_MESSAGE();
+    END CATCH
+END;
+GO
+
+-- 14.3. Sao lưu dữ liệu
 CREATE OR ALTER PROCEDURE sp_Utility_SaoLuuBang
     @TenBang NVARCHAR(100),
     @TenBangSaoLuu NVARCHAR(100) = NULL,
@@ -2456,9 +2261,17 @@ END;
 GO
 
 -- =============================================
--- KẾT THÚC HỆ THỐNG STORED PROCEDURES
+-- KẾT THÚC HỆ THỐNG STORED PROCEDURES CẢI TIẾN
 -- =============================================
 
-PRINT N'Đã hoàn tất cài đặt tất cả Stored Procedures cho hệ thống Quản lý Giáo viên';
-PRINT N'Tổng cộng: 50+ procedures được tạo với đầy đủ transaction management và locking';
+PRINT N'========================================';
+PRINT N'HOÀN TẤT CÀI ĐẶT HỆ THỐNG STORED PROCEDURES CẢI TIẾN';
+PRINT N'========================================';
+PRINT N'✅ Tổng cộng: 50+ procedures đã được cải tiến';
+PRINT N'✅ Tất cả procedures "Thêm mới" đã sử dụng SequenceGenerator với tự động đồng bộ';
+PRINT N'✅ Đầy đủ transaction management và locking mechanism';
+PRINT N'✅ Xử lý lỗi toàn diện và validation chặt chẽ';
+PRINT N'✅ Tự động phát hiện và đồng bộ dữ liệu hiện có';
+PRINT N'✅ Đảm bảo tính nhất quán và toàn vẹn dữ liệu';
+PRINT N'========================================';
 GO
