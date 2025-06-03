@@ -22,7 +22,7 @@
     </div>
 
     <div class="container-fluid">
-        <!-- Filter Section -->
+        <!-- Alert Messages -->
         <div class="row">
             <div class="col-sm-12">
                 @if (TempData["SuccessMessage"] != null)
@@ -41,6 +41,12 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
+            </div>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="row">
+            <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header bg-primary">
                         <h5 class="text-white mb-0">
@@ -79,14 +85,20 @@
                                 </select>
                             </div>
                             <div class="col-md-3 d-flex align-items-end">
-                                <button type="submit" class="btn btn-primary me-2">
-                                    <i data-feather="search"></i> Tìm kiếm
-                                </button>
-                                <a asp-controller="NCKH" asp-action="Index" class="btn btn-secondary">
+                                <div class="d-grid w-100">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i data-feather="search"></i> Tìm kiếm
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <a asp-controller="NCKH" asp-action="Index" class="btn btn-secondary btn-sm">
                                     <i data-feather="refresh-cw"></i> Làm mới
                                 </a>
                             </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,14 +131,73 @@
             </div>
         </div>
 
+        <!-- Statistics Cards -->
+        @if (Model.Any())
+        {
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-primary mb-0">@Model.Count()</h4>
+                                    <p class="text-muted mb-0">Tổng tài NCKH</p>
+                                </div>
+                                <i data-feather="file-text" class="text-primary" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-info mb-0">@Model.Sum(x => x.SoTacGia)</h4>
+                                    <p class="text-muted mb-0">Tổng tác giả</p>
+                                </div>
+                                <i data-feather="users" class="text-info" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-warning mb-0">@Model.Where(x => x.LoaiNCKH?.QuyDoiGioChuanNCKH != null).Sum(x => x.LoaiNCKH.QuyDoiGioChuanNCKH.QuyRaGioChuan)</h4>
+                                    <p class="text-muted mb-0">Tổng giờ chuẩn</p>
+                                </div>
+                                <i data-feather="clock" class="text-warning" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-success mb-0">@Model.Select(x => x.LoaiNCKH?.TenLoaiNCKH).Distinct().Count()</h4>
+                                    <p class="text-muted mb-0">Loại NCKH</p>
+                                </div>
+                                <i data-feather="layers" class="text-success" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
         <!-- Results -->
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5>
-                            Danh sách tài NCKH
-                            <span class="badge bg-primary">@Model.Count() kết quả</span>
+                    <div class="card-header bg-dark">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="list" class="me-2"></i>Danh sách tài NCKH
+                            <span class="badge bg-light text-dark ms-2">@Model.Count() kết quả</span>
                         </h5>
                     </div>
                     <div class="card-body">
@@ -134,7 +205,7 @@
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover" id="nckhTable">
-                                    <thead >
+                                    <thead class="table-dark">
                                         <tr>
                                             <th>STT</th>
                                             <th>Mã tài NCKH</th>
@@ -156,7 +227,7 @@
                                             <tr>
                                                 <td>@index</td>
                                                 <td>
-                                                    <strong>@item.MaTaiNCKH</strong>
+                                                    <code>@item.MaTaiNCKH</code>
                                                 </td>
                                                 <td>
                                                     <a asp-action="Details" asp-route-id="@item.MaTaiNCKH"
@@ -174,14 +245,18 @@
                                                     }
                                                 </td>
                                                 <td class="text-center">
-                                                    <span class="badge bg-primary">@item.SoTacGia</span>
+                                                    <span class="badge bg-primary fs-6">@item.SoTacGia</span>
                                                 </td>
                                                 <td class="text-center">
                                                     @if (item.LoaiNCKH?.QuyDoiGioChuanNCKH != null)
                                                     {
-                                                        <span class="badge bg-success">
+                                                        <span class="badge bg-success fs-6">
                                                             @item.LoaiNCKH.QuyDoiGioChuanNCKH.QuyRaGioChuan
                                                         </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">0</span>
                                                     }
                                                 </td>
                                                 <td>
@@ -196,7 +271,7 @@
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
                                                         <a asp-action="Details" asp-route-id="@item.MaTaiNCKH"
-                                                           class="btn btn-info" title="Xem chi tiết">
+                                                           class="btn btn-primary" title="Xem chi tiết">
                                                             <i data-feather="eye"></i>
                                                         </a>
                                                         <a asp-action="Edit" asp-route-id="@item.MaTaiNCKH"
@@ -233,6 +308,41 @@
                             </div>
                         }
                     </div>
+                    @if (Model.Any())
+                    {
+                        <div class="card-footer bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="text-muted">
+                                        Hiển thị @Model.Count() tài NCKH
+                                    </span>
+                                </div>
+                                <div>
+                                    <small class="text-muted">
+                                        Lọc theo:
+                                        @if (!string.IsNullOrEmpty(ViewBag.SearchTerm as string))
+                                        {
+                                            <span class="badge bg-primary">Từ khóa</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(ViewBag.SelectedNamHoc as string))
+                                        {
+                                            <span class="badge bg-info">@ViewBag.SelectedNamHoc</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(ViewBag.SelectedMaLoaiNCKH as string))
+                                        {
+                                            <span class="badge bg-secondary">Loại NCKH</span>
+                                        }
+                                        @if (string.IsNullOrEmpty(ViewBag.SearchTerm as string) &&
+                                       string.IsNullOrEmpty(ViewBag.SelectedNamHoc as string) &&
+                                       string.IsNullOrEmpty(ViewBag.SelectedMaLoaiNCKH as string))
+                                        {
+                                            <span class="badge bg-secondary">Tất cả</span>
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -240,23 +350,20 @@
 </div>
 
 @section Script {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        // Export to Excel
-        function exportToExcel() {
-            TM.utils.exportToExcel('nckhTable', 'DanhSachTaiNCKH');
-        }
-
-        // Print page
-        function printPage() {
-            window.print();
-        }
-
-        // Initialize DataTable if more than 10 records
         $(document).ready(function () {
+            // Initialize feather icons
+            feather.replace();
+
+            // Initialize DataTable if more than 10 records
         @if (Model.Count() > 10)
         {
             <text>
-                    TM.utils.initDataTable('nckhTable', {
+                    $('#nckhTable').DataTable({
+                        "language": {
+                            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                        },
                         pageLength: 25,
                         order: [[3, 'desc'], [2, 'asc']], // Sort by year desc, then name asc
                         columnDefs: [
@@ -265,9 +372,44 @@
                     });
             </text>
         }
-
-            // Initialize feather icons
-            feather.replace();
         });
+
+        // Export to Excel
+        function exportToExcel() {
+            var table = document.getElementById("nckhTable");
+            if (table) {
+                var wb = XLSX.utils.table_to_book(table, {sheet:"Danh sách tài NCKH"});
+
+                // Get current filter values for filename
+                var searchTerm = $('input[name="searchTerm"]').val();
+                var namHoc = $('select[name="namHoc"]').val();
+                var maLoaiNCKH = $('select[name="maLoaiNCKH"]').val();
+                var filename = "DanhSachTaiNCKH";
+
+                if (searchTerm) filename += "_" + searchTerm.replace(/\s+/g, '');
+                if (namHoc) filename += "_" + namHoc.replace(/\s+/g, '');
+                if (maLoaiNCKH) filename += "_LoaiNCKH";
+                filename += "_" + new Date().toISOString().split('T')[0];
+
+                XLSX.writeFile(wb, filename + ".xlsx");
+
+                if (typeof TM !== 'undefined' && TM.utils) {
+                    TM.utils.showNotification('Xuất Excel thành công!', 'success');
+                } else {
+                    alert('Xuất Excel thành công!');
+                }
+            } else {
+                if (typeof TM !== 'undefined' && TM.utils) {
+                    TM.utils.showNotification('Không có dữ liệu để xuất!', 'warning');
+                } else {
+                    alert('Không có dữ liệu để xuất!');
+                }
+            }
+        }
+
+        // Print page
+        function printPage() {
+            window.print();
+        }
     </script>
 }

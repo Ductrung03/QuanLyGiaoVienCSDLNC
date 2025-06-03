@@ -27,6 +27,7 @@
     </div>
 
     <div class="container-fluid">
+        <!-- Alert Messages -->
         <div class="row">
             <div class="col-sm-12">
                 @if (TempData["SuccessMessage"] != null)
@@ -45,131 +46,152 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
+            </div>
+        </div>
 
-                <!-- Filter Card -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5>Bộ lọc tìm kiếm</h5>
+        <!-- Filter Card -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="filter" class="me-2"></i>Bộ lọc tìm kiếm
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <form method="get" asp-action="DanhSachGiangDay">
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label class="form-label">Giáo viên</label>
-                                        <select class="form-select" name="maGV" asp-items="ViewBag.GiaoViens">
-                                            <option value="">-- Tất cả giáo viên --</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">Năm học</label>
-                                        <select class="form-select" name="namHoc" asp-items="ViewBag.NamHocs">
-                                            <option value="">-- Tất cả năm học --</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <div class="mb-3 w-100">
-                                        <button type="submit" class="btn btn-primary w-100">
-                                            <i data-feather="search"></i> Tìm kiếm
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-end">
-                                    <div class="mb-3 w-100">
-                                        <button type="button" class="btn btn-success w-100" onclick="exportToExcel()">
-                                            <i data-feather="download"></i> Xuất Excel
-                                        </button>
-                                    </div>
+                        <form method="get" asp-action="DanhSachGiangDay" class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Giáo viên</label>
+                                <select class="form-select" name="maGV" asp-items="ViewBag.GiaoViens">
+                                    <option value="">-- Tất cả giáo viên --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Năm học</label>
+                                <select class="form-select" name="namHoc" asp-items="ViewBag.NamHocs">
+                                    <option value="">-- Tất cả năm học --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Bộ môn</label>
+                                <select class="form-select" name="maBM" asp-items="ViewBag.BoMons">
+                                    <option value="">-- Tất cả bộ môn --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 d-flex align-items-end">
+                                <div class="d-grid w-100">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i data-feather="search"></i> Tìm kiếm
+                                    </button>
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Statistics Cards -->
-                @if (Model?.Any() == true)
-                {
-                    <div class="row mb-4">
-                        <div class="col-xl-3 col-md-6">
-                            <div class="card stats-card bg-primary text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h4 class="mb-0">@Model.Count</h4>
-                                            <p class="mb-0">Tổng phân công</p>
-                                        </div>
-                                        <i data-feather="book-open" size="48"></i>
-                                    </div>
+        <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i data-feather="arrow-left"></i> DS Tải GD
+                        </a>
+                        <a asp-action="ThongKe" class="btn btn-warning">
+                            <i data-feather="bar-chart-2"></i> Thống kê
+                        </a>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-success" onclick="exportToExcel()">
+                            <i data-feather="download"></i> Xuất Excel
+                        </button>
+                        <button onclick="printPage()" class="btn btn-outline-primary">
+                            <i data-feather="printer"></i> In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        @if (Model?.Any() == true)
+        {
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-primary">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-primary mb-0">@Model.Count</h4>
+                                    <p class="text-muted mb-0">Tổng phân công</p>
                                 </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6">
-                            <div class="card stats-card bg-success text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h4 class="mb-0">@Model.Select(x => x.MaGV).Distinct().Count()</h4>
-                                            <p class="mb-0">Giáo viên</p>
-                                        </div>
-                                        <i data-feather="users" size="48"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6">
-                            <div class="card stats-card bg-info text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h4 class="mb-0">@Model.Sum(x => x.SoTiet)</h4>
-                                            <p class="mb-0">Tổng số tiết</p>
-                                        </div>
-                                        <i data-feather="clock" size="48"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-xl-3 col-md-6">
-                            <div class="card stats-card bg-warning text-white">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h4 class="mb-0">@Model.Sum(x => x.SoTietQuyDoi).ToString("F1")</h4>
-                                            <p class="mb-0">Giờ quy đổi</p>
-                                        </div>
-                                        <i data-feather="trending-up" size="48"></i>
-                                    </div>
-                                </div>
+                                <i data-feather="book-open" class="text-primary" style="width: 48px; height: 48px;"></i>
                             </div>
                         </div>
                     </div>
-                }
-
-                <!-- Main Table -->
-                <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5>Danh sách giảng dạy chi tiết</h5>
-                            <div>
-                                <a asp-action="Index" class="btn btn-outline-primary me-2">
-                                    <i data-feather="list"></i> DS Tải GD
-                                </a>
-                                <a asp-action="ThongKe" class="btn btn-success">
-                                    <i data-feather="bar-chart-2"></i> Thống kê
-                                </a>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-success">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-success mb-0">@Model.Select(x => x.MaGV).Distinct().Count()</h4>
+                                    <p class="text-muted mb-0">Giáo viên</p>
+                                </div>
+                                <i data-feather="users" class="text-success" style="width: 48px; height: 48px;"></i>
                             </div>
                         </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-info">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-info mb-0">@Model.Sum(x => x.SoTiet)</h4>
+                                    <p class="text-muted mb-0">Tổng số tiết</p>
+                                </div>
+                                <i data-feather="clock" class="text-info" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-warning">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h4 class="text-warning mb-0">@Model.Sum(x => x.SoTietQuyDoi).ToString("F1")</h4>
+                                    <p class="text-muted mb-0">Giờ quy đổi</p>
+                                </div>
+                                <i data-feather="trending-up" class="text-warning" style="width: 48px; height: 48px;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- Main Table -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header bg-dark">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="list" class="me-2"></i>Danh sách giảng dạy chi tiết
+                            <span class="badge bg-light text-dark ms-2">@Model.Count kết quả</span>
+                        </h5>
                     </div>
                     <div class="card-body">
                         @if (Model?.Any() == true)
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover" id="giangDayTable">
-                                    <thead>
+                                    <thead class="table-dark">
                                         <tr>
+                                            <th>STT</th>
                                             <th>Mã GV</th>
                                             <th>Giáo viên</th>
                                             <th>Bộ môn</th>
@@ -183,39 +205,63 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @{
+                                            int index = 1;
+                                        }
                                         @foreach (var item in Model.OrderBy(x => x.GiaoVien?.HoTen).ThenBy(x => x.TaiGiangDay?.TenHocPhan))
                                         {
                                             <tr>
+                                                <td>@index</td>
                                                 <td>
-                                                    <span class="badge bg-info">@item.MaGV</span>
+                                                    <code>@item.MaGV</code>
                                                 </td>
                                                 <td>
                                                     <div>
-                                                        <h6 class="mb-0">@item.GiaoVien?.HoTen</h6>
-                                                        <small class="text-muted">@item.GiaoVien?.Email</small>
+                                                        <strong>@item.GiaoVien?.HoTen</strong>
+                                                        @if (!string.IsNullOrEmpty(item.GiaoVien?.Email))
+                                                        {
+                                                            <br>
+
+                                                            <small class="text-muted">@item.GiaoVien.Email</small>
+                                                        }
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <small>@item.GiaoVien?.BoMon?.TenBM</small>
+                                                    @if (item.GiaoVien?.BoMon != null)
+                                                    {
+                                                        <span class="badge bg-secondary">@item.GiaoVien.BoMon.TenBM</span>
+                                                    }
                                                 </td>
                                                 <td>
                                                     <div>
-                                                        <span class="fw-bold text-primary">@item.TaiGiangDay?.TenHocPhan</span>
+                                                        <strong class="text-primary">@item.TaiGiangDay?.TenHocPhan</strong>
+                                                        @if (!string.IsNullOrEmpty(item.TaiGiangDay?.MaTaiGiangDay))
+                                                        {
+                                                            <br>
+
+                                                            <small class="text-muted">@item.TaiGiangDay.MaTaiGiangDay</small>
+                                                        }
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">@item.TaiGiangDay?.Lop</span>
+                                                    @if (!string.IsNullOrEmpty(item.TaiGiangDay?.He))
+                                                    {
                                                         <br>
-                                                        <small class="text-muted">@item.TaiGiangDay?.MaTaiGiangDay</small>
-                                                    </div>
+
+                                                        <small class="text-muted">@item.TaiGiangDay.He</small>
+                                                    }
                                                 </td>
                                                 <td>
-                                                    <span class="badge bg-secondary">@item.TaiGiangDay?.Lop</span>
-                                                    <br>
-                                                    <small class="text-muted">@item.TaiGiangDay?.He</small>
+                                                    <span class="badge bg-primary">@item.TaiGiangDay?.NamHoc</span>
                                                 </td>
-                                                <td>@item.TaiGiangDay?.NamHoc</td>
-                                                <td>
-                                                    <span class="fw-bold">@item.SoTiet</span> tiết
+                                                <td class="text-center">
+                                                    <span class="badge bg-success fs-6">@item.SoTiet</span>
+                                                    <small class="text-muted d-block">tiết</small>
                                                 </td>
-                                                <td>
-                                                    <span class="badge bg-success">@item.SoTietQuyDoi.ToString("F1")</span>
+                                                <td class="text-center">
+                                                    <span class="badge bg-warning text-dark fs-6">@item.SoTietQuyDoi.ToString("F1")</span>
+                                                    <small class="text-muted d-block">giờ</small>
                                                 </td>
                                                 <td>
                                                     @if (!string.IsNullOrEmpty(item.GhiChu))
@@ -228,13 +274,13 @@
                                                     }
                                                 </td>
                                                 <td>
-                                                    <div class="btn-group" role="group">
+                                                    <div class="btn-group btn-group-sm">
                                                         <a asp-action="Details" asp-route-id="@item.MaTaiGiangDay"
-                                                           class="btn btn-primary btn-sm" title="Chi tiết tải GD">
+                                                           class="btn btn-primary" title="Chi tiết tải GD">
                                                             <i data-feather="eye"></i>
                                                         </a>
                                                         <a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@item.MaGV"
-                                                           class="btn btn-info btn-sm" title="Chi tiết giáo viên">
+                                                           class="btn btn-info" title="Chi tiết giáo viên">
                                                             <i data-feather="user"></i>
                                                         </a>
                                                         <form asp-action="XoaPhanCong" method="post" style="display: inline;">
@@ -249,6 +295,7 @@
                                                     </div>
                                                 </td>
                                             </tr>
+                                            index++;
                                         }
                                     </tbody>
                                 </table>
@@ -257,8 +304,8 @@
                         else
                         {
                             <div class="text-center py-5">
-                                <i data-feather="book-open" size="48" class="text-muted mb-3"></i>
-                                <h5>Chưa có dữ liệu giảng dạy</h5>
+                                <i data-feather="book-open" size="64" class="text-muted mb-3"></i>
+                                <h5 class="text-muted">Chưa có dữ liệu giảng dạy</h5>
                                 <p class="text-muted">
                                     Hãy
                                     <a asp-action="Index">quản lý tải giảng dạy</a>
@@ -269,7 +316,7 @@
                     </div>
                     @if (Model?.Any() == true)
                     {
-                        <div class="card-footer">
+                        <div class="card-footer bg-light">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="text-muted">
@@ -287,7 +334,13 @@
                                         {
                                             <span class="badge bg-warning">@ViewBag.NamHoc</span>
                                         }
-                                        @if (string.IsNullOrEmpty(ViewBag.MaGV as string) && string.IsNullOrEmpty(ViewBag.NamHoc as string))
+                                        @if (!string.IsNullOrEmpty(ViewBag.MaBM as string))
+                                        {
+                                            <span class="badge bg-secondary">Bộ môn</span>
+                                        }
+                                        @if (string.IsNullOrEmpty(ViewBag.MaGV as string) &&
+                                       string.IsNullOrEmpty(ViewBag.NamHoc as string) &&
+                                       string.IsNullOrEmpty(ViewBag.MaBM as string))
                                         {
                                             <span class="badge bg-secondary">Tất cả</span>
                                         }
@@ -309,23 +362,27 @@
             // Set selected values for filters
             $('select[name="maGV"]').val('@ViewBag.MaGV');
             $('select[name="namHoc"]').val('@ViewBag.NamHoc');
+            $('select[name="maBM"]').val('@ViewBag.MaBM');
 
             // Initialize feather icons
             feather.replace();
 
             // Initialize DataTable for better sorting and filtering
-            if ($('#giangDayTable tbody tr').length > 0) {
-                $('#giangDayTable').DataTable({
-                    "language": {
-                        "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
-                    },
-                    "pageLength": 25,
-                    "order": [[1, "asc"], [3, "asc"]], // Sort by teacher name, then subject
-                    "columnDefs": [
-                        { "orderable": false, "targets": [9] } // Disable sorting for action column
-                    ]
-                });
-            }
+        @if (Model.Count() > 10)
+        {
+            <text>
+                    $('#giangDayTable').DataTable({
+                        "language": {
+                            "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/vi.json"
+                        },
+                        "pageLength": 25,
+                        "order": [[2, "asc"], [4, "asc"]], // Sort by teacher name, then subject
+                        "columnDefs": [
+                            { "orderable": false, "targets": [10] } // Disable sorting for action column
+                        ]
+                    });
+            </text>
+        }
         });
 
         function exportToExcel() {
@@ -336,18 +393,32 @@
                 // Get current filter values for filename
                 var maGV = $('select[name="maGV"]').val();
                 var namHoc = $('select[name="namHoc"]').val();
+                var maBM = $('select[name="maBM"]').val();
                 var filename = "DanhSachGiangDay";
 
                 if (maGV) filename += "_" + maGV;
                 if (namHoc) filename += "_" + namHoc.replace(/\s+/g, '');
+                if (maBM) filename += "_" + maBM;
                 filename += "_" + new Date().toISOString().split('T')[0];
 
                 XLSX.writeFile(wb, filename + ".xlsx");
 
-                TM.utils.showNotification('Xuất Excel thành công!', 'success');
+                if (typeof TM !== 'undefined' && TM.utils) {
+                    TM.utils.showNotification('Xuất Excel thành công!', 'success');
+                } else {
+                    alert('Xuất Excel thành công!');
+                }
             } else {
-                TM.utils.showNotification('Không có dữ liệu để xuất!', 'warning');
+                if (typeof TM !== 'undefined' && TM.utils) {
+                    TM.utils.showNotification('Không có dữ liệu để xuất!', 'warning');
+                } else {
+                    alert('Không có dữ liệu để xuất!');
+                }
             }
+        }
+
+        function printPage() {
+            window.print();
         }
     </script>
 }

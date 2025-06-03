@@ -32,85 +32,104 @@
     </div>
 
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
-                <div class="card">
-                    <div class="card-header bg-danger text-white">
-                        <h5><i data-feather="alert-triangle"></i> Xác nhận xóa tải giảng dạy</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="alert alert-danger">
-                            <h5><i data-feather="alert-circle"></i> Cảnh báo!</h5>
+        <div class="row justify-content-center">
+            <div class="col-xl-8 col-lg-10">
+                <!-- Warning Alert -->
+                <div class="alert alert-danger border-0" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <i data-feather="alert-triangle" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <h5 class="alert-heading mb-1">Cảnh báo!</h5>
                             <p class="mb-0">
-                                Bạn có chắc chắn muốn xóa tải giảng dạy này?
-                                <strong>Hành động này không thể hoàn tác!</strong>
+                                Bạn đang thực hiện thao tác xóa tải giảng dạy. Hành động này không thể hoàn tác.
+                                Vui lòng kiểm tra kỹ thông tin trước khi xác nhận xóa.
                             </p>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>Thông tin tải giảng dạy:</h6>
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="fw-bold" width="40%">Mã tải GD:</td>
-                                        <td><span class="badge bg-info">@Model.MaTaiGiangDay</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Tên học phần:</td>
-                                        <td class="fw-bold text-primary">@Model.TenHocPhan</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Lớp:</td>
-                                        <td><span class="badge bg-secondary">@Model.Lop</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Hệ đào tạo:</td>
-                                        <td><span class="badge bg-primary">@Model.He</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Năm học:</td>
-                                        <td>@Model.NamHoc</td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div class="col-md-6">
-                                <h6>Thông tin khác:</h6>
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="fw-bold" width="40%">Sĩ số:</td>
-                                        <td><span class="fw-bold">@Model.SiSo</span> sinh viên</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Số tín chỉ:</td>
-                                        <td><span class="badge bg-success">@Model.SoTinChi TC</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Đối tượng GD:</td>
-                                        <td>@Model.DoiTuongGiangDay?.TenDoiTuong</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Thời gian GD:</td>
-                                        <td>@Model.ThoiGianGiangDay?.TenThoiGian</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Ngôn ngữ GD:</td>
-                                        <td>@Model.NgonNguGiangDay?.TenNgonNgu</td>
-                                    </tr>
-                                </table>
-                            </div>
-                        </div>
+                <!-- Thông tin tải giảng dạy -->
+                <div class="card">
+                    <div class="card-header bg-danger">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="trash-2" class="me-2"></i>Thông tin tải giảng dạy sẽ bị xóa
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-3">Mã tải GD:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-primary fs-6">@Model.MaTaiGiangDay</span>
+                            </dd>
 
-                        @if (!string.IsNullOrEmpty(Model.GhiChu))
-                        {
-                            <div class="row">
-                                <div class="col-12">
-                                    <h6>Ghi chú:</h6>
-                                    <div class="alert alert-info">
+                            <dt class="col-sm-3">Tên học phần:</dt>
+                            <dd class="col-sm-9">
+                                <strong>@Model.TenHocPhan</strong>
+                            </dd>
+
+                            <dt class="col-sm-3">Lớp:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-secondary">@Model.Lop</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Hệ đào tạo:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-primary">@Model.He</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Năm học:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-info">@Model.NamHoc</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Sĩ số:</dt>
+                            <dd class="col-sm-9">
+                                <span class="fw-bold">@Model.SiSo</span> sinh viên
+                            </dd>
+
+                            <dt class="col-sm-3">Số tín chỉ:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-success">@Model.SoTinChi TC</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Đối tượng GD:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.DoiTuongGiangDay != null)
+                                {
+                                    <span class="badge bg-secondary">@Model.DoiTuongGiangDay.TenDoiTuong</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Thời gian GD:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.ThoiGianGiangDay != null)
+                                {
+                                    <span class="badge bg-info">@Model.ThoiGianGiangDay.TenThoiGian</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Ngôn ngữ GD:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.NgonNguGiangDay != null)
+                                {
+                                    <span class="badge bg-warning">@Model.NgonNguGiangDay.TenNgonNgu</span>
+                                }
+                            </dd>
+
+                            @if (!string.IsNullOrEmpty(Model.GhiChu))
+                            {
+                                <dt class="col-sm-3">Ghi chú:</dt>
+                                <dd class="col-sm-9">
+                                    <div class="alert alert-info mb-0">
                                         @Model.GhiChu
                                     </div>
-                                </div>
-                            </div>
-                        }
+                                </dd>
+                            }
+                        </dl>
+
+                        <hr>
 
                         <!-- Kiểm tra phân công -->
                         @if (Model.SoGiaoVienPhanCong > 0)
@@ -133,37 +152,112 @@
                             </div>
                         }
 
-                        <hr>
+                        <!-- Form xóa -->
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" name="id" value="@Model.MaTaiGiangDay" />
 
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <a asp-action="Details" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-secondary">
-                                            <i data-feather="arrow-left"></i> Quay lại
-                                        </a>
-                                        <a asp-action="Index" class="btn btn-outline-secondary">
-                                            <i data-feather="list"></i> Danh sách
-                                        </a>
-                                    </div>
-                                    <div>
-                                        @if (Model.SoGiaoVienPhanCong == 0)
-                                        {
-                                            <form asp-action="Delete" method="post" style="display: inline;">
-                                                <input type="hidden" name="id" value="@Model.MaTaiGiangDay" />
-                                                <button type="submit" class="btn btn-danger" id="deleteButton">
-                                                    <i data-feather="trash-2"></i> Xác nhận xóa
-                                                </button>
-                                            </form>
-                                        }
-                                        else
-                                        {
-                                            <button type="button" class="btn btn-danger" disabled title="Không thể xóa vì còn phân công">
-                                                <i data-feather="trash-2"></i> Không thể xóa
-                                            </button>
-                                        }
+                            @if (Model.SoGiaoVienPhanCong == 0)
+                            {
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                            <label class="form-check-label" for="confirmDelete">
+                                                <strong>Tôi hiểu rằng việc xóa này không thể hoàn tác</strong>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
+                            }
+
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <a asp-action="Details" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-secondary">
+                                        <i data-feather="arrow-left"></i> Quay lại chi tiết
+                                    </a>
+                                    <a asp-action="Index" class="btn btn-outline-secondary">
+                                        <i data-feather="list"></i> Danh sách
+                                    </a>
+                                </div>
+                                <div>
+                                    @if (Model.SoGiaoVienPhanCong == 0)
+                                    {
+                                        <button type="submit" class="btn btn-danger" id="deleteButton">
+                                            <i data-feather="trash-2"></i> Xác nhận xóa
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-danger" disabled title="Không thể xóa vì còn phân công">
+                                            <i data-feather="trash-2"></i> Không thể xóa
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Thông tin tác động -->
+                <div class="card mt-3 border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                            <i data-feather="info" class="me-2"></i>Tác động của việc xóa
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="text-danger">Dữ liệu sẽ bị xóa:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i data-feather="x" class="text-danger me-1" style="width: 16px; height: 16px;"></i> Thông tin tải giảng dạy</li>
+                                    <li><i data-feather="x" class="text-danger me-1" style="width: 16px; height: 16px;"></i> Tất cả phân công giáo viên</li>
+                                    <li><i data-feather="x" class="text-danger me-1" style="width: 16px; height: 16px;"></i> Lịch sử thay đổi (nếu có)</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-warning">Ảnh hưởng:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i data-feather="alert-triangle" class="text-warning me-1" style="width: 16px; height: 16px;"></i> Giảm khối lượng giảng dạy của GV</li>
+                                    <li><i data-feather="alert-triangle" class="text-warning me-1" style="width: 16px; height: 16px;"></i> Thay đổi thống kê giảng dạy</li>
+                                    <li><i data-feather="alert-triangle" class="text-warning me-1" style="width: 16px; height: 16px;"></i> Ảnh hưởng đến báo cáo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gợi ý thay thế -->
+                <div class="card mt-3 border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="lightbulb" class="me-2"></i>Gợi ý thay thế
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3">Thay vì xóa hoàn toàn, bạn có thể cân nhắc các phương án sau:</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a asp-action="Edit" asp-route-id="@Model.MaTaiGiangDay"
+                                       class="btn btn-outline-warning">
+                                        <i data-feather="edit"></i> Chỉnh sửa thông tin
+                                    </a>
+                                </div>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    Sửa thông tin nếu có sai sót
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay"
+                                       class="btn btn-outline-success">
+                                        <i data-feather="users"></i> Xem phân công
+                                    </a>
+                                </div>
+                                <small class="text-muted d-block mt-1 text-center">
+                                    Quản lý danh sách giáo viên
+                                </small>
                             </div>
                         </div>
                     </div>
@@ -179,27 +273,77 @@
             // Initialize feather icons
             feather.replace();
 
-            // Confirm delete with SweetAlert2
+            // Enable/disable delete button based on checkbox
+            $(document).on('change', '#confirmDelete', function () {
+                $('#deleteButton').prop('disabled', !this.checked);
+            });
+
+            // Add extra confirmation on form submit
             $('#deleteButton').on('click', function(e) {
                 e.preventDefault();
 
                 Swal.fire({
-                    title: 'Xác nhận xóa',
-                    text: 'Bạn có chắc chắn muốn xóa tải giảng dạy "@Model.TenHocPhan"?',
+                    title: 'Xác nhận xóa cuối cùng',
+                    html: `
+                        <p>Bạn có chắc chắn muốn xóa tải giảng dạy:</p>
+                        <p><strong>"@Model.TenHocPhan"</strong></p>
+                        <p><strong>Lớp: @Model.Lop - @Model.NamHoc</strong></p>
+                        <p class="text-danger">Hành động này không thể hoàn tác!</p>
+                    `,
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Đồng ý xóa',
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xóa ngay',
                     cancelButtonText: 'Hủy bỏ',
                     reverseButtons: true
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        // Show loading
+                        Swal.fire({
+                            title: 'Đang xóa...',
+                            text: 'Vui lòng đợi',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
                         // Submit form
                         $(this).closest('form').submit();
                     }
                 });
             });
+
+            // Highlight dangerous action
+            setTimeout(function() {
+                $('#deleteButton').addClass('btn-pulse');
+            }, 1000);
         });
     </script>
+
+    <style>
+        .btn-pulse {
+            animation: pulse-red 2s infinite;
+        }
+
+        @@keyframes pulse-red {
+            0%
+
+        {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
+        }
+
+        }
+    </style>
 }

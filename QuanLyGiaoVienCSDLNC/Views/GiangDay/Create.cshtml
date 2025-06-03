@@ -29,8 +29,9 @@
     </div>
 
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12">
+                <!-- Alert Messages -->
                 @if (TempData["SuccessMessage"] != null)
                 {
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -47,107 +48,157 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
+
+                <!-- Main Form -->
                 <div class="card">
-                    <div class="card-header">
-                        <h5>Thông tin tải giảng dạy</h5>
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="plus-circle" class="me-2"></i>Thông tin tải giảng dạy
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Create" method="post" novalidate>
+                        <form asp-action="Create" method="post" class="needs-validation" novalidate>
+                            <!-- Thông tin cơ bản -->
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label asp-for="TenHocPhan" class="form-label">Tên học phần <span class="text-danger">*</span></label>
-                                        <input asp-for="TenHocPhan" class="form-control" placeholder="Nhập tên học phần" required />
-                                        <span asp-validation-for="TenHocPhan" class="text-danger"></span>
+                                <div class="col-md-6 mb-3">
+                                    <label asp-for="TenHocPhan" class="form-label">
+                                        Tên học phần <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="TenHocPhan" class="form-control"
+                                           placeholder="Nhập tên học phần" required />
+                                    <span asp-validation-for="TenHocPhan" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng nhập tên học phần.
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label asp-for="Lop" class="form-label">Lớp <span class="text-danger">*</span></label>
-                                        <input asp-for="Lop" class="form-control" placeholder="VD: CT101" required />
-                                        <span asp-validation-for="Lop" class="text-danger"></span>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="Lop" class="form-label">
+                                        Lớp <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="Lop" class="form-control"
+                                           placeholder="VD: CT101" required />
+                                    <span asp-validation-for="Lop" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng nhập lớp.
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label asp-for="NamHoc" class="form-label">Năm học <span class="text-danger">*</span></label>
-                                        <input asp-for="NamHoc" class="form-control" placeholder="VD: 2023-2024" required />
-                                        <span asp-validation-for="NamHoc" class="text-danger"></span>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="NamHoc" class="form-label">
+                                        Năm học <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="NamHoc" class="form-control"
+                                           placeholder="VD: 2023-2024" required />
+                                    <span asp-validation-for="NamHoc" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng nhập năm học.
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Thông tin chi tiết -->
                             <div class="row">
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label asp-for="He" class="form-label">Hệ đào tạo <span class="text-danger">*</span></label>
-                                        <select asp-for="He" class="form-select" required>
-                                            <option value="">-- Chọn hệ đào tạo --</option>
-                                            <option value="Đại học chính quy">Đại học chính quy</option>
-                                            <option value="Đại học liên thông">Đại học liên thông</option>
-                                            <option value="Thạc sĩ">Thạc sĩ</option>
-                                            <option value="Tiến sĩ">Tiến sĩ</option>
-                                        </select>
-                                        <span asp-validation-for="He" class="text-danger"></span>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="He" class="form-label">
+                                        Hệ đào tạo <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="He" class="form-select" required>
+                                        <option value="">-- Chọn hệ đào tạo --</option>
+                                        <option value="Đại học chính quy">Đại học chính quy</option>
+                                        <option value="Đại học liên thông">Đại học liên thông</option>
+                                        <option value="Thạc sĩ">Thạc sĩ</option>
+                                        <option value="Tiến sĩ">Tiến sĩ</option>
+                                    </select>
+                                    <span asp-validation-for="He" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn hệ đào tạo.
                                     </div>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label asp-for="SiSo" class="form-label">Sĩ số <span class="text-danger">*</span></label>
-                                        <input asp-for="SiSo" class="form-control" type="number" min="1" max="500" required />
-                                        <span asp-validation-for="SiSo" class="text-danger"></span>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="SiSo" class="form-label">
+                                        Sĩ số <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="SiSo" class="form-control" type="number"
+                                           min="1" max="500" required />
+                                    <span asp-validation-for="SiSo" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Sĩ số phải từ 1 đến 500.
                                     </div>
+                                    <small class="form-text text-muted">
+                                        Số lượng sinh viên trong lớp
+                                    </small>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label asp-for="SoTinChi" class="form-label">Số tín chỉ <span class="text-danger">*</span></label>
-                                        <input asp-for="SoTinChi" class="form-control" type="number" min="1" max="10" required />
-                                        <span asp-validation-for="SoTinChi" class="text-danger"></span>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="SoTinChi" class="form-label">
+                                        Số tín chỉ <span class="text-danger">*</span>
+                                    </label>
+                                    <input asp-for="SoTinChi" class="form-control" type="number"
+                                           min="1" max="10" required />
+                                    <span asp-validation-for="SoTinChi" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Số tín chỉ phải từ 1 đến 10.
                                     </div>
+                                    <small class="form-text text-muted">
+                                        Số tín chỉ của học phần
+                                    </small>
                                 </div>
-                                <div class="col-md-3">
-                                    <div class="mb-3">
-                                        <label asp-for="MaDoiTuong" class="form-label">Đối tượng giảng dạy <span class="text-danger">*</span></label>
-                                        <select asp-for="MaDoiTuong" class="form-select" asp-items="ViewBag.DoiTuongs" required>
-                                            <option value="">-- Chọn đối tượng --</option>
-                                        </select>
-                                        <span asp-validation-for="MaDoiTuong" class="text-danger"></span>
+                                <div class="col-md-3 mb-3">
+                                    <label asp-for="MaDoiTuong" class="form-label">
+                                        Đối tượng giảng dạy <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="MaDoiTuong" class="form-select"
+                                            asp-items="ViewBag.DoiTuongs" required>
+                                        <option value="">-- Chọn đối tượng --</option>
+                                    </select>
+                                    <span asp-validation-for="MaDoiTuong" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn đối tượng giảng dạy.
                                     </div>
                                 </div>
                             </div>
 
+                            <!-- Thông tin bổ sung -->
                             <div class="row">
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label asp-for="MaThoiGian" class="form-label">Thời gian giảng dạy <span class="text-danger">*</span></label>
-                                        <select asp-for="MaThoiGian" class="form-select" asp-items="ViewBag.ThoiGians" required>
-                                            <option value="">-- Chọn thời gian --</option>
-                                        </select>
-                                        <span asp-validation-for="MaThoiGian" class="text-danger"></span>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="MaThoiGian" class="form-label">
+                                        Thời gian giảng dạy <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="MaThoiGian" class="form-select"
+                                            asp-items="ViewBag.ThoiGians" required>
+                                        <option value="">-- Chọn thời gian --</option>
+                                    </select>
+                                    <span asp-validation-for="MaThoiGian" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn thời gian giảng dạy.
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label asp-for="MaNgonNgu" class="form-label">Ngôn ngữ giảng dạy <span class="text-danger">*</span></label>
-                                        <select asp-for="MaNgonNgu" class="form-select" asp-items="ViewBag.NgonNgus" required>
-                                            <option value="">-- Chọn ngôn ngữ --</option>
-                                        </select>
-                                        <span asp-validation-for="MaNgonNgu" class="text-danger"></span>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="MaNgonNgu" class="form-label">
+                                        Ngôn ngữ giảng dạy <span class="text-danger">*</span>
+                                    </label>
+                                    <select asp-for="MaNgonNgu" class="form-select"
+                                            asp-items="ViewBag.NgonNgus" required>
+                                        <option value="">-- Chọn ngôn ngữ --</option>
+                                    </select>
+                                    <span asp-validation-for="MaNgonNgu" class="text-danger"></span>
+                                    <div class="invalid-feedback">
+                                        Vui lòng chọn ngôn ngữ giảng dạy.
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label asp-for="GhiChu" class="form-label">Ghi chú</label>
-                                        <input asp-for="GhiChu" class="form-control" placeholder="Ghi chú thêm..." />
-                                        <span asp-validation-for="GhiChu" class="text-danger"></span>
-                                    </div>
+                                <div class="col-md-4 mb-3">
+                                    <label asp-for="GhiChu" class="form-label">Ghi chú</label>
+                                    <textarea asp-for="GhiChu" class="form-control" rows="2"
+                                              placeholder="Ghi chú thêm..."></textarea>
+                                    <span asp-validation-for="GhiChu" class="text-danger"></span>
+                                    <small class="form-text text-muted">
+                                        Thông tin bổ sung về tải giảng dạy
+                                    </small>
                                 </div>
                             </div>
 
-                            <hr>
-
+                            <!-- Action buttons -->
                             <div class="row">
                                 <div class="col-12">
+                                    <hr>
                                     <div class="d-flex justify-content-between">
                                         <a asp-action="Index" class="btn btn-secondary">
                                             <i data-feather="arrow-left"></i> Quay lại
@@ -168,6 +219,89 @@
                 </div>
             </div>
         </div>
+
+        <!-- Hướng dẫn -->
+        <div class="row justify-content-center mt-3">
+            <div class="col-xl-10 col-lg-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="help-circle" class="me-2"></i>Hướng dẫn nhập liệu
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Thông tin bắt buộc:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• <strong>Tên học phần:</strong> Tên đầy đủ của môn học</li>
+                                    <li>• <strong>Lớp:</strong> Mã lớp học (VD: CT101, AT102)</li>
+                                    <li>• <strong>Năm học:</strong> Năm học giảng dạy (VD: 2023-2024)</li>
+                                    <li>• <strong>Hệ đào tạo:</strong> Loại hình đào tạo</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Lưu ý quan trọng:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Sĩ số từ 1-500 sinh viên</li>
+                                    <li>• Số tín chỉ từ 1-10 tín chỉ</li>
+                                    <li>• Kiểm tra kỹ thông tin trước khi lưu</li>
+                                    <li>• Có thể chỉnh sửa sau khi tạo</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gợi ý nhanh -->
+        <div class="row justify-content-center mt-3">
+            <div class="col-xl-10 col-lg-12">
+                <div class="card border-secondary">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="zap" class="me-2"></i>Điền nhanh thông tin mẫu
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-wrap gap-2">
+                            <button type="button" class="btn btn-outline-primary btn-sm sample-btn"
+                                    data-subject="Lập trình Java"
+                                    data-class="CT101"
+                                    data-credits="3"
+                                    data-students="45">
+                                Lập trình Java - CT101
+                            </button>
+                            <button type="button" class="btn btn-outline-success btn-sm sample-btn"
+                                    data-subject="Cơ sở dữ liệu"
+                                    data-class="CT102"
+                                    data-credits="3"
+                                    data-students="40">
+                                Cơ sở dữ liệu - CT102
+                            </button>
+                            <button type="button" class="btn btn-outline-warning btn-sm sample-btn"
+                                    data-subject="Mạng máy tính"
+                                    data-class="CT103"
+                                    data-credits="4"
+                                    data-students="35">
+                                Mạng máy tính - CT103
+                            </button>
+                            <button type="button" class="btn btn-outline-info btn-sm sample-btn"
+                                    data-subject="Trí tuệ nhân tạo"
+                                    data-class="CT104"
+                                    data-credits="3"
+                                    data-students="30">
+                                Trí tuệ nhân tạo - CT104
+                            </button>
+                        </div>
+                        <small class="text-muted mt-2 d-block">
+                            Nhấn vào các nút trên để tự động điền thông tin mẫu
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -177,14 +311,64 @@
             // Initialize feather icons
             feather.replace();
 
+            // Form validation
+            const form = document.querySelector('.needs-validation');
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
+
             // Auto-generate năm học
             if (!$('#NamHoc').val()) {
                 var currentYear = new Date().getFullYear();
-                var nextYear = currentYear + 1;
-                $('#NamHoc').val(currentYear + '-' + nextYear);
+                var month = new Date().getMonth() + 1;
+                var academicYear = month >= 9 ? `${currentYear}-${currentYear + 1}` : `${currentYear - 1}-${currentYear}`;
+                $('#NamHoc').val(academicYear);
             }
 
-            // Form validation
+            // Sample buttons click handlers
+            $('.sample-btn').click(function() {
+                var subject = $(this).data('subject');
+                var className = $(this).data('class');
+                var credits = $(this).data('credits');
+                var students = $(this).data('students');
+
+                $('#TenHocPhan').val(subject);
+                $('#Lop').val(className);
+                $('#SoTinChi').val(credits);
+                $('#SiSo').val(students);
+
+                // Remove validation classes
+                form.classList.remove('was-validated');
+
+                if (typeof TM !== 'undefined' && TM.utils) {
+                    TM.utils.showNotification('Đã áp dụng mẫu: ' + subject, 'success');
+                } else {
+                    alert('Đã áp dụng mẫu: ' + subject);
+                }
+
+                // Focus on next field
+                $('#He').focus();
+            });
+
+            // Real-time validation
+            $('input, select, textarea').on('blur change', function() {
+                if ($(this).attr('required')) {
+                    if ($(this).val()) {
+                        $(this).removeClass('is-invalid').addClass('is-valid');
+                    } else {
+                        $(this).removeClass('is-valid').addClass('is-invalid');
+                    }
+                }
+            });
+
+            // Auto-focus first input
+            $('#TenHocPhan').focus();
+
+            // Enhanced form submission
             $('form').on('submit', function(e) {
                 var isValid = true;
 
@@ -200,20 +384,17 @@
 
                 if (!isValid) {
                     e.preventDefault();
-                    alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
-                }
-            });
-
-            // Real-time validation
-            $('input, select').on('blur change', function() {
-                if ($(this).attr('required')) {
-                    if ($(this).val()) {
-                        $(this).removeClass('is-invalid').addClass('is-valid');
+                    if (typeof TM !== 'undefined' && TM.utils) {
+                        TM.utils.showNotification('Vui lòng điền đầy đủ thông tin bắt buộc!', 'error');
                     } else {
-                        $(this).removeClass('is-valid').addClass('is-invalid');
+                        alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
                     }
                 }
             });
         });
     </script>
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

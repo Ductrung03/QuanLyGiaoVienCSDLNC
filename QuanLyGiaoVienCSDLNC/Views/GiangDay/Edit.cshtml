@@ -32,8 +32,8 @@
     </div>
 
     <div class="container-fluid">
-        <div class="row">
-            <div class="col-sm-12">
+        <div class="row justify-content-center">
+            <div class="col-xl-10 col-lg-12">
                 @if (TempData["ErrorMessage"] != null)
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -44,36 +44,59 @@
                 }
 
                 <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5>Thông tin tải giảng dạy</h5>
-                            <span class="badge bg-info">@Model.MaTaiGiangDay</span>
-                        </div>
+                    <div class="card-header bg-warning">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="edit" class="me-2"></i>Chỉnh sửa thông tin tải giảng dạy
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Edit" method="post">
+                        <form asp-action="Edit" method="post" class="needs-validation" novalidate>
                             <input type="hidden" asp-for="MaTaiGiangDay" />
+
+                            <!-- Mã tải GD (readonly) -->
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Mã tải giảng dạy</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light">
+                                            <i data-feather="hash"></i>
+                                        </span>
+                                        <input type="text" class="form-control bg-light"
+                                               value="@Model.MaTaiGiangDay" readonly>
+                                    </div>
+                                    <small class="form-text text-muted">Mã tải giảng dạy không thể thay đổi</small>
+                                </div>
+                            </div>
 
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="TenHocPhan" class="form-label">Tên học phần <span class="text-danger">*</span></label>
-                                        <input asp-for="TenHocPhan" class="form-control" placeholder="Nhập tên học phần" />
+                                        <input asp-for="TenHocPhan" class="form-control" placeholder="Nhập tên học phần" required />
                                         <span asp-validation-for="TenHocPhan" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng nhập tên học phần.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label asp-for="Lop" class="form-label">Lớp <span class="text-danger">*</span></label>
-                                        <input asp-for="Lop" class="form-control" placeholder="VD: CT101" />
+                                        <input asp-for="Lop" class="form-control" placeholder="VD: CT101" required />
                                         <span asp-validation-for="Lop" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng nhập lớp.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label asp-for="NamHoc" class="form-label">Năm học <span class="text-danger">*</span></label>
-                                        <input asp-for="NamHoc" class="form-control" placeholder="VD: 2023-2024" />
+                                        <input asp-for="NamHoc" class="form-control" placeholder="VD: 2023-2024" required />
                                         <span asp-validation-for="NamHoc" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng nhập năm học.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -82,7 +105,7 @@
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label asp-for="He" class="form-label">Hệ đào tạo <span class="text-danger">*</span></label>
-                                        <select asp-for="He" class="form-select">
+                                        <select asp-for="He" class="form-select" required>
                                             <option value="">-- Chọn hệ đào tạo --</option>
                                             <option value="Đại học chính quy">Đại học chính quy</option>
                                             <option value="Đại học liên thông">Đại học liên thông</option>
@@ -90,29 +113,41 @@
                                             <option value="Tiến sĩ">Tiến sĩ</option>
                                         </select>
                                         <span asp-validation-for="He" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng chọn hệ đào tạo.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label asp-for="SiSo" class="form-label">Sĩ số <span class="text-danger">*</span></label>
-                                        <input asp-for="SiSo" class="form-control" type="number" min="1" max="500" />
+                                        <input asp-for="SiSo" class="form-control" type="number" min="1" max="500" required />
                                         <span asp-validation-for="SiSo" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Sĩ số phải từ 1 đến 500.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label asp-for="SoTinChi" class="form-label">Số tín chỉ <span class="text-danger">*</span></label>
-                                        <input asp-for="SoTinChi" class="form-control" type="number" min="1" max="10" />
+                                        <input asp-for="SoTinChi" class="form-control" type="number" min="1" max="10" required />
                                         <span asp-validation-for="SoTinChi" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Số tín chỉ phải từ 1 đến 10.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="mb-3">
                                         <label asp-for="MaDoiTuong" class="form-label">Đối tượng giảng dạy <span class="text-danger">*</span></label>
-                                        <select asp-for="MaDoiTuong" class="form-select" asp-items="ViewBag.DoiTuongs">
+                                        <select asp-for="MaDoiTuong" class="form-select" asp-items="ViewBag.DoiTuongs" required>
                                             <option value="">-- Chọn đối tượng --</option>
                                         </select>
                                         <span asp-validation-for="MaDoiTuong" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng chọn đối tượng giảng dạy.
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -121,19 +156,25 @@
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="MaThoiGian" class="form-label">Thời gian giảng dạy <span class="text-danger">*</span></label>
-                                        <select asp-for="MaThoiGian" class="form-select" asp-items="ViewBag.ThoiGians">
+                                        <select asp-for="MaThoiGian" class="form-select" asp-items="ViewBag.ThoiGians" required>
                                             <option value="">-- Chọn thời gian --</option>
                                         </select>
                                         <span asp-validation-for="MaThoiGian" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng chọn thời gian giảng dạy.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="mb-3">
                                         <label asp-for="MaNgonNgu" class="form-label">Ngôn ngữ giảng dạy <span class="text-danger">*</span></label>
-                                        <select asp-for="MaNgonNgu" class="form-select" asp-items="ViewBag.NgonNgus">
+                                        <select asp-for="MaNgonNgu" class="form-select" asp-items="ViewBag.NgonNgus" required>
                                             <option value="">-- Chọn ngôn ngữ --</option>
                                         </select>
                                         <span asp-validation-for="MaNgonNgu" class="text-danger"></span>
+                                        <div class="invalid-feedback">
+                                            Vui lòng chọn ngôn ngữ giảng dạy.
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
@@ -151,9 +192,11 @@
                             @if (Model.SoGiaoVienPhanCong > 0)
                             {
                                 <div class="alert alert-warning">
-                                    <i data-feather="alert-triangle"></i>
-                                    <strong>Lưu ý:</strong> Tải giảng dạy này đã có @Model.SoGiaoVienPhanCong giáo viên được phân công.
-                                    Việc thay đổi thông tin có thể ảnh hưởng đến việc tính toán giờ quy đổi.
+                                    <h6><i data-feather="alert-triangle"></i> Lưu ý quan trọng</h6>
+                                    <p class="mb-0">
+                                        Tải giảng dạy này đã có <strong>@Model.SoGiaoVienPhanCong giáo viên</strong> được phân công.
+                                        Việc thay đổi thông tin có thể ảnh hưởng đến việc tính toán giờ quy đổi và phân công giảng dạy.
+                                    </p>
                                 </div>
                             }
 
@@ -162,7 +205,7 @@
                                     <div class="d-flex justify-content-between">
                                         <div>
                                             <a asp-action="Details" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-secondary">
-                                                <i data-feather="arrow-left"></i> Quay lại
+                                                <i data-feather="arrow-left"></i> Quay lại chi tiết
                                             </a>
                                             <a asp-action="Index" class="btn btn-outline-secondary">
                                                 <i data-feather="list"></i> Danh sách
@@ -184,6 +227,41 @@
                 </div>
             </div>
         </div>
+
+        <!-- Cảnh báo quan trọng -->
+        <div class="row justify-content-center mt-3">
+            <div class="col-xl-10 col-lg-12">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0">
+                            <i data-feather="alert-triangle" class="me-2"></i>Lưu ý khi chỉnh sửa
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Thay đổi thông tin cơ bản:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Tên học phần: Kiểm tra tính chính xác</li>
+                                    <li>• Lớp và năm học: Đảm bảo khớp với kế hoạch</li>
+                                    <li>• Sĩ số: Phù hợp với thực tế lớp học</li>
+                                    <li>• Số tín chỉ: Theo quy định chương trình</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Ảnh hưởng đến phân công:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Thay đổi có thể ảnh hưởng giờ quy đổi</li>
+                                    <li>• Cần thông báo cho giáo viên được phân công</li>
+                                    <li>• Kiểm tra lại tính phù hợp của phân công</li>
+                                    <li>• Cập nhật thông tin trên hệ thống khác</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -194,24 +272,61 @@
             // Initialize feather icons
             feather.replace();
 
-            // Form validation enhancement
-            $('form').on('submit', function(e) {
-                var isValid = true;
+            // Form validation
+            const form = document.querySelector('.needs-validation');
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            });
 
-                // Check required fields
-                $('input[required], select[required]').each(function() {
-                    if (!$(this).val()) {
-                        $(this).addClass('is-invalid');
-                        isValid = false;
-                    } else {
-                        $(this).removeClass('is-invalid').addClass('is-valid');
+            // Store original values for reset functionality
+            const originalValues = {
+                tenHocPhan: $('#TenHocPhan').val(),
+                lop: $('#Lop').val(),
+                namHoc: $('#NamHoc').val(),
+                he: $('#He').val(),
+                siSo: $('#SiSo').val(),
+                soTinChi: $('#SoTinChi').val(),
+                maDoiTuong: $('#MaDoiTuong').val(),
+                maThoiGian: $('#MaThoiGian').val(),
+                maNgonNgu: $('#MaNgonNgu').val(),
+                ghiChu: $('#GhiChu').val()
+            };
+
+            // Custom reset functionality
+            $('button[type="reset"]').click(function(e) {
+                e.preventDefault();
+
+                Swal.fire({
+                    title: 'Khôi phục dữ liệu?',
+                    text: 'Bạn có muốn khôi phục về dữ liệu ban đầu không?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Khôi phục',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Restore original values
+                        $('#TenHocPhan').val(originalValues.tenHocPhan);
+                        $('#Lop').val(originalValues.lop);
+                        $('#NamHoc').val(originalValues.namHoc);
+                        $('#He').val(originalValues.he);
+                        $('#SiSo').val(originalValues.siSo);
+                        $('#SoTinChi').val(originalValues.soTinChi);
+                        $('#MaDoiTuong').val(originalValues.maDoiTuong);
+                        $('#MaThoiGian').val(originalValues.maThoiGian);
+                        $('#MaNgonNgu').val(originalValues.maNgonNgu);
+                        $('#GhiChu').val(originalValues.ghiChu);
+
+                        // Remove validation classes
+                        form.classList.remove('was-validated');
+
+                        TM.utils.showNotification('Đã khôi phục dữ liệu ban đầu', 'success');
                     }
                 });
-
-                if (!isValid) {
-                    e.preventDefault();
-                    TM.utils.showNotification('Vui lòng điền đầy đủ thông tin bắt buộc!', 'error');
-                }
             });
 
             // Real-time validation
@@ -222,6 +337,17 @@
                     } else {
                         $(this).removeClass('is-valid').addClass('is-invalid');
                     }
+                }
+            });
+
+            // Warn when changing critical fields
+            $('#SiSo, #SoTinChi').on('change', function() {
+                var fieldName = $(this).attr('id') === 'SiSo' ? 'sĩ số' : 'số tín chỉ';
+                if ($(this).val() !== originalValues[$(this).attr('id').toLowerCase()]) {
+                    TM.utils.showNotification(
+                        `Thay đổi ${fieldName} có thể ảnh hưởng đến tính toán giờ quy đổi!`,
+                        'warning'
+                    );
                 }
             });
 
@@ -240,6 +366,9 @@
             $('form').on('submit', function() {
                 formChanged = false;
             });
+
+            // Auto-focus first input
+            $('#TenHocPhan').focus();
         });
     </script>
 }

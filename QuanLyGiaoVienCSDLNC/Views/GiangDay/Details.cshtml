@@ -30,8 +30,9 @@
     </div>
 
     <div class="container-fluid">
+        <!-- Thông tin cơ bản -->
         <div class="row">
-            <div class="col-sm-12">
+            <div class="col-xl-8 col-lg-7">
                 @if (TempData["SuccessMessage"] != null)
                 {
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -49,148 +50,205 @@
                     </div>
                 }
 
-                <!-- Thông tin chính -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5>Thông tin tải giảng dạy</h5>
-                            <div>
-                                <a asp-action="Edit" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-warning btn-sm">
-                                    <i data-feather="edit-2"></i> Chỉnh sửa
-                                </a>
-                                <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-success btn-sm">
-                                    <i data-feather="user-plus"></i> Phân công
-                                </a>
-                                <a asp-action="Delete" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-danger btn-sm" data-action="delete">
-                                    <i data-feather="trash-2"></i> Xóa
-                                </a>
-                            </div>
-                        </div>
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="book-open" class="me-2"></i>Thông tin cơ bản
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="fw-bold" width="40%">Mã tải GD:</td>
-                                        <td><span class="badge bg-info">@Model.MaTaiGiangDay</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Tên học phần:</td>
-                                        <td class="fw-bold text-primary">@Model.TenHocPhan</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Lớp:</td>
-                                        <td><span class="badge bg-secondary">@Model.Lop</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Hệ đào tạo:</td>
-                                        <td><span class="badge bg-primary">@Model.He</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Năm học:</td>
-                                        <td>@Model.NamHoc</td>
-                                    </tr>
-                                </table>
+                        <dl class="row">
+                            <dt class="col-sm-3">Mã tải GD:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-primary fs-6">@Model.MaTaiGiangDay</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Tên học phần:</dt>
+                            <dd class="col-sm-9">
+                                <strong>@Model.TenHocPhan</strong>
+                            </dd>
+
+                            <dt class="col-sm-3">Lớp:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-secondary">@Model.Lop</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Hệ đào tạo:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-info">@Model.He</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Năm học:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-success">@Model.NamHoc</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Sĩ số:</dt>
+                            <dd class="col-sm-9">
+                                <span class="fw-bold">@Model.SiSo</span> sinh viên
+                            </dd>
+
+                            <dt class="col-sm-3">Số tín chỉ:</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-warning">@Model.SoTinChi TC</span>
+                            </dd>
+
+                            <dt class="col-sm-3">Đối tượng GD:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.DoiTuongGiangDay != null)
+                                {
+                                    <span class="badge bg-secondary">@Model.DoiTuongGiangDay.TenDoiTuong</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Thời gian GD:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.ThoiGianGiangDay != null)
+                                {
+                                    <span class="badge bg-info">@Model.ThoiGianGiangDay.TenThoiGian</span>
+                                }
+                            </dd>
+
+                            <dt class="col-sm-3">Ngôn ngữ GD:</dt>
+                            <dd class="col-sm-9">
+                                @if (Model.NgonNguGiangDay != null)
+                                {
+                                    <span class="badge bg-warning">@Model.NgonNguGiangDay.TenNgonNgu</span>
+                                }
+                            </dd>
+
+                            @if (!string.IsNullOrEmpty(Model.GhiChu))
+                            {
+                                <dt class="col-sm-3">Ghi chú:</dt>
+                                <dd class="col-sm-9">
+                                    <div class="alert alert-info mb-0">
+                                        @Model.GhiChu
+                                    </div>
+                                </dd>
+                            }
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-4 col-lg-5">
+                <div class="card">
+                    <div class="card-header bg-success">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="activity" class="me-2"></i>Trạng thái
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var soGiaoVienHienTai = chiTietGiangDays?.Count ?? 0;
+                            var isAssigned = soGiaoVienHienTai > 0;
+                            var statusClass = isAssigned ? "bg-success" : "bg-warning";
+                            var statusText = isAssigned ? "Đã phân công" : "Chưa phân công";
+                        }
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Trạng thái phân công</span>
+                                <span>@soGiaoVienHienTai giáo viên</span>
                             </div>
-                            <div class="col-md-6">
-                                <table class="table table-borderless">
-                                    <tr>
-                                        <td class="fw-bold" width="40%">Sĩ số:</td>
-                                        <td><span class="fw-bold">@Model.SiSo</span> sinh viên</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Số tín chỉ:</td>
-                                        <td><span class="badge bg-success">@Model.SoTinChi TC</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Đối tượng GD:</td>
-                                        <td>@Model.DoiTuongGiangDay?.TenDoiTuong</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Thời gian GD:</td>
-                                        <td>@Model.ThoiGianGiangDay?.TenThoiGian</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="fw-bold">Ngôn ngữ GD:</td>
-                                        <td>@Model.NgonNguGiangDay?.TenNgonNgu</td>
-                                    </tr>
-                                </table>
+                            <div class="progress">
+                                <div class="progress-bar @statusClass" style="width: @(isAssigned ? "100" : "25")%"></div>
                             </div>
                         </div>
 
-                        @if (!string.IsNullOrEmpty(Model.GhiChu))
-                        {
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="alert alert-info">
-                                        <strong>Ghi chú:</strong> @Model.GhiChu
-                                    </div>
-                                </div>
-                            </div>
-                        }
+                        <div class="text-center">
+                            <span class="badge @statusClass fs-6">@statusText</span>
+                        </div>
+
+                        <hr>
+
+                        <div class="d-grid gap-2">
+                            <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay"
+                               class="btn btn-success">
+                                <i data-feather="user-plus"></i> Phân công giáo viên
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@Model.MaTaiGiangDay"
+                               class="btn btn-warning">
+                                <i data-feather="edit"></i> Sửa thông tin
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.MaTaiGiangDay"
+                               class="btn btn-danger"
+                               onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
+                                <i data-feather="trash-2"></i> Xóa tải GD
+                            </a>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Thống kê nhanh -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card bg-primary text-white">
-                            <div class="card-body text-center">
-                                <h4>@Model.SoGiaoVienPhanCong</h4>
-                                <p class="mb-0">Giáo viên</p>
-                            </div>
-                        </div>
+                <div class="card mt-3">
+                    <div class="card-header bg-info">
+                        <h6 class="text-white mb-0">
+                            <i data-feather="bar-chart-2" class="me-2"></i>Thống kê nhanh
+                        </h6>
                     </div>
-                    <div class="col-md-3">
-                        <div class="card bg-success text-white">
-                            <div class="card-body text-center">
-                                <h4>@Model.TongSoTiet</h4>
-                                <p class="mb-0">Tổng số tiết</p>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-6 mb-2">
+                                <div class="card border-primary">
+                                    <div class="card-body py-2">
+                                        <h6 class="text-primary mb-0">@Model.SoGiaoVienPhanCong</h6>
+                                        <small>Giáo viên</small>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-info text-white">
-                            <div class="card-body text-center">
-                                <h4>@Model.TongGioQuyDoi.ToString("F1")</h4>
-                                <p class="mb-0">Giờ quy đổi</p>
+                            <div class="col-6 mb-2">
+                                <div class="card border-success">
+                                    <div class="card-body py-2">
+                                        <h6 class="text-success mb-0">@Model.TongSoTiet</h6>
+                                        <small>Tổng tiết</small>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card bg-warning text-white">
-                            <div class="card-body text-center">
-                                @{
-                                    var statusClass = Model.TrangThai == "Đã phân công" ? "text-success" : "text-warning";
-                                }
-                                <h4 class="@statusClass">@Model.TrangThai</h4>
-                                <p class="mb-0">Trạng thái</p>
+                            <div class="col-6">
+                                <div class="card border-info">
+                                    <div class="card-body py-2">
+                                        <h6 class="text-info mb-0">@Model.TongGioQuyDoi.ToString("F1")</h6>
+                                        <small>Giờ quy đổi</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="card border-warning">
+                                    <div class="card-body py-2">
+                                        <h6 class="text-warning mb-0">@Model.TrangThai</h6>
+                                        <small>Trạng thái</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Danh sách giáo viên được phân công -->
+        <!-- Danh sách giáo viên được phân công -->
+        <div class="row">
+            <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h5>Danh sách giáo viên được phân công</h5>
-                            <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-success btn-sm">
-                                <i data-feather="user-plus"></i> Thêm giáo viên
-                            </a>
-                        </div>
+                    <div class="card-header bg-warning">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="users" class="me-2"></i>Danh sách giáo viên được phân công
+                            <span class="badge bg-light text-dark ms-2">@soGiaoVienHienTai giáo viên</span>
+                        </h5>
                     </div>
                     <div class="card-body">
                         @if (chiTietGiangDays.Any())
                         {
                             <div class="table-responsive">
                                 <table class="table table-hover">
-                                    <thead>
+                                    <thead class="table-dark">
                                         <tr>
+                                            <th>STT</th>
                                             <th>Mã GV</th>
                                             <th>Họ tên</th>
                                             <th>Bộ môn</th>
+                                            <th>Khoa</th>
                                             <th>Số tiết</th>
                                             <th>Tiết quy đổi</th>
                                             <th>Ghi chú</th>
@@ -198,20 +256,31 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in chiTietGiangDays)
+                                        @{
+                                            int index = 1;
+                                        }
+                                        @foreach (var item in chiTietGiangDays.OrderBy(x => x.GiaoVien?.HoTen))
                                         {
                                             <tr>
+                                                <td>@index</td>
                                                 <td>
                                                     <span class="badge bg-info">@item.MaGV</span>
                                                 </td>
                                                 <td>
                                                     <div>
-                                                        <h6 class="mb-0">@item.GiaoVien?.HoTen</h6>
-                                                        <small class="text-muted">@item.GiaoVien?.Email</small>
+                                                        <strong>@item.GiaoVien?.HoTen</strong>
+                                                        @if (!string.IsNullOrEmpty(item.GiaoVien?.Email))
+                                                        {
+                                                            <br>
+                                                            <small class="text-muted">@item.GiaoVien.Email</small>
+                                                        }
                                                     </div>
                                                 </td>
                                                 <td>
                                                     <small>@item.GiaoVien?.BoMon?.TenBM</small>
+                                                </td>
+                                                <td>
+                                                    <small>@item.GiaoVien?.BoMon?.Khoa?.TenKhoa</small>
                                                 </td>
                                                 <td>
                                                     <span class="fw-bold">@item.SoTiet</span> tiết
@@ -230,17 +299,19 @@
                                                     }
                                                 </td>
                                                 <td>
-                                                    <form asp-action="XoaPhanCong" method="post" style="display: inline;">
-                                                        <input type="hidden" name="maChiTietGiangDay" value="@item.MaChiTietGiangDay" />
-                                                        <input type="hidden" name="maTaiGiangDay" value="@Model.MaTaiGiangDay" />
-                                                        <button type="submit" class="btn btn-danger btn-sm"
-                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa phân công này?')"
-                                                                title="Xóa phân công">
+                                                    <div class="btn-group btn-group-sm">
+                                                        <a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@item.MaGV"
+                                                           class="btn btn-info" title="Chi tiết giáo viên">
+                                                            <i data-feather="user"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-danger" title="Xóa phân công"
+                                                                onclick="confirmDeleteAssignment('@item.MaChiTietGiangDay', '@item.GiaoVien?.HoTen')">
                                                             <i data-feather="trash-2"></i>
                                                         </button>
-                                                    </form>
+                                                    </div>
                                                 </td>
                                             </tr>
+                                            index++;
                                         }
                                     </tbody>
                                 </table>
@@ -248,43 +319,85 @@
                         }
                         else
                         {
-                            <div class="text-center py-4">
-                                <i data-feather="users" size="48" class="text-muted mb-3"></i>
-                                <h5>Chưa có giáo viên nào được phân công</h5>
-                                <p class="text-muted">Hãy <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay">phân công giáo viên</a> để bắt đầu giảng dạy.</p>
+                            <div class="text-center py-5">
+                                <i data-feather="user-x" style="width: 48px; height: 48px;" class="text-muted"></i>
+                                <h6 class="text-muted mt-3">Chưa có giáo viên nào được phân công</h6>
+                                <p class="text-muted mb-3">Hãy phân công giáo viên để bắt đầu giảng dạy học phần này.</p>
+                                <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay"
+                                   class="btn btn-primary">
+                                    <i data-feather="user-plus"></i> Phân công giáo viên đầu tiên
+                                </a>
                             </div>
                         }
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Navigation buttons -->
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-between" style="padding-bottom: 60px;">
-                            <a asp-action="Index" class="btn btn-secondary">
-                                <i data-feather="arrow-left"></i> Quay lại danh sách
-                            </a>
-                            <div>
-                                <a asp-action="Edit" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-warning">
-                                    <i data-feather="edit-2"></i> Chỉnh sửa
-                                </a>
-                                <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-success">
-                                    <i data-feather="user-plus"></i> Phân công GV
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+        <!-- Navigation buttons -->
+        <div class="row">
+            <div class="col-12">
+                <div class="text-center" style="padding-bottom: 60px;">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i data-feather="arrow-left"></i> Quay lại danh sách
+                    </a>
+                    <a asp-action="Edit" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-warning">
+                        <i data-feather="edit-2"></i> Chỉnh sửa
+                    </a>
+                    <a asp-action="PhanCong" asp-route-id="@Model.MaTaiGiangDay" class="btn btn-success">
+                        <i data-feather="user-plus"></i> Phân công GV
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Delete assignment confirmation form -->
+<form id="deleteAssignmentForm" asp-action="XoaPhanCong" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="maChiTietGiangDay" id="deleteAssignmentId" />
+    <input type="hidden" name="maTaiGiangDay" value="@Model.MaTaiGiangDay" />
+</form>
+
 @section Script {
     <script>
+        function confirmDeleteAssignment(maChiTietGiangDay, tenGiaoVien) {
+            Swal.fire({
+                title: 'Xác nhận xóa phân công',
+                text: `Bạn có chắc chắn muốn xóa phân công giáo viên "${tenGiaoVien}" khỏi tải giảng dạy này?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa phân công',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('deleteAssignmentId').value = maChiTietGiangDay;
+                    document.getElementById('deleteAssignmentForm').submit();
+                }
+            });
+        }
+
         $(document).ready(function() {
             // Initialize feather icons
             feather.replace();
+
+            // Add hover effects for statistics cards
+            $('.card.border-primary, .card.border-success, .card.border-info, .card.border-warning').hover(
+                function() {
+                    $(this).addClass('shadow-sm');
+                },
+                function() {
+                    $(this).removeClass('shadow-sm');
+                }
+            );
+
+            // Auto-refresh page every 5 minutes to update status
+            setTimeout(function() {
+                location.reload();
+            }, 300000); // 5 minutes
         });
     </script>
 }
