@@ -28,6 +28,18 @@ namespace QuanLyGiaoVienCSDLNC.Repositories.Interfaces
         Task<(bool success, string message)> CapNhatHocHamAsync(string maGV, string maHocHam, DateTime ngayNhan);
         Task<(bool success, string message)> CapNhatLyLichKhoaHocAsync(LyLichKhoaHocDto dto);
 
+        // === THÊM MỚI: Quản lý học vị đầy đủ ===
+        Task<(bool success, string message, string maHocVi)> ThemHocViAsync(HocVi hocVi);
+        Task<(bool success, string message)> CapNhatHocViAsync(HocVi hocVi);
+        Task<(bool success, string message)> XoaHocViAsync(string maHocVi);
+        Task<PagedResultDto<HocVi>> TimKiemHocViAsync(string maGV = null, string tenHocVi = null, DateTime? tuNgay = null, DateTime? denNgay = null, int pageNumber = 1, int pageSize = 20);
+
+        // === THÊM MỚI: Quản lý quân hàm ===
+        Task<(bool success, string message, string maQuanHam)> ThemQuanHamAsync(QuanHam quanHam);
+        Task<(bool success, string message)> CapNhatQuanHamAsync(QuanHam quanHam);
+        Task<(bool success, string message)> XoaQuanHamAsync(string maQuanHam);
+        Task<List<QuanHam>> GetQuanHamByGiaoVienAsync(string maGV);
+
         // Position Management
         Task<(bool success, string message)> PhanCongChucVuAsync(string maGV, string maChucVu, DateTime? ngayNhan = null);
         Task<(bool success, string message)> KetThucChucVuAsync(string maGV, string maChucVu, DateTime? ngayKetThuc = null);
@@ -44,6 +56,10 @@ namespace QuanLyGiaoVienCSDLNC.Repositories.Interfaces
         Task<List<GiaoVien>> GetGiaoVienByBoMonAsync(string maBM);
         Task<List<GiaoVien>> GetGiaoVienByKhoaAsync(string maKhoa);
         Task<int> GetTotalGiaoVienCountAsync();
+
+        // === THÊM MỚI: Utility functions ===
+        Task<(bool success, string message)> KhoiTaoDuLieuMauAsync();
+        Task<(bool success, string message)> SaoLuuBangAsync(string tenBang, string tenBangSaoLuu = null);
 
         // Dashboard Data
         Task<object> GetDashboardDataAsync();

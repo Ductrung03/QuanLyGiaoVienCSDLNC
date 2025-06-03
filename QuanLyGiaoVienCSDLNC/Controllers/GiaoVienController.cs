@@ -917,5 +917,440 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         }
 
         #endregion
+
+        // Thêm các method sau vào class GiaoVienController
+
+        #region Quản lý học vị đầy đủ
+
+        // GET: GiaoVien/ManageHocVi/5
+        public async Task<IActionResult> ManageHocVi(string id, int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
+
+                var giaoVien = await _giaoVienService.GetGiaoVienByIdAsync(id);
+                if (giaoVien == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy giáo viên";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Get list of hoc vi for this giao vien
+                var hocViResult = await _giaoVienService.TimKiemHocViAsync(id, null, null, null, pageNumber, pageSize);
+
+                ViewBag.GiaoVien = giaoVien;
+                ViewBag.CurrentPage = pageNumber;
+
+                if (hocViResult.Success)
+                {
+                    ViewBag.TotalPages = hocViResult.Data.TotalPages;
+                    return View(hocViResult.Data.Data);
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = hocViResult.Message;
+                    return View(new List<HocVi>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ManageHocVi: {Id}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách học vị";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        // POST: GiaoVien/AddHocVi
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddHocVi(HocVi hocVi)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ";
+                    return RedirectToAction(nameof(ManageHocVi), new { id = hocVi.MaGV });
+                }
+
+                var result = await _giaoVienService.ThemHocViAsync(hocVi);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(ManageHocVi), new { id = hocVi.MaGV });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding hoc vi: {@HocVi}", hocVi);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra";
+                return RedirectToAction(nameof(ManageHocVi), new { id = hocVi.MaGV });
+            }
+        }
+
+        // POST: GiaoVien/UpdateHocVi
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateHocVi(HocVi hocVi)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ";
+                    return RedirectToAction(nameof(ManageHocVi), new { id = hocVi.MaGV });
+                }
+
+                var result = await _giaoVienService.CapNhatHocViAsync(hocVi);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(ManageHocVi), new { id = hocVi.MaGV });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating hoc vi: {@HocVi}", hocVi);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra";
+                return RedirectToAction(nameof(ManageHocVi), new { id = hocVi.MaGV });
+            }
+        }
+
+        // POST: GiaoVien/DeleteHocVi
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteHocVi(string maHocVi, string maGV)
+        {
+            try
+            {
+                var result = await _giaoVienService.XoaHocViAsync(maHocVi);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(ManageHocVi), new { id = maGV });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting hoc vi: {MaHocVi}", maHocVi);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra";
+                return RedirectToAction(nameof(ManageHocVi), new { id = maGV });
+            }
+        }
+
+        // GET: GiaoVien/SearchHocVi
+        public async Task<IActionResult> SearchHocVi(string maGV = null, string tenHocVi = null, DateTime? tuNgay = null, DateTime? denNgay = null, int pageNumber = 1, int pageSize = 20)
+        {
+            try
+            {
+                var result = await _giaoVienService.TimKiemHocViAsync(maGV, tenHocVi, tuNgay, denNgay, pageNumber, pageSize);
+
+                if (result.Success)
+                {
+                    ViewBag.SearchParams = new { maGV, tenHocVi, tuNgay, denNgay };
+                    ViewBag.CurrentPage = pageNumber;
+                    ViewBag.TotalPages = result.Data.TotalPages;
+
+                    // Load giáo viên list for search filter
+                    var giaoViens = await _giaoVienService.GetAllGiaoVienAsync();
+                    ViewBag.GiaoViens = new SelectList(giaoViens, "MaGV", "HoTen", maGV);
+
+                    return View(result.Data.Data);
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                    return View(new List<HocVi>());
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SearchHocVi");
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tìm kiếm học vị";
+                return View(new List<HocVi>());
+            }
+        }
+
+        #endregion
+
+        #region Quản lý quân hàm
+
+        // GET: GiaoVien/ManageQuanHam/5
+        public async Task<IActionResult> ManageQuanHam(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return NotFound();
+                }
+
+                var giaoVien = await _giaoVienService.GetGiaoVienByIdAsync(id);
+                if (giaoVien == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy giáo viên";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Get list of quan ham for this giao vien
+                var quanHams = await _giaoVienService.GetQuanHamByGiaoVienAsync(id);
+
+                ViewBag.GiaoVien = giaoVien;
+                return View(quanHams);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ManageQuanHam: {Id}", id);
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải danh sách quân hàm";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+        }
+
+        // POST: GiaoVien/AddQuanHam
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddQuanHam(QuanHam quanHam)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ";
+                    return RedirectToAction(nameof(ManageQuanHam), new { id = quanHam.MaGV });
+                }
+
+                var result = await _giaoVienService.ThemQuanHamAsync(quanHam);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(ManageQuanHam), new { id = quanHam.MaGV });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding quan ham: {@QuanHam}", quanHam);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra";
+                return RedirectToAction(nameof(ManageQuanHam), new { id = quanHam.MaGV });
+            }
+        }
+
+        // POST: GiaoVien/UpdateQuanHam
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateQuanHam(QuanHam quanHam)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    TempData["ErrorMessage"] = "Dữ liệu không hợp lệ";
+                    return RedirectToAction(nameof(ManageQuanHam), new { id = quanHam.MaGV });
+                }
+
+                var result = await _giaoVienService.CapNhatQuanHamAsync(quanHam);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(ManageQuanHam), new { id = quanHam.MaGV });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating quan ham: {@QuanHam}", quanHam);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra";
+                return RedirectToAction(nameof(ManageQuanHam), new { id = quanHam.MaGV });
+            }
+        }
+
+        // POST: GiaoVien/DeleteQuanHam
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteQuanHam(string maQuanHam, string maGV)
+        {
+            try
+            {
+                var result = await _giaoVienService.XoaQuanHamAsync(maQuanHam);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(ManageQuanHam), new { id = maGV });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting quan ham: {MaQuanHam}", maQuanHam);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra";
+                return RedirectToAction(nameof(ManageQuanHam), new { id = maGV });
+            }
+        }
+
+        #endregion
+
+        #region Utility Functions
+
+        // POST: GiaoVien/InitializeSampleData
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> InitializeSampleData()
+        {
+            try
+            {
+                var result = await _giaoVienService.KhoiTaoDuLieuMauAsync();
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing sample data");
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra khi khởi tạo dữ liệu mẫu";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: GiaoVien/BackupTable
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> BackupTable(string tenBang, string tenBangSaoLuu = null)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(tenBang))
+                {
+                    TempData["ErrorMessage"] = "Tên bảng không được để trống";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var result = await _giaoVienService.SaoLuuBangAsync(tenBang, tenBangSaoLuu);
+
+                if (result.Success)
+                {
+                    TempData["SuccessMessage"] = result.Message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = result.Message;
+                }
+
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error backing up table: {TenBang}", tenBang);
+                TempData["ErrorMessage"] = "Có lỗi hệ thống xảy ra khi sao lưu bảng";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // GET: GiaoVien/UtilityTools
+        public IActionResult UtilityTools()
+        {
+            return View();
+        }
+
+        #endregion
+
+        #region AJAX APIs cho học vị và quân hàm
+
+        // GET: AJAX API để lấy học vị theo giáo viên
+        [HttpGet]
+        public async Task<IActionResult> GetHocViByGiaoVien(string maGV)
+        {
+            try
+            {
+                var result = await _giaoVienService.TimKiemHocViAsync(maGV, null, null, null, 1, 100);
+                if (result.Success)
+                {
+                    var hocVis = result.Data.Data.Select(hv => new {
+                        maHocVi = hv.MaHocVi,
+                        tenHocVi = hv.TenHocVi,
+                        ngayNhan = hv.NgayNhan.ToString("dd/MM/yyyy")
+                    }).ToList();
+                    return Json(hocVis);
+                }
+                else
+                {
+                    return Json(new { error = result.Message });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting hoc vi by giao vien: {MaGV}", maGV);
+                return Json(new { error = "Có lỗi xảy ra" });
+            }
+        }
+
+        // GET: AJAX API để lấy quân hàm theo giáo viên
+        [HttpGet]
+        public async Task<IActionResult> GetQuanHamByGiaoVien(string maGV)
+        {
+            try
+            {
+                var quanHams = await _giaoVienService.GetQuanHamByGiaoVienAsync(maGV);
+                var result = quanHams.Select(qh => new {
+                    maQuanHam = qh.MaQuanHam,
+                    tenQuanHam = qh.TenQuanHam,
+                    ngayNhan = qh.NgayNhan.ToString("dd/MM/yyyy"),
+                    ngayKetThuc = qh.NgayKetThuc?.ToString("dd/MM/yyyy"),
+                    trangThai = qh.NgayKetThuc.HasValue ? "Đã kết thúc" : "Đang hoạt động"
+                }).ToList();
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting quan ham by giao vien: {MaGV}", maGV);
+                return Json(new { error = "Có lỗi xảy ra" });
+            }
+        }
+
+        #endregion
     }
 }

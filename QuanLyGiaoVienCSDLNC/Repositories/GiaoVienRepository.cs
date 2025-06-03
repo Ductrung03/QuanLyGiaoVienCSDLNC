@@ -1132,5 +1132,365 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
         }
 
         #endregion
+
+        // Thêm các method sau vào class GiaoVienRepository
+
+        #region Quản lý học vị đầy đủ
+
+        public async Task<(bool success, string message, string maHocVi)> ThemHocViAsync(HocVi hocVi)
+        {
+            var maHocViParam = new SqlParameter
+            {
+                ParameterName = "@MaHocVi",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_HocVi_ThemMoi @MaGV, @TenHocVi, @NgayNhan, @MaHocVi OUTPUT, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", hocVi.MaGV),
+                    new SqlParameter("@TenHocVi", hocVi.TenHocVi),
+                    new SqlParameter("@NgayNhan", hocVi.NgayNhan),
+                    maHocViParam,
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var maHocVi = maHocViParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage, maHocVi);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding hoc vi: {@HocVi}", hocVi);
+                return (false, $"Lỗi khi thêm học vị: {ex.Message}", null);
+            }
+        }
+
+        public async Task<(bool success, string message)> CapNhatHocViAsync(HocVi hocVi)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_HocVi_CapNhat @MaHocVi, @TenHocVi, @NgayNhan, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaHocVi", hocVi.MaHocVi),
+                    new SqlParameter("@TenHocVi", hocVi.TenHocVi),
+                    new SqlParameter("@NgayNhan", hocVi.NgayNhan),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating hoc vi: {MaHocVi}", hocVi.MaHocVi);
+                return (false, $"Lỗi khi cập nhật học vị: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> XoaHocViAsync(string maHocVi)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_HocVi_Xoa @MaHocVi, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaHocVi", maHocVi),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting hoc vi: {MaHocVi}", maHocVi);
+                return (false, $"Lỗi khi xóa học vị: {ex.Message}");
+            }
+        }
+
+        public async Task<PagedResultDto<HocVi>> TimKiemHocViAsync(string maGV = null, string tenHocVi = null, DateTime? tuNgay = null, DateTime? denNgay = null, int pageNumber = 1, int pageSize = 20)
+        {
+            var totalRecordsParam = new SqlParameter
+            {
+                ParameterName = "@TotalRecords",
+                SqlDbType = SqlDbType.Int,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                using (var connection = _context.Database.GetDbConnection())
+                {
+                    await connection.OpenAsync();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = "sp_HocVi_TimKiem";
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        command.Parameters.Add(new SqlParameter("@MaGV", maGV ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@TenHocVi", tenHocVi ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@TuNgay", tuNgay ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@DenNgay", denNgay ?? (object)DBNull.Value));
+                        command.Parameters.Add(new SqlParameter("@PageNumber", pageNumber));
+                        command.Parameters.Add(new SqlParameter("@PageSize", pageSize));
+                        command.Parameters.Add(totalRecordsParam);
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            var hocVis = new List<HocVi>();
+                            while (await reader.ReadAsync())
+                            {
+                                hocVis.Add(new HocVi
+                                {
+                                    MaHocVi = reader["MaHocVi"].ToString(),
+                                    TenHocVi = reader["TenHocVi"].ToString(),
+                                    NgayNhan = Convert.ToDateTime(reader["NgayNhan"]),
+                                    MaGV = reader["MaGV"].ToString(),
+                                    GiaoVien = new GiaoVien
+                                    {
+                                        MaGV = reader["MaGV"].ToString(),
+                                        HoTen = reader["HoTen"].ToString(),
+                                        BoMon = new BoMon
+                                        {
+                                            TenBM = reader["TenBM"].ToString(),
+                                            Khoa = new Khoa
+                                            {
+                                                TenKhoa = reader["TenKhoa"].ToString()
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+
+                            int totalRecords = (int)(totalRecordsParam.Value ?? 0);
+                            return new PagedResultDto<HocVi>(hocVis, totalRecords, pageNumber, pageSize);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching hoc vi");
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Quản lý quân hàm
+
+        public async Task<(bool success, string message, string maQuanHam)> ThemQuanHamAsync(QuanHam quanHam)
+        {
+            var maQuanHamParam = new SqlParameter
+            {
+                ParameterName = "@MaQuanHam",
+                SqlDbType = SqlDbType.Char,
+                Size = 15,
+                Direction = ParameterDirection.Output
+            };
+
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_QuanHam_ThemMoi @MaGV, @TenQuanHam, @NgayNhan, @NgayKetThuc, @MaQuanHam OUTPUT, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaGV", quanHam.MaGV),
+                    new SqlParameter("@TenQuanHam", quanHam.TenQuanHam),
+                    new SqlParameter("@NgayNhan", quanHam.NgayNhan),
+                    new SqlParameter("@NgayKetThuc", quanHam.NgayKetThuc ?? (object)DBNull.Value),
+                    maQuanHamParam,
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var maQuanHam = maQuanHamParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage, maQuanHam);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error adding quan ham: {@QuanHam}", quanHam);
+                return (false, $"Lỗi khi thêm quân hàm: {ex.Message}", null);
+            }
+        }
+
+        public async Task<(bool success, string message)> CapNhatQuanHamAsync(QuanHam quanHam)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_QuanHam_CapNhat @MaQuanHam, @TenQuanHam, @NgayNhan, @NgayKetThuc, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaQuanHam", quanHam.MaQuanHam),
+                    new SqlParameter("@TenQuanHam", quanHam.TenQuanHam),
+                    new SqlParameter("@NgayNhan", quanHam.NgayNhan),
+                    new SqlParameter("@NgayKetThuc", quanHam.NgayKetThuc ?? (object)DBNull.Value),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating quan ham: {MaQuanHam}", quanHam.MaQuanHam);
+                return (false, $"Lỗi khi cập nhật quân hàm: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> XoaQuanHamAsync(string maQuanHam)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_QuanHam_Xoa @MaQuanHam, @ErrorMessage OUTPUT",
+                    new SqlParameter("@MaQuanHam", maQuanHam),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting quan ham: {MaQuanHam}", maQuanHam);
+                return (false, $"Lỗi khi xóa quân hàm: {ex.Message}");
+            }
+        }
+
+        public async Task<List<QuanHam>> GetQuanHamByGiaoVienAsync(string maGV)
+        {
+            try
+            {
+                return await _context.QuanHams
+                    .Where(qh => qh.MaGV == maGV)
+                    .Include(qh => qh.GiaoVien)
+                    .OrderByDescending(qh => qh.NgayNhan)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting quan ham by giao vien: {MaGV}", maGV);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Utility Functions
+
+        public async Task<(bool success, string message)> KhoiTaoDuLieuMauAsync()
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_Utility_KhoiTaoDuLieuMau @ErrorMessage OUTPUT",
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing sample data");
+                return (false, $"Lỗi khi khởi tạo dữ liệu mẫu: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> SaoLuuBangAsync(string tenBang, string tenBangSaoLuu = null)
+        {
+            var errorMessageParam = new SqlParameter
+            {
+                ParameterName = "@ErrorMessage",
+                SqlDbType = SqlDbType.NVarChar,
+                Size = 500,
+                Direction = ParameterDirection.Output
+            };
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync(
+                    "EXEC sp_Utility_SaoLuuBang @TenBang, @TenBangSaoLuu, @ErrorMessage OUTPUT",
+                    new SqlParameter("@TenBang", tenBang),
+                    new SqlParameter("@TenBangSaoLuu", tenBangSaoLuu ?? (object)DBNull.Value),
+                    errorMessageParam);
+
+                var errorMessage = errorMessageParam.Value?.ToString();
+                var isSuccess = !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+
+                return (isSuccess, errorMessage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error backing up table: {TenBang}", tenBang);
+                return (false, $"Lỗi khi sao lưu bảng: {ex.Message}");
+            }
+        }
+
+        #endregion
     }
 }

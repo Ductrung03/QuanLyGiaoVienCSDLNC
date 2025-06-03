@@ -807,5 +807,337 @@ namespace QuanLyGiaoVienCSDLNC.Services
         }
 
         #endregion
+
+        // Thêm các method sau vào class GiaoVienService
+
+        #region Quản lý học vị đầy đủ
+
+        public async Task<ApiResponseDto<string>> ThemHocViAsync(HocVi hocVi)
+        {
+            try
+            {
+                // Validate input
+                if (string.IsNullOrEmpty(hocVi.MaGV))
+                {
+                    return ApiResponseDto<string>.ErrorResult("Mã giáo viên không được để trống");
+                }
+
+                if (string.IsNullOrEmpty(hocVi.TenHocVi))
+                {
+                    return ApiResponseDto<string>.ErrorResult("Tên học vị không được để trống");
+                }
+
+                if (hocVi.NgayNhan > DateTime.Today)
+                {
+                    return ApiResponseDto<string>.ErrorResult("Ngày nhận không thể trong tương lai");
+                }
+
+                // Check if giao vien exists
+                var existingGiaoVien = await _giaoVienRepository.GetGiaoVienByIdAsync(hocVi.MaGV);
+                if (existingGiaoVien == null)
+                {
+                    return ApiResponseDto<string>.ErrorResult("Không tìm thấy giáo viên");
+                }
+
+                var result = await _giaoVienRepository.ThemHocViAsync(hocVi);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully added hoc vi: {MaHocVi} for giao vien: {MaGV}", result.maHocVi, hocVi.MaGV);
+                    return ApiResponseDto<string>.SuccessResult(result.maHocVi, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<string>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ThemHocViAsync: {@HocVi}", hocVi);
+                return ApiResponseDto<string>.ErrorResult("Lỗi hệ thống khi thêm học vị");
+            }
+        }
+
+        public async Task<ApiResponseDto<bool>> CapNhatHocViAsync(HocVi hocVi)
+        {
+            try
+            {
+                // Validate input
+                if (string.IsNullOrEmpty(hocVi.MaHocVi))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Mã học vị không được để trống");
+                }
+
+                if (string.IsNullOrEmpty(hocVi.TenHocVi))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Tên học vị không được để trống");
+                }
+
+                if (hocVi.NgayNhan > DateTime.Today)
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Ngày nhận không thể trong tương lai");
+                }
+
+                var result = await _giaoVienRepository.CapNhatHocViAsync(hocVi);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully updated hoc vi: {MaHocVi}", hocVi.MaHocVi);
+                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<bool>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CapNhatHocViAsync: {@HocVi}", hocVi);
+                return ApiResponseDto<bool>.ErrorResult("Lỗi hệ thống khi cập nhật học vị");
+            }
+        }
+
+        public async Task<ApiResponseDto<bool>> XoaHocViAsync(string maHocVi)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(maHocVi))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Mã học vị không được để trống");
+                }
+
+                var result = await _giaoVienRepository.XoaHocViAsync(maHocVi);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully deleted hoc vi: {MaHocVi}", maHocVi);
+                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<bool>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in XoaHocViAsync: {MaHocVi}", maHocVi);
+                return ApiResponseDto<bool>.ErrorResult("Lỗi hệ thống khi xóa học vị");
+            }
+        }
+
+        public async Task<ApiResponseDto<PagedResultDto<HocVi>>> TimKiemHocViAsync(string maGV = null, string tenHocVi = null, DateTime? tuNgay = null, DateTime? denNgay = null, int pageNumber = 1, int pageSize = 20)
+        {
+            try
+            {
+                // Validate search parameters
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+                var result = await _giaoVienRepository.TimKiemHocViAsync(maGV, tenHocVi, tuNgay, denNgay, pageNumber, pageSize);
+                return ApiResponseDto<PagedResultDto<HocVi>>.SuccessResult(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in TimKiemHocViAsync");
+                return ApiResponseDto<PagedResultDto<HocVi>>.ErrorResult("Lỗi hệ thống khi tìm kiếm học vị");
+            }
+        }
+
+        #endregion
+
+        #region Quản lý quân hàm
+
+        public async Task<ApiResponseDto<string>> ThemQuanHamAsync(QuanHam quanHam)
+        {
+            try
+            {
+                // Validate input
+                if (string.IsNullOrEmpty(quanHam.MaGV))
+                {
+                    return ApiResponseDto<string>.ErrorResult("Mã giáo viên không được để trống");
+                }
+
+                if (string.IsNullOrEmpty(quanHam.TenQuanHam))
+                {
+                    return ApiResponseDto<string>.ErrorResult("Tên quân hàm không được để trống");
+                }
+
+                if (quanHam.NgayNhan > DateTime.Today)
+                {
+                    return ApiResponseDto<string>.ErrorResult("Ngày nhận không thể trong tương lai");
+                }
+
+                if (quanHam.NgayKetThuc.HasValue && quanHam.NgayKetThuc <= quanHam.NgayNhan)
+                {
+                    return ApiResponseDto<string>.ErrorResult("Ngày kết thúc phải sau ngày nhận");
+                }
+
+                // Check if giao vien exists
+                var existingGiaoVien = await _giaoVienRepository.GetGiaoVienByIdAsync(quanHam.MaGV);
+                if (existingGiaoVien == null)
+                {
+                    return ApiResponseDto<string>.ErrorResult("Không tìm thấy giáo viên");
+                }
+
+                var result = await _giaoVienRepository.ThemQuanHamAsync(quanHam);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully added quan ham: {MaQuanHam} for giao vien: {MaGV}", result.maQuanHam, quanHam.MaGV);
+                    return ApiResponseDto<string>.SuccessResult(result.maQuanHam, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<string>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ThemQuanHamAsync: {@QuanHam}", quanHam);
+                return ApiResponseDto<string>.ErrorResult("Lỗi hệ thống khi thêm quân hàm");
+            }
+        }
+
+        public async Task<ApiResponseDto<bool>> CapNhatQuanHamAsync(QuanHam quanHam)
+        {
+            try
+            {
+                // Validate input
+                if (string.IsNullOrEmpty(quanHam.MaQuanHam))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Mã quân hàm không được để trống");
+                }
+
+                if (string.IsNullOrEmpty(quanHam.TenQuanHam))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Tên quân hàm không được để trống");
+                }
+
+                if (quanHam.NgayNhan > DateTime.Today)
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Ngày nhận không thể trong tương lai");
+                }
+
+                if (quanHam.NgayKetThuc.HasValue && quanHam.NgayKetThuc <= quanHam.NgayNhan)
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Ngày kết thúc phải sau ngày nhận");
+                }
+
+                var result = await _giaoVienRepository.CapNhatQuanHamAsync(quanHam);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully updated quan ham: {MaQuanHam}", quanHam.MaQuanHam);
+                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<bool>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in CapNhatQuanHamAsync: {@QuanHam}", quanHam);
+                return ApiResponseDto<bool>.ErrorResult("Lỗi hệ thống khi cập nhật quân hàm");
+            }
+        }
+
+        public async Task<ApiResponseDto<bool>> XoaQuanHamAsync(string maQuanHam)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(maQuanHam))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Mã quân hàm không được để trống");
+                }
+
+                var result = await _giaoVienRepository.XoaQuanHamAsync(maQuanHam);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully deleted quan ham: {MaQuanHam}", maQuanHam);
+                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<bool>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in XoaQuanHamAsync: {MaQuanHam}", maQuanHam);
+                return ApiResponseDto<bool>.ErrorResult("Lỗi hệ thống khi xóa quân hàm");
+            }
+        }
+
+        public async Task<List<QuanHam>> GetQuanHamByGiaoVienAsync(string maGV)
+        {
+            try
+            {
+                return await _giaoVienRepository.GetQuanHamByGiaoVienAsync(maGV);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in GetQuanHamByGiaoVienAsync: {MaGV}", maGV);
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region Utility Functions
+
+        public async Task<ApiResponseDto<bool>> KhoiTaoDuLieuMauAsync()
+        {
+            try
+            {
+                var result = await _giaoVienRepository.KhoiTaoDuLieuMauAsync();
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully initialized sample data");
+                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<bool>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in KhoiTaoDuLieuMauAsync");
+                return ApiResponseDto<bool>.ErrorResult("Lỗi hệ thống khi khởi tạo dữ liệu mẫu");
+            }
+        }
+
+        public async Task<ApiResponseDto<bool>> SaoLuuBangAsync(string tenBang, string tenBangSaoLuu = null)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(tenBang))
+                {
+                    return ApiResponseDto<bool>.ErrorResult("Tên bảng không được để trống");
+                }
+
+                var result = await _giaoVienRepository.SaoLuuBangAsync(tenBang, tenBangSaoLuu);
+
+                if (result.success)
+                {
+                    _logger.LogInformation("Successfully backed up table: {TenBang}", tenBang);
+                    return ApiResponseDto<bool>.SuccessResult(true, result.message);
+                }
+                else
+                {
+                    return ApiResponseDto<bool>.ErrorResult(result.message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in SaoLuuBangAsync: {TenBang}", tenBang);
+                return ApiResponseDto<bool>.ErrorResult("Lỗi hệ thống khi sao lưu bảng");
+            }
+        }
+
+        #endregion
     }
 }
