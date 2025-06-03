@@ -56,4 +56,4 @@ namespace QuanLyGiaoVienCSDLNC.Models
         [Display(Name = "Có đủ tác giả")]
         public bool DaDuTacGia => SoTacGiaHienTai >= SoTacGia;
     }
-}
+}   
