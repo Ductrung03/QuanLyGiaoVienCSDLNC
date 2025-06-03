@@ -1,0 +1,350 @@
+﻿@model IEnumerable<QuanLyGiaoVienCSDLNC.Models.LoaiNCKH>
+
+@{
+    ViewData["Title"] = "Quản lý loại NCKH";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Quản lý loại nghiên cứu khoa học</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">NCKH</a></li>
+                        <li class="breadcrumb-item active">Loại NCKH</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a asp-action="CreateLoaiNCKH" class="btn btn-success">
+                            <i data-feather="plus"></i> Thêm loại NCKH
+                        </a>
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i data-feather="arrow-left"></i> Quay lại NCKH
+                        </a>
+                    </div>
+                    <div>
+                        <button onclick="exportToExcel()" class="btn btn-outline-success">
+                            <i data-feather="download"></i> Xuất Excel
+                        </button>
+                        <button onclick="printPage()" class="btn btn-outline-primary">
+                            <i data-feather="printer"></i> In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="settings" class="me-2"></i>Danh sách loại NCKH
+                            <span class="badge bg-light text-dark ms-2">@Model.Count() loại</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="loaiNCKHTable">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>STT</th>
+                                            <th>Mã loại</th>
+                                            <th>Tên loại NCKH</th>
+                                            <th>Mô tả</th>
+                                            <th>Đơn vị tính</th>
+                                            <th>Quy đổi giờ chuẩn</th>
+                                            <th>Số tài NCKH</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{
+                                            int index = 1;
+                                        }
+                                        @foreach (var item in Model)
+                                        {
+                                            <tr>
+                                                <td>@index</td>
+                                                <td>
+                                                    <code>@item.MaLoaiNCKH</code>
+                                                </td>
+                                                <td>
+                                                    <strong>@item.TenLoaiNCKH</strong>
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(item.MoTa))
+                                                    {
+                                                        <span class="text-muted">@item.MoTa</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <em class="text-muted">Chưa có mô tả</em>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (item.QuyDoiGioChuanNCKH != null)
+                                                    {
+                                                        <span class="badge bg-info">@item.QuyDoiGioChuanNCKH.DonViTinh</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">Chưa xác định</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (item.QuyDoiGioChuanNCKH != null)
+                                                    {
+                                                        <span class="badge bg-success fs-6">
+                                                            @item.QuyDoiGioChuanNCKH.QuyRaGioChuan
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-secondary">0</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    @{
+                                                        // Đếm số tài NCKH sử dụng loại này
+                                                        // Trong thực tế sẽ được tính từ database
+                                                        var soTaiNCKH = 0;
+                                                    }
+                                                    <span class="badge bg-primary">@soTaiNCKH</span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <button type="button" class="btn btn-info"
+                                                                onclick="viewDetails('@item.MaLoaiNCKH')" title="Xem chi tiết">
+                                                            <i data-feather="eye"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-warning"
+                                                                onclick="editLoaiNCKH('@item.MaLoaiNCKH')" title="Sửa">
+                                                            <i data-feather="edit"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger"
+                                                                onclick="deleteLoaiNCKH('@item.MaLoaiNCKH', '@item.TenLoaiNCKH')"
+                                                                title="Xóa">
+                                                            <i data-feather="trash-2"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            index++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-5">
+                                <i data-feather="inbox" style="width: 64px; height: 64px;" class="text-muted"></i>
+                                <h5 class="text-muted mt-3">Chưa có loại NCKH nào</h5>
+                                <p class="text-muted">Hãy thêm loại NCKH đầu tiên để bắt đầu phân loại các công trình khoa học.</p>
+                                <a asp-action="CreateLoaiNCKH" class="btn btn-primary">
+                                    <i data-feather="plus"></i> Thêm loại NCKH đầu tiên
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông tin hướng dẫn -->
+        <div class="row mt-3">
+            <div class="col-sm-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0">
+                            <i data-feather="info" class="me-2"></i>Thông tin về loại NCKH
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Loại NCKH phổ biến:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Bài báo khoa học ISI/SCOPUS</li>
+                                    <li>• Bài báo khoa học trong nước</li>
+                                    <li>• Báo cáo khoa học hội nghị quốc tế</li>
+                                    <li>• Báo cáo khoa học hội nghị trong nước</li>
+                                    <li>• Sách chuyên khảo</li>
+                                    <li>• Giáo trình</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Quy đổi giờ chuẩn:</h6>
+                                <ul class="list-unstyled text-muted">
+                                    <li>• Được tính theo từng loại công trình</li>
+                                    <li>• Ảnh hưởng đến khối lượng NCKH của GV</li>
+                                    <li>• Cần tuân thủ quy định của trường</li>
+                                    <li>• Có thể điều chỉnh theo thời gian</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i data-feather="eye" class="me-2"></i>Chi tiết loại NCKH
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Đang tải...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons
+            feather.replace();
+
+            // Initialize DataTable if there are records
+        @if (Model.Count() > 5)
+        {
+            <text>
+                    TM.utils.initDataTable('loaiNCKHTable', {
+                        pageLength: 25,
+                        order: [[2, 'asc']], // Sort by name
+                        columnDefs: [
+                            { orderable: false, targets: [7] } // Disable sorting for action column
+                        ]
+                    });
+            </text>
+        }
+        });
+
+        function viewDetails(maLoaiNCKH) {
+            // Load chi tiết loại NCKH
+            $('#detailModal').modal('show');
+
+            $.ajax({
+                url: '@Url.Action("GetLoaiNCKHDetails", "NCKH")',
+                type: 'GET',
+                data: { id: maLoaiNCKH },
+                success: function(data) {
+                    if (data) {
+                        var html = `
+                            <dl class="row">
+                                <dt class="col-sm-3">Mã loại:</dt>
+                                <dd class="col-sm-9"><code>${data.maLoaiNCKH}</code></dd>
+
+                                <dt class="col-sm-3">Tên loại:</dt>
+                                <dd class="col-sm-9"><strong>${data.tenLoaiNCKH}</strong></dd>
+
+                                <dt class="col-sm-3">Mô tả:</dt>
+                                <dd class="col-sm-9">${data.moTa || '<em class="text-muted">Chưa có mô tả</em>'}</dd>
+
+                                <dt class="col-sm-3">Đơn vị tính:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-info">${data.donViTinh || 'Chưa xác định'}</span>
+                                </dd>
+
+                                <dt class="col-sm-3">Quy đổi giờ chuẩn:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-success">${data.quyRaGioChuan || 0}</span>
+                                </dd>
+
+                                <dt class="col-sm-3">Ghi chú quy đổi:</dt>
+                                <dd class="col-sm-9">${data.ghiChuQuyDoi || '<em class="text-muted">Không có</em>'}</dd>
+
+                                <dt class="col-sm-3">Số tài NCKH:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge bg-primary">${data.soTaiNCKH || 0}</span>
+                                    <span class="text-muted">công trình</span>
+                                </dd>
+                            </dl>
+                        `;
+                        $('#detailContent').html(html);
+                    }
+                },
+                error: function() {
+                    $('#detailContent').html('<div class="alert alert-danger">Không thể tải thông tin chi tiết.</div>');
+                }
+            });
+        }
+
+        function editLoaiNCKH(maLoaiNCKH) {
+            // Navigate to edit page
+            window.location.href = '@Url.Action("EditLoaiNCKH", "NCKH")' + '/' + maLoaiNCKH;
+        }
+
+        function deleteLoaiNCKH(maLoaiNCKH, tenLoaiNCKH) {
+            Swal.fire({
+                title: 'Xác nhận xóa',
+                html: `Bạn có chắc chắn muốn xóa loại NCKH:<br><strong>"${tenLoaiNCKH}"</strong>?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Create and submit delete form
+                    var form = $('<form>', {
+                        'method': 'POST',
+                        'action': '@Url.Action("DeleteLoaiNCKH", "NCKH")'
+                    });
+
+                    form.append($('<input>', {
+                        'type': 'hidden',
+                        'name': 'id',
+                        'value': maLoaiNCKH
+                    }));
+
+                    form.append('@Html.AntiForgeryToken()');
+
+                    $('body').append(form);
+                    form.submit();
+                }
+            });
+        }
+
+        function exportToExcel() {
+            TM.utils.exportToExcel('loaiNCKHTable', 'DanhSachLoaiNCKH');
+        }
+
+        function printPage() {
+            window.print();
+        }
+    </script>
+}

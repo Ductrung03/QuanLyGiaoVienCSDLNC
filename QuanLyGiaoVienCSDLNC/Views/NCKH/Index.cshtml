@@ -1,7 +1,7 @@
-﻿@model QuanLyGiaoVienCSDLNC.DTOs.Common.PagedResultDto<QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHListItemDto>
+﻿@model IEnumerable<QuanLyGiaoVienCSDLNC.Models.TaiNCKH>
+
 @{
-    ViewData["Title"] = "Quản lý Nghiên cứu Khoa học";
-    var searchDto = ViewBag.SearchDto as QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHSearchDto ?? new QuanLyGiaoVienCSDLNC.DTOs.NCKH.TaiNCKHSearchDto();
+    ViewData["Title"] = "Quản lý NCKH";
 }
 
 <div class="page-body">
@@ -9,12 +9,12 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>@ViewData["Title"]</h3>
+                    <h3>Quản lý nghiên cứu khoa học</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                        <li class="breadcrumb-item active">Quản lý NCKH</li>
+                        <li class="breadcrumb-item active">NCKH</li>
                     </ol>
                 </div>
             </div>
@@ -22,79 +22,53 @@
     </div>
 
     <div class="container-fluid">
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-
-        <!-- Search Form -->
+        <!-- Filter Section -->
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5>Tìm kiếm và lọc</h5>
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="search" class="me-2"></i>Tìm kiếm và lọc
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <form asp-action="Index" method="get">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="SearchText">Từ khóa</label>
-                                        <input asp-for="@searchDto.SearchText" class="form-control" placeholder="Tìm theo tên công trình..." />
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="NamHoc">Năm học</label>
-                                        <select asp-for="@searchDto.NamHoc" class="form-control">
-                                            <option value="">Tất cả</option>
-                                            @foreach (var namHoc in ViewBag.AvailableNamHoc as List<string> ?? new List<string>())
-                                            {
-                                                <option value="@namHoc">@namHoc</option>
-                                            }
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="MaLoaiNCKH">Loại NCKH</label>
-                                        <select asp-for="@searchDto.MaLoaiNCKH" class="form-control" asp-items="ViewBag.LoaiNCKHList as SelectList">
-                                            <option value="">Tất cả</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="PageSize">Hiển thị</label>
-                                        <select asp-for="@searchDto.PageSize" class="form-control">
-                                            <option value="10">10</option>
-                                            <option value="20">20</option>
-                                            <option value="50">50</option>
-                                            <option value="100">100</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <div>
-                                            <button type="submit" class="btn btn-primary">
-                                                <i data-feather="search"></i> Tìm kiếm
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                        <form asp-action="Index" method="get" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Từ khóa</label>
+                                <input type="text" class="form-control" name="searchTerm"
+                                       value="@ViewBag.SearchTerm" placeholder="Tên công trình, mã tài...">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Năm học</label>
+                                <select class="form-select" name="namHoc">
+                                    <option value="">-- Tất cả năm học --</option>
+                                    @foreach (var item in ViewBag.NamHocList as SelectList)
+                                    {
+                                        <option value="@item.Value" selected="@(item.Value == ViewBag.SelectedNamHoc)">
+                                            @item.Text
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Loại NCKH</label>
+                                <select class="form-select" name="maLoaiNCKH">
+                                    <option value="">-- Tất cả loại --</option>
+                                    @foreach (var item in ViewBag.LoaiNCKHList as SelectList)
+                                    {
+                                        <option value="@item.Value" selected="@(item.Value == ViewBag.SelectedMaLoaiNCKH)">
+                                            @item.Text
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i data-feather="search"></i> Tìm kiếm
+                                </button>
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i data-feather="refresh-cw"></i> Làm mới
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -103,139 +77,140 @@
         </div>
 
         <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-sm-12">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <a asp-action="Create" class="btn btn-success">
+                            <i data-feather="plus"></i> Thêm tài NCKH
+                        </a>
+                        <a asp-action="LoaiNCKH" class="btn btn-info">
+                            <i data-feather="settings"></i> Quản lý loại NCKH
+                        </a>
+                        <a asp-action="ThongKe" class="btn btn-warning">
+                            <i data-feather="bar-chart-2"></i> Thống kê
+                        </a>
+                    </div>
+                    <div>
+                        <button onclick="exportToExcel()" class="btn btn-outline-success">
+                            <i data-feather="download"></i> Xuất Excel
+                        </button>
+                        <button onclick="printPage()" class="btn btn-outline-primary">
+                            <i data-feather="printer"></i> In
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
                     <div class="card-header">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h5>Danh sách tài NCKH</h5>
-                            </div>
-                            <div class="col-md-6 text-end">
-                                <a asp-action="Create" class="btn btn-primary">
-                                    <i data-feather="plus"></i> Thêm mới
-                                </a>
-                                <a asp-action="ThongKe" class="btn btn-info">
-                                    <i data-feather="bar-chart-2"></i> Thống kê
-                                </a>
-                            </div>
-                        </div>
+                        <h5>
+                            Danh sách tài NCKH
+                            <span class="badge bg-primary">@Model.Count() kết quả</span>
+                        </h5>
                     </div>
-
                     <div class="card-body">
-                        @if (Model.Data.Any())
+                        @if (Model.Any())
                         {
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover">
-                                    <thead>
+                                <table class="table table-hover" id="nckhTable">
+                                    <thead class="table-dark">
                                         <tr>
-                                            <th>Mã</th>
+                                            <th>STT</th>
+                                            <th>Mã tài NCKH</th>
                                             <th>Tên công trình</th>
                                             <th>Năm học</th>
                                             <th>Loại NCKH</th>
                                             <th>Số tác giả</th>
-                                            <th>Số TG hiện tại</th>
-                                            <th>Quy đổi (giờ)</th>
+                                            <th>Quy đổi giờ chuẩn</th>
                                             <th>Trạng thái</th>
                                             <th>Thao tác</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        @foreach (var item in Model.Data)
+                                        @{
+                                            int index = 1;
+                                        }
+                                        @foreach (var item in Model)
                                         {
                                             <tr>
-                                                <td>@item.MaTaiNCKH</td>
+                                                <td>@index</td>
                                                 <td>
-                                                    <a asp-action="Details" asp-route-id="@item.MaTaiNCKH" class="text-primary">
+                                                    <strong>@item.MaTaiNCKH</strong>
+                                                </td>
+                                                <td>
+                                                    <a asp-action="Details" asp-route-id="@item.MaTaiNCKH"
+                                                       class="text-decoration-none fw-bold">
                                                         @item.TenCongTrinhKhoaHoc
                                                     </a>
                                                 </td>
-                                                <td>@item.NamHoc</td>
-                                                <td>@item.TenLoaiNCKH</td>
-                                                <td class="text-center">@item.SoTacGia</td>
-                                               
-                                                <td class="text-center">@item.QuyRaGioChuan</td>
-                                                
                                                 <td>
-                                                    <div class="btn-group" role="group">
+                                                    <span class="badge bg-info">@item.NamHoc</span>
+                                                </td>
+                                                <td>
+                                                    @if (item.LoaiNCKH != null)
+                                                    {
+                                                        <span class="badge bg-secondary">@item.LoaiNCKH.TenLoaiNCKH</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-primary">@item.SoTacGia</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    @if (item.LoaiNCKH?.QuyDoiGioChuanNCKH != null)
+                                                    {
+                                                        <span class="badge bg-success">
+                                                            @item.LoaiNCKH.QuyDoiGioChuanNCKH.QuyRaGioChuan
+                                                        </span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @{
+                                                        // Giả sử tính trạng thái dựa trên số tác giả hiện tại
+                                                        var soTacGiaHienTai = 0; // Cần implement logic lấy số tác giả hiện tại
+                                                        var trangThai = soTacGiaHienTai >= item.SoTacGia ? "Đủ tác giả" : "Thiếu tác giả";
+                                                        var badgeClass = soTacGiaHienTai >= item.SoTacGia ? "bg-success" : "bg-warning";
+                                                    }
+                                                    <span class="badge @badgeClass">@trangThai</span>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
                                                         <a asp-action="Details" asp-route-id="@item.MaTaiNCKH"
-                                                           class="btn btn-sm btn-outline-info" title="Chi tiết">
+                                                           class="btn btn-info" title="Xem chi tiết">
                                                             <i data-feather="eye"></i>
                                                         </a>
                                                         <a asp-action="Edit" asp-route-id="@item.MaTaiNCKH"
-                                                           class="btn btn-sm btn-outline-warning" title="Sửa">
+                                                           class="btn btn-warning" title="Sửa">
                                                             <i data-feather="edit"></i>
                                                         </a>
                                                         <a asp-action="PhanCong" asp-route-id="@item.MaTaiNCKH"
-                                                           class="btn btn-sm btn-outline-success" title="Phân công">
+                                                           class="btn btn-success" title="Phân công">
                                                             <i data-feather="user-plus"></i>
                                                         </a>
                                                         <a asp-action="Delete" asp-route-id="@item.MaTaiNCKH"
-                                                           class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                           class="btn btn-danger" title="Xóa"
+                                                           onclick="return confirm('Bạn có chắc chắn muốn xóa?')">
                                                             <i data-feather="trash-2"></i>
                                                         </a>
                                                     </div>
                                                 </td>
                                             </tr>
+                                            index++;
                                         }
                                     </tbody>
                                 </table>
                             </div>
-
-                            <!-- Pagination -->
-                            @if (Model.TotalPages > 1)
-                            {
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        @if (Model.HasPreviousPage)
-                                        {
-                                            <li class="page-item">
-                                                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber - 1)"
-                                                   asp-route-searchText="@searchDto.SearchText"
-                                                   asp-route-namHoc="@searchDto.NamHoc"
-                                                   asp-route-maLoaiNCKH="@searchDto.MaLoaiNCKH"
-                                                   asp-route-pageSize="@searchDto.PageSize">Trước</a>
-                                            </li>
-                                        }
-
-                                        @for (int i = Math.Max(1, Model.PageNumber - 2); i <= Math.Min(Model.TotalPages, Model.PageNumber + 2); i++)
-                                        {
-                                            <li class="page-item @(i == Model.PageNumber ? "active" : "")">
-                                                <a class="page-link" asp-action="Index" asp-route-pageNumber="@i"
-                                                   asp-route-searchText="@searchDto.SearchText"
-                                                   asp-route-namHoc="@searchDto.NamHoc"
-                                                   asp-route-maLoaiNCKH="@searchDto.MaLoaiNCKH"
-                                                   asp-route-pageSize="@searchDto.PageSize">@i</a>
-                                            </li>
-                                        }
-
-                                        @if (Model.HasNextPage)
-                                        {
-                                            <li class="page-item">
-                                                <a class="page-link" asp-action="Index" asp-route-pageNumber="@(Model.PageNumber + 1)"
-                                                   asp-route-searchText="@searchDto.SearchText"
-                                                   asp-route-namHoc="@searchDto.NamHoc"
-                                                   asp-route-maLoaiNCKH="@searchDto.MaLoaiNCKH"
-                                                   asp-route-pageSize="@searchDto.PageSize">Sau</a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </nav>
-
-                                <div class="text-center">
-                                    <small class="text-muted">
-                                        Hiển thị @((Model.PageNumber - 1) * Model.PageSize + 1) - @Math.Min(Model.PageNumber * Model.PageSize, Model.TotalRecords)
-                                        của @Model.TotalRecords kết quả
-                                    </small>
-                                </div>
-                            }
                         }
                         else
                         {
-                            <div class="text-center py-4">
-                                <i data-feather="inbox" class="text-muted" style="width: 64px; height: 64px;"></i>
-                                <h5 class="text-muted mt-3">Không có dữ liệu</h5>
-                                <p class="text-muted">Không tìm thấy tài NCKH nào phù hợp với điều kiện tìm kiếm.</p>
+                            <div class="text-center py-5">
+                                <i data-feather="inbox" style="width: 64px; height: 64px;" class="text-muted"></i>
+                                <h5 class="text-muted mt-3">Không tìm thấy tài NCKH nào</h5>
+                                <p class="text-muted">Hãy thử thay đổi điều kiện tìm kiếm hoặc thêm tài NCKH mới.</p>
                                 <a asp-action="Create" class="btn btn-primary">
                                     <i data-feather="plus"></i> Thêm tài NCKH đầu tiên
                                 </a>
@@ -250,7 +225,33 @@
 
 @section Script {
     <script>
-        // Initialize Feather icons
-        feather.replace();
+        // Export to Excel
+        function exportToExcel() {
+            TM.utils.exportToExcel('nckhTable', 'DanhSachTaiNCKH');
+        }
+
+        // Print page
+        function printPage() {
+            window.print();
+        }
+
+        // Initialize DataTable if more than 10 records
+        $(document).ready(function () {
+        @if (Model.Count() > 10)
+        {
+            <text>
+                    TM.utils.initDataTable('nckhTable', {
+                        pageLength: 25,
+                        order: [[3, 'desc'], [2, 'asc']], // Sort by year desc, then name asc
+                        columnDefs: [
+                            { orderable: false, targets: [8] } // Disable sorting for action column
+                        ]
+                    });
+            </text>
+        }
+
+            // Initialize feather icons
+            feather.replace();
+        });
     </script>
 }

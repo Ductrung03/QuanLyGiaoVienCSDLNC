@@ -1,6 +1,8 @@
-﻿@model object
-@{
+﻿@{
     ViewData["Title"] = "Thống kê NCKH";
+    var thongKeTongQuan = ViewBag.ThongKeTongQuan;
+    var thongKeTheoKhoa = ViewBag.ThongKeTheoKhoa as List<dynamic>;
+    var thongKeTheoBoMon = ViewBag.ThongKeTheoBoMon as List<dynamic>;
 }
 
 <div class="page-body">
@@ -8,12 +10,12 @@
         <div class="page-title">
             <div class="row">
                 <div class="col-6">
-                    <h3>@ViewData["Title"]</h3>
+                    <h3>Thống kê nghiên cứu khoa học</h3>
                 </div>
                 <div class="col-6">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Trang chủ</a></li>
-                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">Quản lý NCKH</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="NCKH" asp-action="Index">NCKH</a></li>
                         <li class="breadcrumb-item active">Thống kê</li>
                     </ol>
                 </div>
@@ -22,70 +24,42 @@
     </div>
 
     <div class="container-fluid">
-        @if (TempData["ErrorMessage"] != null)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-
-        <!-- Bộ lọc thống kê -->
+        <!-- Filter Section -->
         <div class="row">
             <div class="col-sm-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5>Bộ lọc thống kê</h5>
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="filter" class="me-2"></i>Bộ lọc thống kê
+                        </h5>
                     </div>
                     <div class="card-body">
-                        <form method="get" asp-action="ThongKe">
-                            <div class="row">
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="maGV">Giáo viên</label>
-                                        <select name="maGV" class="form-control" asp-items="ViewBag.GiaoVienList as SelectList">
-                                            <option value="">Tất cả giáo viên</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label for="maBM">Bộ môn</label>
-                                        <select name="maBM" class="form-control" asp-items="ViewBag.BoMonList as SelectList">
-                                            <option value="">Tất cả bộ môn</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="maKhoa">Khoa</label>
-                                        <select name="maKhoa" class="form-control" asp-items="ViewBag.KhoaList as SelectList">
-                                            <option value="">Tất cả khoa</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label for="namHoc">Năm học</label>
-                                        <select name="namHoc" class="form-control">
-                                            <option value="">Tất cả năm</option>
-                                            @foreach (var namHoc in ViewBag.AvailableNamHoc as List<string> ?? new List<string>())
-                                            {
-                                                <option value="@namHoc" selected="@(ViewBag.SelectedNamHoc?.ToString() == namHoc)">@namHoc</option>
-                                            }
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2">
-                                    <div class="form-group">
-                                        <label>&nbsp;</label>
-                                        <div>
-                                            <button type="submit" class="btn btn-primary w-100">
-                                                <i data-feather="bar-chart-2"></i> Thống kê
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                        <form asp-action="ThongKe" method="get" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Năm học</label>
+                                <select class="form-select" name="namHoc" asp-items="ViewBag.AvailableNamHoc">
+                                    <option value="">-- Tất cả năm học --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Khoa</label>
+                                <select class="form-select" name="maKhoa" asp-items="ViewBag.KhoaList" id="khoaSelect">
+                                    <option value="">-- Tất cả khoa --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Bộ môn</label>
+                                <select class="form-select" name="maBM" asp-items="ViewBag.BoMonList" id="boMonSelect">
+                                    <option value="">-- Tất cả bộ môn --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i data-feather="bar-chart-2"></i> Thống kê
+                                </button>
+                                <a asp-action="ThongKe" class="btn btn-secondary">
+                                    <i data-feather="refresh-cw"></i> Làm mới
+                                </a>
                             </div>
                         </form>
                     </div>
@@ -93,309 +67,433 @@
             </div>
         </div>
 
-        <!-- Kết quả thống kê -->
-        @if (Model != null)
-        {
-            <!-- Thống kê tổng quan -->
-            <div class="row">
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card o-hidden">
-                        <div class="bg-primary b-r-4 card-body">
-                            <div class="media static-top-widget">
-                                <div class="align-self-center text-center">
-                                    <i data-feather="book" class="text-white" style="width: 48px; height: 48px;"></i>
+        <!-- Thống kê tổng quan -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-success">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="trending-up" class="me-2"></i>Thống kê tổng quan
+                            @if (!string.IsNullOrEmpty(ViewBag.SelectedNamHoc as string))
+                            {
+                                <span class="badge bg-light text-dark ms-2">@ViewBag.SelectedNamHoc</span>
+                            }
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card border-primary">
+                                    <div class="card-body">
+                                        <i data-feather="file-text" class="text-primary mb-2" style="width: 48px; height: 48px;"></i>
+                                        <h3 class="text-primary">@(thongKeTongQuan?.TongSoCongTrinh ?? 0)</h3>
+                                        <p class="text-muted mb-0">Tổng công trình</p>
+                                    </div>
                                 </div>
-                                <div class="media-body">
-                                    <span class="m-0 text-white">Tổng công trình</span>
-                                    <h4 class="mb-0 counter text-white" id="totalCongTrinh">0</h4>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card border-info">
+                                    <div class="card-body">
+                                        <i data-feather="users" class="text-info mb-2" style="width: 48px; height: 48px;"></i>
+                                        <h3 class="text-info">@(thongKeTongQuan?.SoGiaoVienThamGia ?? 0)</h3>
+                                        <p class="text-muted mb-0">Giáo viên tham gia</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card border-warning">
+                                    <div class="card-body">
+                                        <i data-feather="clock" class="text-warning mb-2" style="width: 48px; height: 48px;"></i>
+                                        <h3 class="text-warning">@(thongKeTongQuan?.TongSoGioNCKH ?? 0)</h3>
+                                        <p class="text-muted mb-0">Tổng số giờ</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-sm-6 mb-3">
+                                <div class="card border-success">
+                                    <div class="card-body">
+                                        <i data-feather="award" class="text-success mb-2" style="width: 48px; height: 48px;"></i>
+                                        <h3 class="text-success">@(thongKeTongQuan?.SoCongTrinhChuNhiem ?? 0)</h3>
+                                        <p class="text-muted mb-0">Chủ nhiệm</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card o-hidden">
-                        <div class="bg-success b-r-4 card-body">
-                            <div class="media static-top-widget">
-                                <div class="align-self-center text-center">
-                                    <i data-feather="users" class="text-white" style="width: 48px; height: 48px;"></i>
-                                </div>
-                                <div class="media-body">
-                                    <span class="m-0 text-white">Tổng tác giả</span>
-                                    <h4 class="mb-0 counter text-white" id="totalTacGia">0</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card o-hidden">
-                        <div class="bg-warning b-r-4 card-body">
-                            <div class="media static-top-widget">
-                                <div class="align-self-center text-center">
-                                    <i data-feather="clock" class="text-white" style="width: 48px; height: 48px;"></i>
-                                </div>
-                                <div class="media-body">
-                                    <span class="m-0 text-white">Tổng giờ</span>
-                                    <h4 class="mb-0 counter text-white" id="totalGio">0</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-sm-6">
-                    <div class="card o-hidden">
-                        <div class="bg-info b-r-4 card-body">
-                            <div class="media static-top-widget">
-                                <div class="align-self-center text-center">
-                                    <i data-feather="trending-up" class="text-white" style="width: 48px; height: 48px;"></i>
-                                </div>
-                                <div class="media-body">
-                                    <span class="m-0 text-white">TB giờ/CT</span>
-                                    <h4 class="mb-0 counter text-white" id="avgGio">0</h4>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Biểu đồ thống kê -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Thống kê theo loại NCKH</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartLoaiNCKH" width="400" height="400"></canvas>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-header">
-                            <h5>Thống kê theo năm học</h5>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="chartNamHoc" width="400" height="200"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bảng thống kê chi tiết -->
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="card">
-                        <div class="card-header">
-                            <div class="row">
+                        @if (thongKeTongQuan?.SoGiaoVienThamGia > 0)
+                        {
+                            <div class="row mt-3">
                                 <div class="col-md-6">
-                                    <h5>Chi tiết thống kê NCKH</h5>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Số giờ trung bình/GV:</span>
+                                        <strong class="text-primary">
+                                            @(Math.Round((double)(thongKeTongQuan?.TongSoGioNCKH ?? 0) / (thongKeTongQuan?.SoGiaoVienThamGia ?? 1), 1)) giờ
+                                        </strong>
+                                    </div>
                                 </div>
-                                <div class="col-md-6 text-end">
-                                    <button type="button" class="btn btn-success btn-sm" onclick="exportToExcel()">
-                                        <i data-feather="download"></i> Xuất Excel
-                                    </button>
-                                    <button type="button" class="btn btn-info btn-sm" onclick="printReport()">
-                                        <i data-feather="printer"></i> In báo cáo
-                                    </button>
+                                <div class="col-md-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Số tác giả trung bình:</span>
+                                        <strong class="text-info">
+                                            @(thongKeTongQuan?.SoTacGiaTrungBinh ?? 0) người
+                                        </strong>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="card-body">
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row">
+            <!-- Chart theo khoa -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-info">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="pie-chart" class="me-2"></i>Thống kê theo khoa
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chartTheoKhoa" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart theo bộ môn -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="bar-chart" class="me-2"></i>Thống kê theo bộ môn
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chartTheoBoMon" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Tables -->
+        <div class="row">
+            <!-- Bảng thống kê theo khoa -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="list" class="me-2"></i>Chi tiết theo khoa
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (thongKeTheoKhoa != null && thongKeTheoKhoa.Any())
+                        {
                             <div class="table-responsive">
-                                <table class="table table-striped table-hover" id="thongKeTable">
-                                    <thead>
+                                <table class="table table-hover">
+                                    <thead class="table-dark">
                                         <tr>
-                                            <th>STT</th>
-                                            <th>Mã GV</th>
-                                            <th>Họ tên</th>
-                                            <th>Bộ môn</th>
-                                            <th>Số công trình</th>
-                                            <th>Tổng giờ</th>
-                                            <th>Vai trò chủ nhiệm</th>
-                                            <th>Vai trò thành viên</th>
-                                            <th>Trạng thái</th>
+                                            <th>Khoa</th>
+                                            <th class="text-center">Công trình</th>
+                                            <th class="text-center">GV tham gia</th>
+                                            <th class="text-center">Tổng giờ</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <!-- Dữ liệu sẽ được load bằng JavaScript -->
+                                        @foreach (var item in thongKeTheoKhoa.OrderByDescending(x => x.SoCongTrinh))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong>@item.TenKhoa</strong>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-primary">@item.SoCongTrinh</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info">@item.SoGiaoVienThamGia</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">@item.TongSoGio</span>
+                                                </td>
+                                            </tr>
+                                        }
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-3">
+                                <i data-feather="inbox" class="text-muted" style="width: 48px; height: 48px;"></i>
+                                <p class="text-muted mt-2">Không có dữ liệu</p>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
-        }
-        else
-        {
-            <div class="row">
-                <div class="col-sm-12">
-                    <div class="card">
-                        <div class="card-body text-center py-5">
-                            <i data-feather="bar-chart-2" class="text-muted" style="width: 64px; height: 64px;"></i>
-                            <h4 class="text-muted mt-3">Chưa có dữ liệu thống kê</h4>
-                            <p class="text-muted">Vui lòng chọn tiêu chí lọc để xem thống kê NCKH.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
 
-        <!-- Nút quay lại -->
-        <div class="row mt-3">
+            <!-- Bảng thống kê theo bộ môn -->
+            <div class="col-lg-6">
+                <div class="card">
+                    <div class="card-header bg-secondary">
+                        <h5 class="text-white mb-0">
+                            <i data-feather="grid" class="me-2"></i>Chi tiết theo bộ môn
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if (thongKeTheoBoMon != null && thongKeTheoBoMon.Any())
+                        {
+                            <div class="table-responsive" style="max-height: 400px;">
+                                <table class="table table-hover table-sm">
+                                    <thead class="table-dark sticky-top">
+                                        <tr>
+                                            <th>Bộ môn</th>
+                                            <th class="text-center">CT</th>
+                                            <th class="text-center">GV</th>
+                                            <th class="text-center">Giờ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in thongKeTheoBoMon.OrderByDescending(x => x.SoCongTrinh))
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div>
+                                                        <strong>@item.TenBM</strong>
+                                                        <br><small class="text-muted">@item.TenKhoa</small>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-primary">@item.SoCongTrinh</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-info">@item.SoGiaoVienThamGia</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge bg-success">@item.TongSoGio</span>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-3">
+                                <i data-feather="inbox" class="text-muted" style="width: 48px; height: 48px;"></i>
+                                <p class="text-muted mt-2">Không có dữ liệu</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="row">
             <div class="col-12">
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i data-feather="arrow-left"></i> Quay lại danh sách
-                </a>
+                <div class="text-center">
+                    <a asp-action="TopGiaoVien" class="btn btn-warning">
+                        <i data-feather="award"></i> Top giáo viên xuất sắc
+                    </a>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i data-feather="arrow-left"></i> Quay lại danh sách
+                    </a>
+                    <button onclick="exportCharts()" class="btn btn-success">
+                        <i data-feather="download"></i> Xuất biểu đồ
+                    </button>
+                    <button onclick="printReport()" class="btn btn-info">
+                        <i data-feather="printer"></i> In báo cáo
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 @section Script {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Initialize Feather icons
-        feather.replace();
+        let chartTheoKhoa, chartTheoBoMon;
 
-        // Sample data - In thực tế sẽ load từ server
-        const sampleData = {
-            totalCongTrinh: 25,
-            totalTacGia: 45,
-            totalGio: 1250,
-            avgGio: 50,
-            loaiNCKH: [
-                { label: 'Bài báo khoa học', value: 15, color: '#007bff' },
-                { label: 'Sách chuyên khảo', value: 5, color: '#28a745' },
-                { label: 'Đề tài nghiên cứu', value: 3, color: '#ffc107' },
-                { label: 'Khác', value: 2, color: '#dc3545' }
-            ],
-            namHoc: [
-                { label: '2020-2021', value: 5 },
-                { label: '2021-2022', value: 8 },
-                { label: '2022-2023', value: 7 },
-                { label: '2023-2024', value: 5 }
-            ],
-            chiTiet: [
-                { maGV: 'GV001', hoTen: 'Nguyễn Văn A', boMon: 'Công nghệ thông tin', soCongTrinh: 5, tongGio: 200, chuNhiem: 2, thanhVien: 3, trangThai: 'Đạt' },
-                { maGV: 'GV002', hoTen: 'Trần Thị B', boMon: 'Khoa học máy tính', soCongTrinh: 3, tongGio: 150, chuNhiem: 1, thanhVien: 2, trangThai: 'Đạt' },
-                { maGV: 'GV003', hoTen: 'Lê Văn C', boMon: 'Mạng máy tính', soCongTrinh: 2, tongGio: 80, chuNhiem: 0, thanhVien: 2, trangThai: 'Chưa đạt' }
-            ]
-        };
+        $(document).ready(function () {
+            // Initialize feather icons
+            feather.replace();
 
-        // Update overview counters
-        $('#totalCongTrinh').text(sampleData.totalCongTrinh);
-        $('#totalTacGia').text(sampleData.totalTacGia);
-        $('#totalGio').text(sampleData.totalGio);
-        $('#avgGio').text(sampleData.avgGio);
+            // Initialize charts
+            initChartTheoKhoa();
+            initChartTheoBoMon();
 
-        // Chart for Loai NCKH
-        const ctxLoai = document.getElementById('chartLoaiNCKH').getContext('2d');
-        new Chart(ctxLoai, {
-            type: 'doughnut',
-            data: {
-                labels: sampleData.loaiNCKH.map(item => item.label),
-                datasets: [{
-                    data: sampleData.loaiNCKH.map(item => item.value),
-                    backgroundColor: sampleData.loaiNCKH.map(item => item.color),
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
+            // Filter dependencies
+            $('#khoaSelect').change(function() {
+                var maKhoa = $(this).val();
+                // Filter bộ môn theo khoa được chọn
+                filterBoMonByKhoa(maKhoa);
+            });
+
+            // Set selected values
+            var selectedNamHoc = '@ViewBag.SelectedNamHoc';
+            var selectedMaKhoa = '@ViewBag.SelectedMaKhoa';
+            var selectedMaBM = '@ViewBag.SelectedMaBM';
+
+            if (selectedNamHoc) $('select[name="namHoc"]').val(selectedNamHoc);
+            if (selectedMaKhoa) {
+                $('select[name="maKhoa"]').val(selectedMaKhoa);
+                filterBoMonByKhoa(selectedMaKhoa);
             }
+            if (selectedMaBM) $('select[name="maBM"]').val(selectedMaBM);
         });
 
-        // Chart for Nam Hoc
-        const ctxNam = document.getElementById('chartNamHoc').getContext('2d');
-        new Chart(ctxNam, {
-            type: 'bar',
-            data: {
-                labels: sampleData.namHoc.map(item => item.label),
-                datasets: [{
-                    label: 'Số công trình',
-                    data: sampleData.namHoc.map(item => item.value),
-                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
+        function initChartTheoKhoa() {
+            const ctx = document.getElementById('chartTheoKhoa');
+            if (!ctx) return;
+
+            const data = @Html.Raw(Json.Serialize(thongKeTheoKhoa?.Select(x => new
+            {
+                TenKhoa = x.TenKhoa,
+                SoCongTrinh = x.SoCongTrinh
+            }) ?? new object[0]));
+
+            const labels = data.map(item => item.tenKhoa);
+            const values = data.map(item => item.soCongTrinh);
+            const colors = generateColors(labels.length);
+
+            chartTheoKhoa = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${label}: ${value} công trình (${percentage}%)`;
+                                }
+                            }
                         }
                     }
                 }
+            });
+        }
+
+        function initChartTheoBoMon() {
+            const ctx = document.getElementById('chartTheoBoMon');
+            if (!ctx) return;
+
+            const data = @Html.Raw(Json.Serialize(thongKeTheoBoMon?.Take(10).Select(x => new
+            {
+                TenBM = x.TenBM,
+                SoCongTrinh = x.SoCongTrinh,
+                SoGiaoVienThamGia = x.SoGiaoVienThamGia
+            }) ?? new object[0]));
+
+            const labels = data.map(item => item.tenBM);
+            const congTrinhData = data.map(item => item.soCongTrinh);
+            const giaoVienData = data.map(item => item.soGiaoVienThamGia);
+
+            chartTheoBoMon = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Số công trình',
+                            data: congTrinhData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Số giáo viên',
+                            data: giaoVienData,
+                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function generateColors(count) {
+            const colors = [
+                '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0',
+                '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF',
+                '#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56'
+            ];
+            return colors.slice(0, count);
+        }
+
+        function filterBoMonByKhoa(maKhoa) {
+            // This would typically make an AJAX call to filter bộ môn
+            // For now, we'll just enable/disable the select
+            if (maKhoa) {
+                $('#boMonSelect').prop('disabled', false);
+            } else {
+                $('#boMonSelect').val('').prop('disabled', false);
             }
-        });
+        }
 
-        // Populate detail table
-        const tableBody = document.querySelector('#thongKeTable tbody');
-        sampleData.chiTiet.forEach((item, index) => {
-            const row = tableBody.insertRow();
-            row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${item.maGV}</td>
-                <td><a href="/GiaoVien/Details/${item.maGV}" class="text-primary">${item.hoTen}</a></td>
-                <td>${item.boMon}</td>
-                <td class="text-center">${item.soCongTrinh}</td>
-                <td class="text-center">${item.tongGio}</td>
-                <td class="text-center">${item.chuNhiem}</td>
-                <td class="text-center">${item.thanhVien}</td>
-                <td class="text-center">
-                    <span class="badge ${item.trangThai === 'Đạt' ? 'bg-success' : 'bg-warning'}">${item.trangThai}</span>
-                </td>
-            `;
-        });
+        function exportCharts() {
+            // Export charts as images
+            const canvas1 = document.getElementById('chartTheoKhoa');
+            const canvas2 = document.getElementById('chartTheoBoMon');
 
-        // Export functions
-        function exportToExcel() {
-            // Implementation for Excel export
-            alert('Chức năng xuất Excel đang được phát triển');
+            if (canvas1) {
+                const link1 = document.createElement('a');
+                link1.download = 'thongke-theo-khoa.png';
+                link1.href = canvas1.toDataURL();
+                link1.click();
+            }
+
+            setTimeout(() => {
+                if (canvas2) {
+                    const link2 = document.createElement('a');
+                    link2.download = 'thongke-theo-bomon.png';
+                    link2.href = canvas2.toDataURL();
+                    link2.click();
+                }
+            }, 1000);
+
+            TM.utils.showNotification('Đã xuất biểu đồ thành công!', 'success');
         }
 
         function printReport() {
-            // Implementation for printing
             window.print();
         }
-
-        // Filter change handlers
-        $('select[name="maBM"]').change(function() {
-            const selectedBM = $(this).val();
-            if (selectedBM) {
-                // Filter GiaoVien by BoMon
-                // Load giáo viên thuộc bộ môn được chọn
-            }
-        });
-
-        $('select[name="maKhoa"]').change(function() {
-            const selectedKhoa = $(this).val();
-            if (selectedKhoa) {
-                // Filter BoMon by Khoa
-                // Load bộ môn thuộc khoa được chọn
-            }
-        });
-
-        // Auto submit when filter changes (optional)
-        $('.auto-submit').change(function() {
-            $(this).closest('form').submit();
-        });
-
-        // Tooltips for charts
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(0,0,0,0.8)';
-        Chart.defaults.plugins.tooltip.titleColor = '#fff';
-        Chart.defaults.plugins.tooltip.bodyColor = '#fff';
     </script>
 }

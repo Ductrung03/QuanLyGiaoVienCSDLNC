@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using QuanLyGiaoVienCSDLNC.DTOs.NCKH;
+using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 
 namespace QuanLyGiaoVienCSDLNC.Controllers
@@ -24,33 +24,27 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             _khoaService = khoaService;
         }
 
+        #region Tài NCKH
         // GET: NCKH
-        public async Task<IActionResult> Index(TaiNCKHSearchDto searchDto)
+        public async Task<IActionResult> Index(string searchTerm = null, string namHoc = null, string maLoaiNCKH = null)
         {
             try
             {
-                var result = await _nckhService.SearchTaiNCKHAsync(searchDto);
+                var taiNCKHList = await _nckhService.SearchTaiNCKHAsync(searchTerm, namHoc, maLoaiNCKH);
 
-                // Load dropdowns
+                // Load dropdown data
                 await LoadViewData();
 
-                ViewBag.SearchDto = searchDto;
-                ViewBag.AvailableNamHoc = await _nckhService.GetAvailableNamHocAsync();
+                ViewBag.SearchTerm = searchTerm;
+                ViewBag.SelectedNamHoc = namHoc;
+                ViewBag.SelectedMaLoaiNCKH = maLoaiNCKH;
 
-                if (result.Success)
-                {
-                    return View(result.Data);
-                }
-                else
-                {
-                    TempData["ErrorMessage"] = result.Message;
-                    return View(new DTOs.Common.PagedResultDto<TaiNCKHListItemDto>());
-                }
+                return View(taiNCKHList);
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = $"Lỗi khi tải danh sách NCKH: {ex.Message}";
-                return View(new DTOs.Common.PagedResultDto<TaiNCKHListItemDto>());
+                return View(new List<TaiNCKH>());
             }
         }
 
@@ -63,14 +57,26 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var result = await _nckhService.GetTaiNCKHDetailAsync(id);
-            if (!result.Success)
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var taiNCKH = await _nckhService.GetTaiNCKHByIdAsync(id);
+                if (taiNCKH == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài NCKH";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                // Lấy danh sách tác giả
+                var chiTietList = await _nckhService.GetChiTietNCKHByTaiNCKHAsync(id);
+                ViewBag.ChiTietNCKHList = chiTietList;
+
+                return View(taiNCKH);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi lấy thông tin tài NCKH: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(result.Data);
         }
 
         // GET: NCKH/Create
@@ -83,31 +89,29 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         // POST: NCKH/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(TaiNCKHCreateDto dto)
+        public async Task<IActionResult> Create(TaiNCKH taiNCKH)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var result = await _nckhService.AddTaiNCKHAsync(dto);
-                if (result.Success)
+                var (success, message, maTaiNCKH) = await _nckhService.AddTaiNCKHAsync(taiNCKH);
+
+                if (success)
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    return RedirectToAction(nameof(Details), new { id = result.Data });
+                    TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(Details), new { id = maTaiNCKH });
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = result.Message;
-                    if (result.Errors?.Any() == true)
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error);
-                        }
-                    }
+                    TempData["ErrorMessage"] = message;
                 }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi thêm tài NCKH: {ex.Message}";
             }
 
             await LoadViewData();
-            return View(dto);
+            return View(taiNCKH);
         }
 
         // GET: NCKH/Edit/5
@@ -119,53 +123,57 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var result = await _nckhService.GetTaiNCKHByIdAsync(id);
-            if (!result.Success)
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var taiNCKH = await _nckhService.GetTaiNCKHByIdAsync(id);
+                if (taiNCKH == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài NCKH";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await LoadViewData();
+                return View(taiNCKH);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi lấy thông tin tài NCKH: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
-
-            var dto = new TaiNCKHUpdateDto
-            {
-                MaTaiNCKH = result.Data.MaTaiNCKH,
-                TenCongTrinhKhoaHoc = result.Data.TenCongTrinhKhoaHoc,
-                NamHoc = result.Data.NamHoc,
-                SoTacGia = result.Data.SoTacGia,
-                MaLoaiNCKH = result.Data.MaLoaiNCKH
-            };
-
-            await LoadViewData();
-            return View(dto);
         }
 
         // POST: NCKH/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, TaiNCKHUpdateDto dto)
+        public async Task<IActionResult> Edit(string id, TaiNCKH taiNCKH)
         {
-            if (id != dto.MaTaiNCKH)
+            if (id != taiNCKH.MaTaiNCKH)
             {
                 TempData["ErrorMessage"] = "Mã tài NCKH không khớp";
                 return RedirectToAction(nameof(Index));
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                var result = await _nckhService.UpdateTaiNCKHAsync(dto);
-                if (result.Success)
+                var (success, message) = await _nckhService.UpdateTaiNCKHAsync(taiNCKH);
+
+                if (success)
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    return RedirectToAction(nameof(Details), new { id = dto.MaTaiNCKH });
+                    TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(Details), new { id = taiNCKH.MaTaiNCKH });
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = result.Message;
+                    TempData["ErrorMessage"] = message;
                 }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi cập nhật tài NCKH: {ex.Message}";
             }
 
             await LoadViewData();
-            return View(dto);
+            return View(taiNCKH);
         }
 
         // GET: NCKH/Delete/5
@@ -177,14 +185,22 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var result = await _nckhService.GetTaiNCKHDetailAsync(id);
-            if (!result.Success)
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var taiNCKH = await _nckhService.GetTaiNCKHByIdAsync(id);
+                if (taiNCKH == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài NCKH";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                return View(taiNCKH);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi lấy thông tin tài NCKH: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
-
-            return View(result.Data);
         }
 
         // POST: NCKH/Delete/5
@@ -192,19 +208,29 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
-            var result = await _nckhService.DeleteTaiNCKHAsync(id);
-            if (result.Success)
+            try
             {
-                TempData["SuccessMessage"] = result.Message;
+                var (success, message) = await _nckhService.DeleteTaiNCKHAsync(id);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = message;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                TempData["ErrorMessage"] = result.Message;
+                TempData["ErrorMessage"] = $"Lỗi khi xóa tài NCKH: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Index));
         }
+        #endregion
 
+        #region Chi tiết NCKH
         // GET: NCKH/PhanCong/5
         public async Task<IActionResult> PhanCong(string id)
         {
@@ -214,128 +240,282 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var taiNCKHResult = await _nckhService.GetTaiNCKHDetailAsync(id);
-            if (!taiNCKHResult.Success)
+            try
             {
-                TempData["ErrorMessage"] = taiNCKHResult.Message;
+                var taiNCKH = await _nckhService.GetTaiNCKHByIdAsync(id);
+                if (taiNCKH == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy tài NCKH";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                var chiTietNCKH = new ChiTietNCKH
+                {
+                    MaTaiNCKH = id
+                };
+
+                ViewBag.TaiNCKH = taiNCKH;
+                await LoadGiaoVienDropdown();
+                ViewBag.VaiTroList = new SelectList(await _nckhService.GetAvailableVaiTroAsync());
+
+                return View(chiTietNCKH);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi tải trang phân công: {ex.Message}";
                 return RedirectToAction(nameof(Index));
             }
-
-            var dto = new ChiTietNCKHCreateDto
-            {
-                MaTaiNCKH = id
-            };
-
-            ViewBag.TaiNCKH = taiNCKHResult.Data;
-            ViewBag.AvailableVaiTro = await _nckhService.GetAvailableVaiTroAsync();
-            await LoadGiaoVienDropdown();
-
-            return View(dto);
         }
 
         // POST: NCKH/PhanCong
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PhanCong(ChiTietNCKHCreateDto dto)
+        public async Task<IActionResult> PhanCong(ChiTietNCKH chiTietNCKH)
         {
-            if (ModelState.IsValid)
+            try
             {
-                var result = await _nckhService.PhanCongNCKHAsync(dto);
-                if (result.Success)
+                var (success, message, maChiTietNCKH) = await _nckhService.AddChiTietNCKHAsync(chiTietNCKH);
+
+                if (success)
                 {
-                    TempData["SuccessMessage"] = result.Message;
-                    return RedirectToAction(nameof(Details), new { id = dto.MaTaiNCKH });
+                    TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(Details), new { id = chiTietNCKH.MaTaiNCKH });
                 }
                 else
                 {
-                    TempData["ErrorMessage"] = result.Message;
-                    if (result.Errors?.Any() == true)
-                    {
-                        foreach (var error in result.Errors)
-                        {
-                            ModelState.AddModelError("", error);
-                        }
-                    }
+                    TempData["ErrorMessage"] = message;
                 }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi phân công NCKH: {ex.Message}";
             }
 
             // Reload data for view
-            var taiNCKHResult = await _nckhService.GetTaiNCKHDetailAsync(dto.MaTaiNCKH);
-            ViewBag.TaiNCKH = taiNCKHResult.Data;
-            ViewBag.AvailableVaiTro = await _nckhService.GetAvailableVaiTroAsync();
+            var taiNCKH = await _nckhService.GetTaiNCKHByIdAsync(chiTietNCKH.MaTaiNCKH);
+            ViewBag.TaiNCKH = taiNCKH;
             await LoadGiaoVienDropdown();
+            ViewBag.VaiTroList = new SelectList(await _nckhService.GetAvailableVaiTroAsync());
 
-            return View(dto);
+            return View(chiTietNCKH);
         }
 
-        // POST: NCKH/XoaPhanCong
+        // GET: NCKH/EditChiTiet/5
+        public async Task<IActionResult> EditChiTiet(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                TempData["ErrorMessage"] = "Mã chi tiết NCKH không hợp lệ";
+                return RedirectToAction(nameof(Index));
+            }
+
+            try
+            {
+                var chiTietNCKH = await _nckhService.GetChiTietNCKHByIdAsync(id);
+                if (chiTietNCKH == null)
+                {
+                    TempData["ErrorMessage"] = "Không tìm thấy chi tiết NCKH";
+                    return RedirectToAction(nameof(Index));
+                }
+
+                await LoadGiaoVienDropdown();
+                ViewBag.VaiTroList = new SelectList(await _nckhService.GetAvailableVaiTroAsync(), chiTietNCKH.VaiTro);
+
+                return View(chiTietNCKH);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi lấy thông tin chi tiết NCKH: {ex.Message}";
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        // POST: NCKH/EditChiTiet/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> XoaPhanCong(string maChiTietNCKH, string maTaiNCKH)
+        public async Task<IActionResult> EditChiTiet(string id, ChiTietNCKH chiTietNCKH)
         {
-            var result = await _nckhService.DeleteChiTietNCKHAsync(maChiTietNCKH);
-            if (result.Success)
+            if (id != chiTietNCKH.MaChiTietNCKH)
             {
-                TempData["SuccessMessage"] = result.Message;
+                TempData["ErrorMessage"] = "Mã chi tiết NCKH không khớp";
+                return RedirectToAction(nameof(Index));
             }
-            else
+
+            try
             {
-                TempData["ErrorMessage"] = result.Message;
+                var (success, message) = await _nckhService.UpdateChiTietNCKHAsync(chiTietNCKH);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(Details), new { id = chiTietNCKH.MaTaiNCKH });
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi cập nhật chi tiết NCKH: {ex.Message}";
+            }
+
+            await LoadGiaoVienDropdown();
+            ViewBag.VaiTroList = new SelectList(await _nckhService.GetAvailableVaiTroAsync(), chiTietNCKH.VaiTro);
+
+            return View(chiTietNCKH);
+        }
+
+        // POST: NCKH/DeleteChiTiet
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteChiTiet(string maChiTietNCKH, string maTaiNCKH)
+        {
+            try
+            {
+                var (success, message) = await _nckhService.DeleteChiTietNCKHAsync(maChiTietNCKH);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = message;
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi xóa chi tiết NCKH: {ex.Message}";
             }
 
             return RedirectToAction(nameof(Details), new { id = maTaiNCKH });
         }
+        #endregion
 
+        #region Báo cáo và thống kê
         // GET: NCKH/ThongKe
-        public async Task<IActionResult> ThongKe(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null)
+        public async Task<IActionResult> ThongKe(string namHoc = null, string maKhoa = null, string maBM = null)
         {
             try
             {
-                object thongKeData = null;
+                var thongKeTongQuan = await _nckhService.GetThongKeNCKHTongQuanAsync(namHoc, maKhoa, maBM);
+                var thongKeTheoKhoa = await _nckhService.GetThongKeNCKHTheoKhoaAsync(namHoc);
+                var thongKeTheoBoMon = await _nckhService.GetThongKeNCKHTheoBoMonAsync(namHoc, maKhoa);
 
-                if (!string.IsNullOrEmpty(maGV))
-                {
-                    var result = await _nckhService.GetThongKeNCKHByGiaoVienAsync(maGV, namHoc);
-                    thongKeData = result.Data;
-                }
-                else if (!string.IsNullOrEmpty(maBM))
-                {
-                    var result = await _nckhService.GetThongKeNCKHByBoMonAsync(maBM, namHoc);
-                    thongKeData = result.Data;
-                }
-                else if (!string.IsNullOrEmpty(maKhoa))
-                {
-                    var result = await _nckhService.GetThongKeNCKHByKhoaAsync(maKhoa, namHoc);
-                    thongKeData = result.Data;
-                }
+                ViewBag.ThongKeTongQuan = thongKeTongQuan;
+                ViewBag.ThongKeTheoKhoa = thongKeTheoKhoa;
+                ViewBag.ThongKeTheoBoMon = thongKeTheoBoMon;
 
-                await LoadViewData();
-                ViewBag.AvailableNamHoc = await _nckhService.GetAvailableNamHocAsync();
-                ViewBag.SelectedMaGV = maGV;
-                ViewBag.SelectedMaBM = maBM;
-                ViewBag.SelectedMaKhoa = maKhoa;
+                await LoadKhoaBoMonDropdown();
+                ViewBag.AvailableNamHoc = new SelectList(await _nckhService.GetAvailableNamHocAsync(), namHoc);
                 ViewBag.SelectedNamHoc = namHoc;
+                ViewBag.SelectedMaKhoa = maKhoa;
+                ViewBag.SelectedMaBM = maBM;
 
-                return View(thongKeData);
+                return View();
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = $"Lỗi khi thống kê NCKH: {ex.Message}";
+                TempData["ErrorMessage"] = $"Lỗi khi lấy thống kê NCKH: {ex.Message}";
                 return View();
             }
         }
 
-        // Private helper methods
+        // GET: NCKH/TopGiaoVien
+        public async Task<IActionResult> TopGiaoVien(string namHoc = null, int topN = 20, string maKhoa = null)
+        {
+            try
+            {
+                var topGiaoVien = await _nckhService.GetTopGiaoVienNCKHXuatSacAsync(namHoc, topN, maKhoa);
+
+                await LoadKhoaDropdown();
+                ViewBag.AvailableNamHoc = new SelectList(await _nckhService.GetAvailableNamHocAsync(), namHoc);
+                ViewBag.SelectedNamHoc = namHoc;
+                ViewBag.SelectedTopN = topN;
+                ViewBag.SelectedMaKhoa = maKhoa;
+
+                return View(topGiaoVien);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi lấy top giáo viên NCKH: {ex.Message}";
+                return View(new List<dynamic>());
+            }
+        }
+        #endregion
+
+        #region Quản lý loại NCKH
+        // GET: NCKH/LoaiNCKH
+        public async Task<IActionResult> LoaiNCKH()
+        {
+            try
+            {
+                var loaiNCKHList = await _nckhService.GetAllLoaiNCKHAsync();
+                return View(loaiNCKHList);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi tải danh sách loại NCKH: {ex.Message}";
+                return View(new List<LoaiNCKH>());
+            }
+        }
+
+        // GET: NCKH/CreateLoaiNCKH
+        public async Task<IActionResult> CreateLoaiNCKH()
+        {
+            await LoadQuyDoiDropdown();
+            return View();
+        }
+
+        // POST: NCKH/CreateLoaiNCKH
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateLoaiNCKH(LoaiNCKH loaiNCKH)
+        {
+            try
+            {
+                var (success, message) = await _nckhService.AddLoaiNCKHAsync(loaiNCKH);
+
+                if (success)
+                {
+                    TempData["SuccessMessage"] = message;
+                    return RedirectToAction(nameof(LoaiNCKH));
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = message;
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"Lỗi khi thêm loại NCKH: {ex.Message}";
+            }
+
+            await LoadQuyDoiDropdown();
+            return View(loaiNCKH);
+        }
+        #endregion
+
+        #region Helper Methods
         private async Task LoadViewData()
         {
-            var loaiNCKHResult = await _nckhService.GetAllLoaiNCKHAsync();
-            ViewBag.LoaiNCKHList = loaiNCKHResult.Success
-                ? new SelectList(loaiNCKHResult.Data, "MaLoaiNCKH", "TenLoaiNCKH")
-                : new SelectList(new List<object>(), "MaLoaiNCKH", "TenLoaiNCKH");
-
+            await LoadLoaiNCKHDropdown();
+            await LoadNamHocDropdown();
             await LoadGiaoVienDropdown();
-            await LoadBoMonDropdown();
-            await LoadKhoaDropdown();
+        }
+
+        private async Task LoadLoaiNCKHDropdown()
+        {
+            var loaiNCKHList = await _nckhService.GetAllLoaiNCKHAsync();
+            ViewBag.LoaiNCKHList = new SelectList(loaiNCKHList, "MaLoaiNCKH", "TenLoaiNCKH");
+        }
+
+        private async Task LoadNamHocDropdown()
+        {
+            var namHocList = await _nckhService.GetAvailableNamHocAsync();
+            namHocList.Insert(0, ""); // Add empty option
+            ViewBag.NamHocList = new SelectList(namHocList);
         }
 
         private async Task LoadGiaoVienDropdown()
@@ -344,16 +524,29 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
             ViewBag.GiaoVienList = new SelectList(giaoVienList, "MaGV", "HoTenDayDu");
         }
 
+        private async Task LoadKhoaDropdown()
+        {
+            var khoaList = await _khoaService.GetAllKhoaAsync();
+            ViewBag.KhoaList = new SelectList(khoaList, "MaKhoa", "TenKhoa");
+        }
+
         private async Task LoadBoMonDropdown()
         {
             var boMonList = await _boMonService.GetAllBoMonAsync();
             ViewBag.BoMonList = new SelectList(boMonList, "MaBM", "TenBM");
         }
 
-        private async Task LoadKhoaDropdown()
+        private async Task LoadKhoaBoMonDropdown()
         {
-            var khoaList = await _khoaService.GetAllKhoaAsync();
-            ViewBag.KhoaList = new SelectList(khoaList, "MaKhoa", "TenKhoa");
+            await LoadKhoaDropdown();
+            await LoadBoMonDropdown();
         }
+
+        private async Task LoadQuyDoiDropdown()
+        {
+            var quyDoiList = await _nckhService.GetAllQuyDoiGioChuanAsync();
+            ViewBag.QuyDoiList = new SelectList(quyDoiList, "MaQuyDoi", "DonViTinh");
+        }
+        #endregion
     }
 }

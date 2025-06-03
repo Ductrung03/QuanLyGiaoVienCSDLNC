@@ -1,8 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using QuanLyGiaoVienCSDLNC.Data;
-using QuanLyGiaoVienCSDLNC.DTOs.NCKH;
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
 using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
 using System.Data;
@@ -18,7 +16,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             _context = context;
         }
 
-        // Quản lý loại NCKH
+        #region Quản lý loại NCKH
         public async Task<List<LoaiNCKH>> GetAllLoaiNCKHAsync()
         {
             return await _context.LoaiNCKHs
@@ -33,63 +31,138 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 .FirstOrDefaultAsync(l => l.MaLoaiNCKH == maLoaiNCKH);
         }
 
-        // Quản lý tài NCKH - Sử dụng stored procedures
-        public async Task<PagedResultDto<TaiNCKHListItemDto>> SearchTaiNCKHAsync(TaiNCKHSearchDto searchDto)
+        public async Task<(bool success, string message)> AddLoaiNCKHAsync(LoaiNCKH loaiNCKH)
         {
-            var totalRecordsParam = new SqlParameter
+            try
             {
-                ParameterName = "@TotalRecords",
-                SqlDbType = SqlDbType.Int,
-                Direction = ParameterDirection.Output
-            };
+                // Tạo mã loại NCKH tự động
+                var count = await _context.LoaiNCKHs.CountAsync();
+                loaiNCKH.MaLoaiNCKH = "LNCKH" + (count + 1).ToString("D3");
 
-            var parameters = new List<SqlParameter>
+                _context.LoaiNCKHs.Add(loaiNCKH);
+                await _context.SaveChangesAsync();
+                return (true, "Thêm loại NCKH thành công");
+            }
+            catch (Exception ex)
             {
-                new SqlParameter("@MaGV", (object)searchDto.MaGV ?? DBNull.Value),
-                new SqlParameter("@NamHoc", (object)searchDto.NamHoc ?? DBNull.Value),
-                new SqlParameter("@PageNumber", searchDto.PageNumber),
-                new SqlParameter("@PageSize", searchDto.PageSize),
-                totalRecordsParam
-            };
-
-            var result = await _context.TaiNCKHListItems.FromSqlRaw(
-                "EXEC sp_NCKH_DanhSach @MaGV, @NamHoc, @PageNumber, @PageSize, @TotalRecords OUTPUT",
-                parameters.ToArray()).ToListAsync();
-
-            var totalRecords = (int)(totalRecordsParam.Value ?? 0);
-
-            return new PagedResultDto<TaiNCKHListItemDto>(result, totalRecords, searchDto.PageNumber, searchDto.PageSize);
+                return (false, $"Lỗi khi thêm loại NCKH: {ex.Message}");
+            }
         }
 
+        public async Task<(bool success, string message)> UpdateLoaiNCKHAsync(LoaiNCKH loaiNCKH)
+        {
+            try
+            {
+                _context.LoaiNCKHs.Update(loaiNCKH);
+                await _context.SaveChangesAsync();
+                return (true, "Cập nhật loại NCKH thành công");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi cập nhật loại NCKH: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> DeleteLoaiNCKHAsync(string maLoaiNCKH)
+        {
+            try
+            {
+                var loaiNCKH = await _context.LoaiNCKHs.FindAsync(maLoaiNCKH);
+                if (loaiNCKH == null)
+                    return (false, "Không tìm thấy loại NCKH");
+
+                // Kiểm tra có tài NCKH nào sử dụng không
+                var hasUsage = await _context.TaiNCKHs.AnyAsync(t => t.MaLoaiNCKH == maLoaiNCKH);
+                if (hasUsage)
+                    return (false, "Không thể xóa vì có tài NCKH đang sử dụng loại này");
+
+                _context.LoaiNCKHs.Remove(loaiNCKH);
+                await _context.SaveChangesAsync();
+                return (true, "Xóa loại NCKH thành công");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi xóa loại NCKH: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Quản lý quy đổi giờ chuẩn
+        public async Task<List<QuyDoiGioChuanNCKH>> GetAllQuyDoiGioChuanAsync()
+        {
+            return await _context.QuyDoiGioChuanNCKHs.ToListAsync();
+        }
+
+        public async Task<QuyDoiGioChuanNCKH> GetQuyDoiGioChuanByIdAsync(string maQuyDoi)
+        {
+            return await _context.QuyDoiGioChuanNCKHs.FindAsync(maQuyDoi);
+        }
+
+        public async Task<(bool success, string message)> AddQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi)
+        {
+            try
+            {
+                // Tạo mã quy đổi tự động
+                var count = await _context.QuyDoiGioChuanNCKHs.CountAsync();
+                quyDoi.MaQuyDoi = "QD" + (count + 1).ToString("D3");
+
+                _context.QuyDoiGioChuanNCKHs.Add(quyDoi);
+                await _context.SaveChangesAsync();
+                return (true, "Thêm quy đổi giờ chuẩn thành công");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi thêm quy đổi giờ chuẩn: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> UpdateQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi)
+        {
+            try
+            {
+                _context.QuyDoiGioChuanNCKHs.Update(quyDoi);
+                await _context.SaveChangesAsync();
+                return (true, "Cập nhật quy đổi giờ chuẩn thành công");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi cập nhật quy đổi giờ chuẩn: {ex.Message}");
+            }
+        }
+
+        public async Task<(bool success, string message)> DeleteQuyDoiGioChuanAsync(string maQuyDoi)
+        {
+            try
+            {
+                var quyDoi = await _context.QuyDoiGioChuanNCKHs.FindAsync(maQuyDoi);
+                if (quyDoi == null)
+                    return (false, "Không tìm thấy quy đổi giờ chuẩn");
+
+                // Kiểm tra có loại NCKH nào sử dụng không
+                var hasUsage = await _context.LoaiNCKHs.AnyAsync(l => l.MaQuyDoi == maQuyDoi);
+                if (hasUsage)
+                    return (false, "Không thể xóa vì có loại NCKH đang sử dụng");
+
+                _context.QuyDoiGioChuanNCKHs.Remove(quyDoi);
+                await _context.SaveChangesAsync();
+                return (true, "Xóa quy đổi giờ chuẩn thành công");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Lỗi khi xóa quy đổi giờ chuẩn: {ex.Message}");
+            }
+        }
+        #endregion
+
+        #region Quản lý tài NCKH
         public async Task<List<TaiNCKH>> GetAllTaiNCKHAsync()
         {
             return await _context.TaiNCKHs
                 .Include(t => t.LoaiNCKH)
                 .ThenInclude(l => l.QuyDoiGioChuanNCKH)
                 .OrderByDescending(t => t.NamHoc)
+                .ThenBy(t => t.TenCongTrinhKhoaHoc)
                 .ToListAsync();
-        }
-
-        public async Task<TaiNCKHDetailDto> GetTaiNCKHDetailAsync(string maTaiNCKH)
-        {
-            var taiNCKH = await _context.TaiNCKHs
-                .Include(t => t.LoaiNCKH)
-                .ThenInclude(l => l.QuyDoiGioChuanNCKH)
-                .FirstOrDefaultAsync(t => t.MaTaiNCKH == maTaiNCKH);
-
-            if (taiNCKH == null) return null;
-
-            var chiTietList = await GetChiTietNCKHByMaTaiNCKHAsync(maTaiNCKH);
-
-            return new TaiNCKHDetailDto
-            {
-                ThongTinCoBan = taiNCKH,
-                LoaiNCKH = taiNCKH.LoaiNCKH,
-                QuyDoiGioChuan = taiNCKH.LoaiNCKH?.QuyDoiGioChuanNCKH,
-                DanhSachTacGia = chiTietList,
-                SoTacGiaHienTai = chiTietList.Count,
-                DayDuTacGia = chiTietList.Count >= taiNCKH.SoTacGia
-            };
         }
 
         public async Task<TaiNCKH> GetTaiNCKHByIdAsync(string maTaiNCKH)
@@ -109,38 +182,68 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 .ToListAsync();
         }
 
-        public async Task<(bool success, string message, string maTaiNCKH)> AddTaiNCKHAsync(TaiNCKHCreateDto dto)
+        public async Task<List<TaiNCKH>> SearchTaiNCKHAsync(string searchTerm = null, string namHoc = null, string maLoaiNCKH = null)
         {
-            var maTaiNCKHParam = new SqlParameter
-            {
-                ParameterName = "@MaTaiNCKH",
-                SqlDbType = SqlDbType.Char,
-                Size = 15,
-                Direction = ParameterDirection.Output
-            };
+            var query = _context.TaiNCKHs
+                .Include(t => t.LoaiNCKH)
+                .ThenInclude(l => l.QuyDoiGioChuanNCKH)
+                .AsQueryable();
 
-            var errorMessageParam = new SqlParameter
+            if (!string.IsNullOrEmpty(searchTerm))
             {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
+                query = query.Where(t => t.TenCongTrinhKhoaHoc.Contains(searchTerm) ||
+                                        t.MaTaiNCKH.Contains(searchTerm));
+            }
 
+            if (!string.IsNullOrEmpty(namHoc))
+            {
+                query = query.Where(t => t.NamHoc == namHoc);
+            }
+
+            if (!string.IsNullOrEmpty(maLoaiNCKH))
+            {
+                query = query.Where(t => t.MaLoaiNCKH == maLoaiNCKH);
+            }
+
+            return await query
+                .OrderByDescending(t => t.NamHoc)
+                .ThenBy(t => t.TenCongTrinhKhoaHoc)
+                .ToListAsync();
+        }
+
+        public async Task<(bool success, string message, string maTaiNCKH)> AddTaiNCKHAsync(TaiNCKH taiNCKH)
+        {
             try
             {
+                // Sử dụng stored procedure
+                var maTaiNCKHParam = new SqlParameter
+                {
+                    ParameterName = "@MaTaiNCKH",
+                    SqlDbType = SqlDbType.Char,
+                    Size = 15,
+                    Direction = ParameterDirection.Output
+                };
+
+                var errorMessageParam = new SqlParameter
+                {
+                    ParameterName = "@ErrorMessage",
+                    SqlDbType = SqlDbType.NVarChar,
+                    Size = 500,
+                    Direction = ParameterDirection.Output
+                };
+
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_TaiNCKH_ThemMoi @TenCongTrinhKhoaHoc, @NamHoc, @SoTacGia, @MaLoaiNCKH, @MaTaiNCKH OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@TenCongTrinhKhoaHoc", dto.TenCongTrinhKhoaHoc),
-                    new SqlParameter("@NamHoc", dto.NamHoc),
-                    new SqlParameter("@SoTacGia", dto.SoTacGia),
-                    new SqlParameter("@MaLoaiNCKH", dto.MaLoaiNCKH),
+                    new SqlParameter("@TenCongTrinhKhoaHoc", taiNCKH.TenCongTrinhKhoaHoc),
+                    new SqlParameter("@NamHoc", taiNCKH.NamHoc),
+                    new SqlParameter("@SoTacGia", taiNCKH.SoTacGia),
+                    new SqlParameter("@MaLoaiNCKH", taiNCKH.MaLoaiNCKH),
                     maTaiNCKHParam,
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
                 var maTaiNCKH = maTaiNCKHParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(maTaiNCKH) && !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+                var isSuccess = !string.IsNullOrEmpty(maTaiNCKH);
 
                 return (isSuccess, errorMessage, maTaiNCKH);
             }
@@ -150,19 +253,11 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        public async Task<(bool success, string message)> UpdateTaiNCKHAsync(TaiNCKHUpdateDto dto)
+        public async Task<(bool success, string message)> UpdateTaiNCKHAsync(TaiNCKH taiNCKH)
         {
             try
             {
-                var taiNCKH = await _context.TaiNCKHs.FindAsync(dto.MaTaiNCKH);
-                if (taiNCKH == null)
-                    return (false, "Không tìm thấy tài NCKH");
-
-                taiNCKH.TenCongTrinhKhoaHoc = dto.TenCongTrinhKhoaHoc;
-                taiNCKH.NamHoc = dto.NamHoc;
-                taiNCKH.SoTacGia = dto.SoTacGia;
-                taiNCKH.MaLoaiNCKH = dto.MaLoaiNCKH;
-
+                _context.TaiNCKHs.Update(taiNCKH);
                 await _context.SaveChangesAsync();
                 return (true, "Cập nhật tài NCKH thành công");
             }
@@ -180,7 +275,7 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 if (taiNCKH == null)
                     return (false, "Không tìm thấy tài NCKH");
 
-                // Kiểm tra xem có chi tiết NCKH nào không
+                // Kiểm tra có chi tiết NCKH không
                 var hasDetails = await _context.ChiTietNCKHs.AnyAsync(ct => ct.MaTaiNCKH == maTaiNCKH);
                 if (hasDetails)
                     return (false, "Không thể xóa vì có chi tiết NCKH liên quan");
@@ -194,9 +289,22 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 return (false, $"Lỗi khi xóa tài NCKH: {ex.Message}");
             }
         }
+        #endregion
 
-        // Quản lý chi tiết NCKH - Sử dụng stored procedures
-        public async Task<List<ChiTietNCKH>> GetChiTietNCKHByMaGVAsync(string maGV, string namHoc = null)
+        #region Quản lý chi tiết NCKH
+        public async Task<List<ChiTietNCKH>> GetChiTietNCKHByTaiNCKHAsync(string maTaiNCKH)
+        {
+            return await _context.ChiTietNCKHs
+                .Include(ct => ct.GiaoVien)
+                .ThenInclude(gv => gv.BoMon)
+                .ThenInclude(bm => bm.Khoa)
+                .Where(ct => ct.MaTaiNCKH == maTaiNCKH)
+                .OrderBy(ct => ct.VaiTro)
+                .ThenBy(ct => ct.GiaoVien.HoTen)
+                .ToListAsync();
+        }
+
+        public async Task<List<ChiTietNCKH>> GetChiTietNCKHByGiaoVienAsync(string maGV, string namHoc = null)
         {
             var query = _context.ChiTietNCKHs
                 .Include(ct => ct.TaiNCKH)
@@ -205,52 +313,58 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 .Where(ct => ct.MaGV == maGV);
 
             if (!string.IsNullOrEmpty(namHoc))
+            {
                 query = query.Where(ct => ct.TaiNCKH.NamHoc == namHoc);
+            }
 
-            return await query.OrderByDescending(ct => ct.TaiNCKH.NamHoc).ToListAsync();
-        }
-
-        public async Task<List<ChiTietNCKH>> GetChiTietNCKHByMaTaiNCKHAsync(string maTaiNCKH)
-        {
-            return await _context.ChiTietNCKHs
-                .Include(ct => ct.GiaoVien)
-                .Where(ct => ct.MaTaiNCKH == maTaiNCKH)
-                .OrderBy(ct => ct.VaiTro)
+            return await query
+                .OrderByDescending(ct => ct.TaiNCKH.NamHoc)
+                .ThenBy(ct => ct.TaiNCKH.TenCongTrinhKhoaHoc)
                 .ToListAsync();
         }
 
-        public async Task<(bool success, string message, string maChiTietNCKH)> PhanCongNCKHAsync(ChiTietNCKHCreateDto dto)
+        public async Task<ChiTietNCKH> GetChiTietNCKHByIdAsync(string maChiTietNCKH)
         {
-            var maChiTietNCKHParam = new SqlParameter
-            {
-                ParameterName = "@MaChiTietNCKH",
-                SqlDbType = SqlDbType.Char,
-                Size = 15,
-                Direction = ParameterDirection.Output
-            };
+            return await _context.ChiTietNCKHs
+                .Include(ct => ct.GiaoVien)
+                .Include(ct => ct.TaiNCKH)
+                .ThenInclude(t => t.LoaiNCKH)
+                .FirstOrDefaultAsync(ct => ct.MaChiTietNCKH == maChiTietNCKH);
+        }
 
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
+        public async Task<(bool success, string message, string maChiTietNCKH)> AddChiTietNCKHAsync(ChiTietNCKH chiTietNCKH)
+        {
             try
             {
+                // Sử dụng stored procedure
+                var maChiTietNCKHParam = new SqlParameter
+                {
+                    ParameterName = "@MaChiTietNCKH",
+                    SqlDbType = SqlDbType.Char,
+                    Size = 15,
+                    Direction = ParameterDirection.Output
+                };
+
+                var errorMessageParam = new SqlParameter
+                {
+                    ParameterName = "@ErrorMessage",
+                    SqlDbType = SqlDbType.NVarChar,
+                    Size = 500,
+                    Direction = ParameterDirection.Output
+                };
+
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_NCKH_PhanCong @MaGV, @MaTaiNCKH, @VaiTro, @SoGio, @MaChiTietNCKH OUTPUT, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaGV", dto.MaGV),
-                    new SqlParameter("@MaTaiNCKH", dto.MaTaiNCKH),
-                    new SqlParameter("@VaiTro", dto.VaiTro),
-                    new SqlParameter("@SoGio", dto.SoGio),
+                    new SqlParameter("@MaGV", chiTietNCKH.MaGV),
+                    new SqlParameter("@MaTaiNCKH", chiTietNCKH.MaTaiNCKH),
+                    new SqlParameter("@VaiTro", chiTietNCKH.VaiTro),
+                    new SqlParameter("@SoGio", chiTietNCKH.SoGio),
                     maChiTietNCKHParam,
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
                 var maChiTietNCKH = maChiTietNCKHParam.Value?.ToString();
-                var isSuccess = !string.IsNullOrEmpty(maChiTietNCKH) && !string.IsNullOrEmpty(errorMessage) && !errorMessage.StartsWith("Lỗi");
+                var isSuccess = !string.IsNullOrEmpty(maChiTietNCKH);
 
                 return (isSuccess, errorMessage, maChiTietNCKH);
             }
@@ -260,23 +374,24 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
             }
         }
 
-        public async Task<(bool success, string message)> UpdateChiTietNCKHAsync(ChiTietNCKHUpdateDto dto)
+        public async Task<(bool success, string message)> UpdateChiTietNCKHAsync(ChiTietNCKH chiTietNCKH)
         {
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
             try
             {
+                // Sử dụng stored procedure
+                var errorMessageParam = new SqlParameter
+                {
+                    ParameterName = "@ErrorMessage",
+                    SqlDbType = SqlDbType.NVarChar,
+                    Size = 500,
+                    Direction = ParameterDirection.Output
+                };
+
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_NCKH_CapNhat @MaChiTietNCKH, @VaiTro, @SoGio, @ErrorMessage OUTPUT",
-                    new SqlParameter("@MaChiTietNCKH", dto.MaChiTietNCKH),
-                    new SqlParameter("@VaiTro", dto.VaiTro),
-                    new SqlParameter("@SoGio", dto.SoGio),
+                    new SqlParameter("@MaChiTietNCKH", chiTietNCKH.MaChiTietNCKH),
+                    new SqlParameter("@VaiTro", chiTietNCKH.VaiTro),
+                    new SqlParameter("@SoGio", chiTietNCKH.SoGio),
                     errorMessageParam);
 
                 var errorMessage = errorMessageParam.Value?.ToString();
@@ -292,16 +407,17 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         public async Task<(bool success, string message)> DeleteChiTietNCKHAsync(string maChiTietNCKH)
         {
-            var errorMessageParam = new SqlParameter
-            {
-                ParameterName = "@ErrorMessage",
-                SqlDbType = SqlDbType.NVarChar,
-                Size = 500,
-                Direction = ParameterDirection.Output
-            };
-
             try
             {
+                // Sử dụng stored procedure
+                var errorMessageParam = new SqlParameter
+                {
+                    ParameterName = "@ErrorMessage",
+                    SqlDbType = SqlDbType.NVarChar,
+                    Size = 500,
+                    Direction = ParameterDirection.Output
+                };
+
                 await _context.Database.ExecuteSqlRawAsync(
                     "EXEC sp_NCKH_XoaPhanCong @MaChiTietNCKH, @ErrorMessage OUTPUT",
                     new SqlParameter("@MaChiTietNCKH", maChiTietNCKH),
@@ -317,76 +433,126 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
                 return (false, $"Lỗi khi xóa phân công NCKH: {ex.Message}");
             }
         }
+        #endregion
 
-        // Quy đổi giờ chuẩn
-        public async Task<List<QuyDoiGioChuanNCKH>> GetAllQuyDoiGioChuanAsync()
+        #region Báo cáo và thống kê
+        public async Task<dynamic> GetThongKeNCKHTongQuanAsync(string namHoc = null, string maKhoa = null, string maBM = null)
         {
-            return await _context.QuyDoiGioChuanNCKHs.ToListAsync();
-        }
-
-        public async Task<QuyDoiGioChuanNCKH> GetQuyDoiGioChuanByIdAsync(string maQuyDoi)
-        {
-            return await _context.QuyDoiGioChuanNCKHs.FindAsync(maQuyDoi);
-        }
-
-        // Thống kê và báo cáo
-        public async Task<List<object>> GetThongKeNCKHByGiaoVienAsync(string maGV, string namHoc = null)
-        {
-            var parameters = new List<SqlParameter>
+            try
             {
-                new SqlParameter("@MaGV", maGV),
-                new SqlParameter("@NamHoc", (object)namHoc ?? DBNull.Value)
-            };
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@NamHoc", (object)namHoc ?? DBNull.Value),
+                    new SqlParameter("@MaKhoa", (object)maKhoa ?? DBNull.Value),
+                    new SqlParameter("@MaBM", (object)maBM ?? DBNull.Value)
+                };
 
-            return await _context.Database.SqlQueryRaw<object>(
-                "SELECT * FROM vw_ThongKeNCKHByGiaoVien WHERE MaGV = @MaGV AND (@NamHoc IS NULL OR NamHoc = @NamHoc)",
-                parameters.ToArray()).ToListAsync();
-        }
+                var result = await _context.Database
+                    .SqlQueryRaw<dynamic>("EXEC sp_BaoCao_ThongKeNCKHTongQuan @NamHoc, @MaKhoa, @MaBM", parameters.ToArray())
+                    .ToListAsync();
 
-        public async Task<List<object>> GetThongKeNCKHByBoMonAsync(string maBM, string namHoc = null)
-        {
-            var parameters = new List<SqlParameter>
+                return result;
+            }
+            catch (Exception ex)
             {
-                new SqlParameter("@MaBM", maBM),
-                new SqlParameter("@NamHoc", (object)namHoc ?? DBNull.Value)
-            };
-
-            return await _context.Database.SqlQueryRaw<object>(
-                "SELECT * FROM vw_ThongKeNCKHByBoMon WHERE MaBM = @MaBM AND (@NamHoc IS NULL OR NamHoc = @NamHoc)",
-                parameters.ToArray()).ToListAsync();
+                throw new Exception($"Lỗi khi lấy thống kê NCKH tổng quan: {ex.Message}");
+            }
         }
 
-        public async Task<List<object>> GetThongKeNCKHByKhoaAsync(string maKhoa, string namHoc = null)
+        public async Task<List<dynamic>> GetTopGiaoVienNCKHXuatSacAsync(string namHoc = null, int topN = 20, string maKhoa = null)
         {
-            var parameters = new List<SqlParameter>
+            try
             {
-                new SqlParameter("@MaKhoa", maKhoa),
-                new SqlParameter("@NamHoc", (object)namHoc ?? DBNull.Value)
-            };
+                var parameters = new List<SqlParameter>
+                {
+                    new SqlParameter("@NamHoc", (object)namHoc ?? DBNull.Value),
+                    new SqlParameter("@TopN", topN),
+                    new SqlParameter("@MaKhoa", (object)maKhoa ?? DBNull.Value)
+                };
 
-            return await _context.Database.SqlQueryRaw<object>(
-                "SELECT * FROM vw_ThongKeNCKHByKhoa WHERE MaKhoa = @MaKhoa AND (@NamHoc IS NULL OR NamHoc = @NamHoc)",
-                parameters.ToArray()).ToListAsync();
+                var result = await _context.Database
+                    .SqlQueryRaw<dynamic>("EXEC sp_BaoCao_TopGiaoVienNCKHXuatSac @NamHoc, @TopN, @MaKhoa", parameters.ToArray())
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Lỗi khi lấy top giáo viên NCKH xuất sắc: {ex.Message}");
+            }
         }
 
-        // Validation
-        public async Task<bool> KiemTraTacGiaDayDuAsync(string maTaiNCKH)
+        public async Task<List<dynamic>> GetThongKeNCKHTheoKhoaAsync(string namHoc = null)
         {
-            var taiNCKH = await _context.TaiNCKHs.FindAsync(maTaiNCKH);
-            if (taiNCKH == null) return false;
+            var query = from ct in _context.ChiTietNCKHs
+                        join t in _context.TaiNCKHs on ct.MaTaiNCKH equals t.MaTaiNCKH
+                        join gv in _context.GiaoViens on ct.MaGV equals gv.MaGV
+                        join bm in _context.BoMons on gv.MaBM equals bm.MaBM
+                        join k in _context.Khoas on bm.MaKhoa equals k.MaKhoa
+                        where namHoc == null || t.NamHoc == namHoc
+                        group new { ct, t, gv, k } by new { k.MaKhoa, k.TenKhoa } into g
+                        select new
+                        {
+                            MaKhoa = g.Key.MaKhoa,
+                            TenKhoa = g.Key.TenKhoa,
+                            SoCongTrinh = g.Select(x => x.t.MaTaiNCKH).Distinct().Count(),
+                            SoGiaoVienThamGia = g.Select(x => x.gv.MaGV).Distinct().Count(),
+                            TongSoGio = g.Sum(x => x.ct.SoGio)
+                        };
 
-            var soTacGiaHienTai = await _context.ChiTietNCKHs.CountAsync(ct => ct.MaTaiNCKH == maTaiNCKH);
-            return soTacGiaHienTai >= taiNCKH.SoTacGia;
+            return await query.Cast<dynamic>().ToListAsync();
         }
 
-        public async Task<bool> KiemTraChuNhiemTonTaiAsync(string maTaiNCKH)
+        public async Task<List<dynamic>> GetThongKeNCKHTheoBoMonAsync(string namHoc = null, string maKhoa = null)
         {
-            return await _context.ChiTietNCKHs.AnyAsync(ct => ct.MaTaiNCKH == maTaiNCKH && ct.VaiTro == "Chủ nhiệm");
+            var query = from ct in _context.ChiTietNCKHs
+                        join t in _context.TaiNCKHs on ct.MaTaiNCKH equals t.MaTaiNCKH
+                        join gv in _context.GiaoViens on ct.MaGV equals gv.MaGV
+                        join bm in _context.BoMons on gv.MaBM equals bm.MaBM
+                        join k in _context.Khoas on bm.MaKhoa equals k.MaKhoa
+                        where (namHoc == null || t.NamHoc == namHoc) &&
+                              (maKhoa == null || k.MaKhoa == maKhoa)
+                        group new { ct, t, gv, bm, k } by new { bm.MaBM, bm.TenBM, k.TenKhoa } into g
+                        select new
+                        {
+                            MaBM = g.Key.MaBM,
+                            TenBM = g.Key.TenBM,
+                            TenKhoa = g.Key.TenKhoa,
+                            SoCongTrinh = g.Select(x => x.t.MaTaiNCKH).Distinct().Count(),
+                            SoGiaoVienThamGia = g.Select(x => x.gv.MaGV).Distinct().Count(),
+                            TongSoGio = g.Sum(x => x.ct.SoGio)
+                        };
+
+            return await query.Cast<dynamic>().ToListAsync();
+        }
+        #endregion
+
+        #region Tiện ích
+        public async Task<List<string>> GetAvailableNamHocAsync()
+        {
+            return await _context.TaiNCKHs
+                .Select(t => t.NamHoc)
+                .Distinct()
+                .OrderByDescending(n => n)
+                .ToListAsync();
         }
 
-        public async Task<bool> KiemTraGiaoVienDaThamGiaAsync(string maGV, string maTaiNCKH)
+        public async Task<bool> CheckTaiNCKHExistsAsync(string maTaiNCKH)
         {
-            return await _context.ChiTietNCKHs.AnyAsync(ct => ct.MaGV == maGV && ct.MaTaiNCKH == maTaiNCKH);
+            return await _context.TaiNCKHs.AnyAsync(t => t.MaTaiNCKH == maTaiNCKH);
         }
+
+        public async Task<bool> CheckChiTietNCKHExistsAsync(string maGV, string maTaiNCKH)
+        {
+            return await _context.ChiTietNCKHs
+                .AnyAsync(ct => ct.MaGV == maGV && ct.MaTaiNCKH == maTaiNCKH);
+        }
+
+        public async Task<int> GetSoTacGiaHienTaiAsync(string maTaiNCKH)
+        {
+            return await _context.ChiTietNCKHs
+                .CountAsync(ct => ct.MaTaiNCKH == maTaiNCKH);
+        }
+        #endregion
     }
 }

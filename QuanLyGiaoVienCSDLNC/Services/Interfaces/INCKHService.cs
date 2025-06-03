@@ -1,46 +1,52 @@
-﻿using QuanLyGiaoVienCSDLNC.DTOs.NCKH;
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
-using QuanLyGiaoVienCSDLNC.Models;
+﻿using QuanLyGiaoVienCSDLNC.Models;
 
 namespace QuanLyGiaoVienCSDLNC.Services.Interfaces
 {
     public interface INCKHService
     {
         // Quản lý loại NCKH
-        Task<ApiResponseDto<List<LoaiNCKH>>> GetAllLoaiNCKHAsync();
-        Task<ApiResponseDto<LoaiNCKH>> GetLoaiNCKHByIdAsync(string maLoaiNCKH);
+        Task<List<LoaiNCKH>> GetAllLoaiNCKHAsync();
+        Task<LoaiNCKH> GetLoaiNCKHByIdAsync(string maLoaiNCKH);
+        Task<(bool success, string message)> AddLoaiNCKHAsync(LoaiNCKH loaiNCKH);
+        Task<(bool success, string message)> UpdateLoaiNCKHAsync(LoaiNCKH loaiNCKH);
+        Task<(bool success, string message)> DeleteLoaiNCKHAsync(string maLoaiNCKH);
+
+        // Quản lý quy đổi giờ chuẩn
+        Task<List<QuyDoiGioChuanNCKH>> GetAllQuyDoiGioChuanAsync();
+        Task<QuyDoiGioChuanNCKH> GetQuyDoiGioChuanByIdAsync(string maQuyDoi);
+        Task<(bool success, string message)> AddQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi);
+        Task<(bool success, string message)> UpdateQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi);
+        Task<(bool success, string message)> DeleteQuyDoiGioChuanAsync(string maQuyDoi);
 
         // Quản lý tài NCKH
-        Task<ApiResponseDto<PagedResultDto<TaiNCKHListItemDto>>> SearchTaiNCKHAsync(TaiNCKHSearchDto searchDto);
-        Task<ApiResponseDto<List<TaiNCKH>>> GetAllTaiNCKHAsync();
-        Task<ApiResponseDto<TaiNCKHDetailDto>> GetTaiNCKHDetailAsync(string maTaiNCKH);
-        Task<ApiResponseDto<TaiNCKH>> GetTaiNCKHByIdAsync(string maTaiNCKH);
-        Task<ApiResponseDto<List<TaiNCKH>>> GetTaiNCKHByNamHocAsync(string namHoc);
-        Task<ApiResponseDto<string>> AddTaiNCKHAsync(TaiNCKHCreateDto dto);
-        Task<ApiResponseDto<bool>> UpdateTaiNCKHAsync(TaiNCKHUpdateDto dto);
-        Task<ApiResponseDto<bool>> DeleteTaiNCKHAsync(string maTaiNCKH);
+        Task<List<TaiNCKH>> GetAllTaiNCKHAsync();
+        Task<TaiNCKH> GetTaiNCKHByIdAsync(string maTaiNCKH);
+        Task<List<TaiNCKH>> GetTaiNCKHByNamHocAsync(string namHoc);
+        Task<List<TaiNCKH>> SearchTaiNCKHAsync(string searchTerm = null, string namHoc = null, string maLoaiNCKH = null);
+        Task<(bool success, string message, string maTaiNCKH)> AddTaiNCKHAsync(TaiNCKH taiNCKH);
+        Task<(bool success, string message)> UpdateTaiNCKHAsync(TaiNCKH taiNCKH);
+        Task<(bool success, string message)> DeleteTaiNCKHAsync(string maTaiNCKH);
 
         // Quản lý chi tiết NCKH
-        Task<ApiResponseDto<List<ChiTietNCKH>>> GetChiTietNCKHByMaGVAsync(string maGV, string namHoc = null);
-        Task<ApiResponseDto<List<ChiTietNCKH>>> GetChiTietNCKHByMaTaiNCKHAsync(string maTaiNCKH);
-        Task<ApiResponseDto<string>> PhanCongNCKHAsync(ChiTietNCKHCreateDto dto);
-        Task<ApiResponseDto<bool>> UpdateChiTietNCKHAsync(ChiTietNCKHUpdateDto dto);
-        Task<ApiResponseDto<bool>> DeleteChiTietNCKHAsync(string maChiTietNCKH);
+        Task<List<ChiTietNCKH>> GetChiTietNCKHByTaiNCKHAsync(string maTaiNCKH);
+        Task<List<ChiTietNCKH>> GetChiTietNCKHByGiaoVienAsync(string maGV, string namHoc = null);
+        Task<ChiTietNCKH> GetChiTietNCKHByIdAsync(string maChiTietNCKH);
+        Task<(bool success, string message, string maChiTietNCKH)> AddChiTietNCKHAsync(ChiTietNCKH chiTietNCKH);
+        Task<(bool success, string message)> UpdateChiTietNCKHAsync(ChiTietNCKH chiTietNCKH);
+        Task<(bool success, string message)> DeleteChiTietNCKHAsync(string maChiTietNCKH);
 
-        // Quy đổi giờ chuẩn
-        Task<ApiResponseDto<List<QuyDoiGioChuanNCKH>>> GetAllQuyDoiGioChuanAsync();
+        // Báo cáo và thống kê
+        Task<dynamic> GetThongKeNCKHTongQuanAsync(string namHoc = null, string maKhoa = null, string maBM = null);
+        Task<List<dynamic>> GetTopGiaoVienNCKHXuatSacAsync(string namHoc = null, int topN = 20, string maKhoa = null);
+        Task<List<dynamic>> GetThongKeNCKHTheoKhoaAsync(string namHoc = null);
+        Task<List<dynamic>> GetThongKeNCKHTheoBoMonAsync(string namHoc = null, string maKhoa = null);
 
-        // Thống kê và báo cáo
-        Task<ApiResponseDto<object>> GetThongKeNCKHByGiaoVienAsync(string maGV, string namHoc = null);
-        Task<ApiResponseDto<object>> GetThongKeNCKHByBoMonAsync(string maBM, string namHoc = null);
-        Task<ApiResponseDto<object>> GetThongKeNCKHByKhoaAsync(string maKhoa, string namHoc = null);
-
-        // Validation
-        Task<ApiResponseDto<bool>> ValidateTaiNCKHDataAsync(TaiNCKHCreateDto dto);
-        Task<ApiResponseDto<bool>> ValidateChiTietNCKHDataAsync(ChiTietNCKHCreateDto dto);
-
-        // Utility
+        // Tiện ích
         Task<List<string>> GetAvailableNamHocAsync();
         Task<List<string>> GetAvailableVaiTroAsync();
+        Task<bool> ValidateTaiNCKHAsync(TaiNCKH taiNCKH, bool isUpdate = false);
+        Task<bool> ValidateChiTietNCKHAsync(ChiTietNCKH chiTietNCKH, bool isUpdate = false);
+        Task<bool> CanDeleteTaiNCKHAsync(string maTaiNCKH);
+        Task<bool> CanAddTacGiaAsync(string maTaiNCKH);
     }
 }

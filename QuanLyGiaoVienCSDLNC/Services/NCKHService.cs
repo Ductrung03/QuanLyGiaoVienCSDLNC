@@ -1,6 +1,4 @@
-﻿using QuanLyGiaoVienCSDLNC.DTOs.NCKH;
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
-using QuanLyGiaoVienCSDLNC.Models;
+﻿using QuanLyGiaoVienCSDLNC.Models;
 using QuanLyGiaoVienCSDLNC.Repositories.Interfaces;
 using QuanLyGiaoVienCSDLNC.Services.Interfaces;
 
@@ -17,391 +15,188 @@ namespace QuanLyGiaoVienCSDLNC.Services
             _giaoVienRepository = giaoVienRepository;
         }
 
-        // Quản lý loại NCKH
-        public async Task<ApiResponseDto<List<LoaiNCKH>>> GetAllLoaiNCKHAsync()
+        #region Quản lý loại NCKH
+        public async Task<List<LoaiNCKH>> GetAllLoaiNCKHAsync()
         {
-            try
-            {
-                var result = await _nckhRepository.GetAllLoaiNCKHAsync();
-                return ApiResponseDto<List<LoaiNCKH>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<LoaiNCKH>>.ErrorResult($"Lỗi khi lấy danh sách loại NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.GetAllLoaiNCKHAsync();
         }
 
-        public async Task<ApiResponseDto<LoaiNCKH>> GetLoaiNCKHByIdAsync(string maLoaiNCKH)
+        public async Task<LoaiNCKH> GetLoaiNCKHByIdAsync(string maLoaiNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.GetLoaiNCKHByIdAsync(maLoaiNCKH);
-                if (result == null)
-                    return ApiResponseDto<LoaiNCKH>.ErrorResult("Không tìm thấy loại NCKH");
-
-                return ApiResponseDto<LoaiNCKH>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<LoaiNCKH>.ErrorResult($"Lỗi khi lấy thông tin loại NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.GetLoaiNCKHByIdAsync(maLoaiNCKH);
         }
 
-        // Quản lý tài NCKH
-        public async Task<ApiResponseDto<PagedResultDto<TaiNCKHListItemDto>>> SearchTaiNCKHAsync(TaiNCKHSearchDto searchDto)
+        public async Task<(bool success, string message)> AddLoaiNCKHAsync(LoaiNCKH loaiNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.SearchTaiNCKHAsync(searchDto);
-                return ApiResponseDto<PagedResultDto<TaiNCKHListItemDto>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<PagedResultDto<TaiNCKHListItemDto>>.ErrorResult($"Lỗi khi tìm kiếm tài NCKH: {ex.Message}");
-            }
+            if (string.IsNullOrWhiteSpace(loaiNCKH.TenLoaiNCKH))
+                return (false, "Tên loại NCKH không được để trống");
+
+            return await _nckhRepository.AddLoaiNCKHAsync(loaiNCKH);
         }
 
-        public async Task<ApiResponseDto<List<TaiNCKH>>> GetAllTaiNCKHAsync()
+        public async Task<(bool success, string message)> UpdateLoaiNCKHAsync(LoaiNCKH loaiNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.GetAllTaiNCKHAsync();
-                return ApiResponseDto<List<TaiNCKH>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<TaiNCKH>>.ErrorResult($"Lỗi khi lấy danh sách tài NCKH: {ex.Message}");
-            }
+            if (string.IsNullOrWhiteSpace(loaiNCKH.TenLoaiNCKH))
+                return (false, "Tên loại NCKH không được để trống");
+
+            return await _nckhRepository.UpdateLoaiNCKHAsync(loaiNCKH);
         }
 
-        public async Task<ApiResponseDto<TaiNCKHDetailDto>> GetTaiNCKHDetailAsync(string maTaiNCKH)
+        public async Task<(bool success, string message)> DeleteLoaiNCKHAsync(string maLoaiNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.GetTaiNCKHDetailAsync(maTaiNCKH);
-                if (result == null)
-                    return ApiResponseDto<TaiNCKHDetailDto>.ErrorResult("Không tìm thấy tài NCKH");
+            return await _nckhRepository.DeleteLoaiNCKHAsync(maLoaiNCKH);
+        }
+        #endregion
 
-                return ApiResponseDto<TaiNCKHDetailDto>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<TaiNCKHDetailDto>.ErrorResult($"Lỗi khi lấy chi tiết tài NCKH: {ex.Message}");
-            }
+        #region Quản lý quy đổi giờ chuẩn
+        public async Task<List<QuyDoiGioChuanNCKH>> GetAllQuyDoiGioChuanAsync()
+        {
+            return await _nckhRepository.GetAllQuyDoiGioChuanAsync();
         }
 
-        public async Task<ApiResponseDto<TaiNCKH>> GetTaiNCKHByIdAsync(string maTaiNCKH)
+        public async Task<QuyDoiGioChuanNCKH> GetQuyDoiGioChuanByIdAsync(string maQuyDoi)
         {
-            try
-            {
-                var result = await _nckhRepository.GetTaiNCKHByIdAsync(maTaiNCKH);
-                if (result == null)
-                    return ApiResponseDto<TaiNCKH>.ErrorResult("Không tìm thấy tài NCKH");
-
-                return ApiResponseDto<TaiNCKH>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<TaiNCKH>.ErrorResult($"Lỗi khi lấy thông tin tài NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.GetQuyDoiGioChuanByIdAsync(maQuyDoi);
         }
 
-        public async Task<ApiResponseDto<List<TaiNCKH>>> GetTaiNCKHByNamHocAsync(string namHoc)
+        public async Task<(bool success, string message)> AddQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi)
         {
-            try
-            {
-                var result = await _nckhRepository.GetTaiNCKHByNamHocAsync(namHoc);
-                return ApiResponseDto<List<TaiNCKH>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<TaiNCKH>>.ErrorResult($"Lỗi khi lấy danh sách tài NCKH theo năm học: {ex.Message}");
-            }
+            if (quyDoi.QuyRaGioChuan <= 0)
+                return (false, "Quy ra giờ chuẩn phải lớn hơn 0");
+
+            return await _nckhRepository.AddQuyDoiGioChuanAsync(quyDoi);
         }
 
-        public async Task<ApiResponseDto<string>> AddTaiNCKHAsync(TaiNCKHCreateDto dto)
+        public async Task<(bool success, string message)> UpdateQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi)
         {
-            try
-            {
-                // Validation
-                var validationResult = await ValidateTaiNCKHDataAsync(dto);
-                if (!validationResult.Success)
-                    return ApiResponseDto<string>.ErrorResult(validationResult.Message, validationResult.Errors);
+            if (quyDoi.QuyRaGioChuan <= 0)
+                return (false, "Quy ra giờ chuẩn phải lớn hơn 0");
 
-                var (success, message, maTaiNCKH) = await _nckhRepository.AddTaiNCKHAsync(dto);
-
-                if (success)
-                    return ApiResponseDto<string>.SuccessResult(maTaiNCKH, message);
-                else
-                    return ApiResponseDto<string>.ErrorResult(message);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<string>.ErrorResult($"Lỗi khi thêm tài NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.UpdateQuyDoiGioChuanAsync(quyDoi);
         }
 
-        public async Task<ApiResponseDto<bool>> UpdateTaiNCKHAsync(TaiNCKHUpdateDto dto)
+        public async Task<(bool success, string message)> DeleteQuyDoiGioChuanAsync(string maQuyDoi)
         {
-            try
-            {
-                var (success, message) = await _nckhRepository.UpdateTaiNCKHAsync(dto);
+            return await _nckhRepository.DeleteQuyDoiGioChuanAsync(maQuyDoi);
+        }
+        #endregion
 
-                if (success)
-                    return ApiResponseDto<bool>.SuccessResult(true, message);
-                else
-                    return ApiResponseDto<bool>.ErrorResult(message);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi cập nhật tài NCKH: {ex.Message}");
-            }
+        #region Quản lý tài NCKH
+        public async Task<List<TaiNCKH>> GetAllTaiNCKHAsync()
+        {
+            return await _nckhRepository.GetAllTaiNCKHAsync();
         }
 
-        public async Task<ApiResponseDto<bool>> DeleteTaiNCKHAsync(string maTaiNCKH)
+        public async Task<TaiNCKH> GetTaiNCKHByIdAsync(string maTaiNCKH)
         {
-            try
-            {
-                var (success, message) = await _nckhRepository.DeleteTaiNCKHAsync(maTaiNCKH);
-
-                if (success)
-                    return ApiResponseDto<bool>.SuccessResult(true, message);
-                else
-                    return ApiResponseDto<bool>.ErrorResult(message);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi xóa tài NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.GetTaiNCKHByIdAsync(maTaiNCKH);
         }
 
-        // Quản lý chi tiết NCKH
-        public async Task<ApiResponseDto<List<ChiTietNCKH>>> GetChiTietNCKHByMaGVAsync(string maGV, string namHoc = null)
+        public async Task<List<TaiNCKH>> GetTaiNCKHByNamHocAsync(string namHoc)
         {
-            try
-            {
-                var result = await _nckhRepository.GetChiTietNCKHByMaGVAsync(maGV, namHoc);
-                return ApiResponseDto<List<ChiTietNCKH>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<ChiTietNCKH>>.ErrorResult($"Lỗi khi lấy danh sách NCKH của giáo viên: {ex.Message}");
-            }
+            return await _nckhRepository.GetTaiNCKHByNamHocAsync(namHoc);
         }
 
-        public async Task<ApiResponseDto<List<ChiTietNCKH>>> GetChiTietNCKHByMaTaiNCKHAsync(string maTaiNCKH)
+        public async Task<List<TaiNCKH>> SearchTaiNCKHAsync(string searchTerm = null, string namHoc = null, string maLoaiNCKH = null)
         {
-            try
-            {
-                var result = await _nckhRepository.GetChiTietNCKHByMaTaiNCKHAsync(maTaiNCKH);
-                return ApiResponseDto<List<ChiTietNCKH>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<ChiTietNCKH>>.ErrorResult($"Lỗi khi lấy danh sách tác giả của tài NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.SearchTaiNCKHAsync(searchTerm, namHoc, maLoaiNCKH);
         }
 
-        public async Task<ApiResponseDto<string>> PhanCongNCKHAsync(ChiTietNCKHCreateDto dto)
+        public async Task<(bool success, string message, string maTaiNCKH)> AddTaiNCKHAsync(TaiNCKH taiNCKH)
         {
-            try
-            {
-                // Validation
-                var validationResult = await ValidateChiTietNCKHDataAsync(dto);
-                if (!validationResult.Success)
-                    return ApiResponseDto<string>.ErrorResult(validationResult.Message, validationResult.Errors);
+            if (!await ValidateTaiNCKHAsync(taiNCKH, false))
+                return (false, "Dữ liệu không hợp lệ", null);
 
-                var (success, message, maChiTietNCKH) = await _nckhRepository.PhanCongNCKHAsync(dto);
-
-                if (success)
-                    return ApiResponseDto<string>.SuccessResult(maChiTietNCKH, message);
-                else
-                    return ApiResponseDto<string>.ErrorResult(message);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<string>.ErrorResult($"Lỗi khi phân công NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.AddTaiNCKHAsync(taiNCKH);
         }
 
-        public async Task<ApiResponseDto<bool>> UpdateChiTietNCKHAsync(ChiTietNCKHUpdateDto dto)
+        public async Task<(bool success, string message)> UpdateTaiNCKHAsync(TaiNCKH taiNCKH)
         {
-            try
-            {
-                var (success, message) = await _nckhRepository.UpdateChiTietNCKHAsync(dto);
+            if (!await ValidateTaiNCKHAsync(taiNCKH, true))
+                return (false, "Dữ liệu không hợp lệ");
 
-                if (success)
-                    return ApiResponseDto<bool>.SuccessResult(true, message);
-                else
-                    return ApiResponseDto<bool>.ErrorResult(message);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi cập nhật chi tiết NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.UpdateTaiNCKHAsync(taiNCKH);
         }
 
-        public async Task<ApiResponseDto<bool>> DeleteChiTietNCKHAsync(string maChiTietNCKH)
+        public async Task<(bool success, string message)> DeleteTaiNCKHAsync(string maTaiNCKH)
         {
-            try
-            {
-                var (success, message) = await _nckhRepository.DeleteChiTietNCKHAsync(maChiTietNCKH);
+            if (!await CanDeleteTaiNCKHAsync(maTaiNCKH))
+                return (false, "Không thể xóa tài NCKH này");
 
-                if (success)
-                    return ApiResponseDto<bool>.SuccessResult(true, message);
-                else
-                    return ApiResponseDto<bool>.ErrorResult(message);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<bool>.ErrorResult($"Lỗi khi xóa phân công NCKH: {ex.Message}");
-            }
+            return await _nckhRepository.DeleteTaiNCKHAsync(maTaiNCKH);
+        }
+        #endregion
+
+        #region Quản lý chi tiết NCKH
+        public async Task<List<ChiTietNCKH>> GetChiTietNCKHByTaiNCKHAsync(string maTaiNCKH)
+        {
+            return await _nckhRepository.GetChiTietNCKHByTaiNCKHAsync(maTaiNCKH);
         }
 
-        // Quy đổi giờ chuẩn
-        public async Task<ApiResponseDto<List<QuyDoiGioChuanNCKH>>> GetAllQuyDoiGioChuanAsync()
+        public async Task<List<ChiTietNCKH>> GetChiTietNCKHByGiaoVienAsync(string maGV, string namHoc = null)
         {
-            try
-            {
-                var result = await _nckhRepository.GetAllQuyDoiGioChuanAsync();
-                return ApiResponseDto<List<QuyDoiGioChuanNCKH>>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<List<QuyDoiGioChuanNCKH>>.ErrorResult($"Lỗi khi lấy danh sách quy đổi giờ chuẩn: {ex.Message}");
-            }
+            return await _nckhRepository.GetChiTietNCKHByGiaoVienAsync(maGV, namHoc);
         }
 
-        // Thống kê và báo cáo
-        public async Task<ApiResponseDto<object>> GetThongKeNCKHByGiaoVienAsync(string maGV, string namHoc = null)
+        public async Task<ChiTietNCKH> GetChiTietNCKHByIdAsync(string maChiTietNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.GetThongKeNCKHByGiaoVienAsync(maGV, namHoc);
-                return ApiResponseDto<object>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<object>.ErrorResult($"Lỗi khi thống kê NCKH theo giáo viên: {ex.Message}");
-            }
+            return await _nckhRepository.GetChiTietNCKHByIdAsync(maChiTietNCKH);
         }
 
-        public async Task<ApiResponseDto<object>> GetThongKeNCKHByBoMonAsync(string maBM, string namHoc = null)
+        public async Task<(bool success, string message, string maChiTietNCKH)> AddChiTietNCKHAsync(ChiTietNCKH chiTietNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.GetThongKeNCKHByBoMonAsync(maBM, namHoc);
-                return ApiResponseDto<object>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<object>.ErrorResult($"Lỗi khi thống kê NCKH theo bộ môn: {ex.Message}");
-            }
+            if (!await ValidateChiTietNCKHAsync(chiTietNCKH, false))
+                return (false, "Dữ liệu không hợp lệ", null);
+
+            if (!await CanAddTacGiaAsync(chiTietNCKH.MaTaiNCKH))
+                return (false, "Đã đủ số tác giả cho công trình này", null);
+
+            if (await _nckhRepository.CheckChiTietNCKHExistsAsync(chiTietNCKH.MaGV, chiTietNCKH.MaTaiNCKH))
+                return (false, "Giáo viên đã tham gia công trình này", null);
+
+            return await _nckhRepository.AddChiTietNCKHAsync(chiTietNCKH);
         }
 
-        public async Task<ApiResponseDto<object>> GetThongKeNCKHByKhoaAsync(string maKhoa, string namHoc = null)
+        public async Task<(bool success, string message)> UpdateChiTietNCKHAsync(ChiTietNCKH chiTietNCKH)
         {
-            try
-            {
-                var result = await _nckhRepository.GetThongKeNCKHByKhoaAsync(maKhoa, namHoc);
-                return ApiResponseDto<object>.SuccessResult(result);
-            }
-            catch (Exception ex)
-            {
-                return ApiResponseDto<object>.ErrorResult($"Lỗi khi thống kê NCKH theo khoa: {ex.Message}");
-            }
+            if (!await ValidateChiTietNCKHAsync(chiTietNCKH, true))
+                return (false, "Dữ liệu không hợp lệ");
+
+            return await _nckhRepository.UpdateChiTietNCKHAsync(chiTietNCKH);
         }
 
-        // Validation
-        public async Task<ApiResponseDto<bool>> ValidateTaiNCKHDataAsync(TaiNCKHCreateDto dto)
+        public async Task<(bool success, string message)> DeleteChiTietNCKHAsync(string maChiTietNCKH)
         {
-            var errors = new List<string>();
+            return await _nckhRepository.DeleteChiTietNCKHAsync(maChiTietNCKH);
+        }
+        #endregion
 
-            // Kiểm tra tên công trình
-            if (string.IsNullOrWhiteSpace(dto.TenCongTrinhKhoaHoc))
-                errors.Add("Tên công trình khoa học không được để trống");
-
-            // Kiểm tra năm học
-            if (string.IsNullOrWhiteSpace(dto.NamHoc))
-                errors.Add("Năm học không được để trống");
-
-            // Kiểm tra số tác giả
-            if (dto.SoTacGia <= 0 || dto.SoTacGia > 20)
-                errors.Add("Số tác giả phải từ 1 đến 20");
-
-            // Kiểm tra loại NCKH
-            if (string.IsNullOrWhiteSpace(dto.MaLoaiNCKH))
-                errors.Add("Loại NCKH không được để trống");
-            else
-            {
-                var loaiNCKH = await _nckhRepository.GetLoaiNCKHByIdAsync(dto.MaLoaiNCKH);
-                if (loaiNCKH == null)
-                    errors.Add("Loại NCKH không tồn tại");
-            }
-
-            if (errors.Any())
-                return ApiResponseDto<bool>.ErrorResult("Dữ liệu không hợp lệ", errors);
-
-            return ApiResponseDto<bool>.SuccessResult(true);
+        #region Báo cáo và thống kê
+        public async Task<dynamic> GetThongKeNCKHTongQuanAsync(string namHoc = null, string maKhoa = null, string maBM = null)
+        {
+            return await _nckhRepository.GetThongKeNCKHTongQuanAsync(namHoc, maKhoa, maBM);
         }
 
-        public async Task<ApiResponseDto<bool>> ValidateChiTietNCKHDataAsync(ChiTietNCKHCreateDto dto)
+        public async Task<List<dynamic>> GetTopGiaoVienNCKHXuatSacAsync(string namHoc = null, int topN = 20, string maKhoa = null)
         {
-            var errors = new List<string>();
-
-            // Kiểm tra giáo viên
-            if (string.IsNullOrWhiteSpace(dto.MaGV))
-                errors.Add("Mã giáo viên không được để trống");
-            else
-            {
-                var giaoVien = await _giaoVienRepository.GetGiaoVienByIdAsync(dto.MaGV);
-                if (giaoVien == null)
-                    errors.Add("Giáo viên không tồn tại");
-            }
-
-            // Kiểm tra tài NCKH
-            if (string.IsNullOrWhiteSpace(dto.MaTaiNCKH))
-                errors.Add("Mã tài NCKH không được để trống");
-            else
-            {
-                var taiNCKH = await _nckhRepository.GetTaiNCKHByIdAsync(dto.MaTaiNCKH);
-                if (taiNCKH == null)
-                    errors.Add("Tài NCKH không tồn tại");
-                else
-                {
-                    // Kiểm tra đã đủ tác giả chưa
-                    if (await _nckhRepository.KiemTraTacGiaDayDuAsync(dto.MaTaiNCKH))
-                        errors.Add("Đã đủ số tác giả cho công trình này");
-
-                    // Kiểm tra giáo viên đã tham gia chưa
-                    if (await _nckhRepository.KiemTraGiaoVienDaThamGiaAsync(dto.MaGV, dto.MaTaiNCKH))
-                        errors.Add("Giáo viên đã tham gia công trình này");
-
-                    // Kiểm tra vai trò chủ nhiệm
-                    if (dto.VaiTro == "Chủ nhiệm" && await _nckhRepository.KiemTraChuNhiemTonTaiAsync(dto.MaTaiNCKH))
-                        errors.Add("Đã có chủ nhiệm cho công trình này");
-                }
-            }
-
-            // Kiểm tra vai trò
-            if (string.IsNullOrWhiteSpace(dto.VaiTro))
-                errors.Add("Vai trò không được để trống");
-
-            // Kiểm tra số giờ
-            if (dto.SoGio <= 0 || dto.SoGio > 500)
-                errors.Add("Số giờ phải từ 1 đến 500");
-
-            if (errors.Any())
-                return ApiResponseDto<bool>.ErrorResult("Dữ liệu không hợp lệ", errors);
-
-            return ApiResponseDto<bool>.SuccessResult(true);
+            return await _nckhRepository.GetTopGiaoVienNCKHXuatSacAsync(namHoc, topN, maKhoa);
         }
 
-        // Utility
+        public async Task<List<dynamic>> GetThongKeNCKHTheoKhoaAsync(string namHoc = null)
+        {
+            return await _nckhRepository.GetThongKeNCKHTheoKhoaAsync(namHoc);
+        }
+
+        public async Task<List<dynamic>> GetThongKeNCKHTheoBoMonAsync(string namHoc = null, string maKhoa = null)
+        {
+            return await _nckhRepository.GetThongKeNCKHTheoBoMonAsync(namHoc, maKhoa);
+        }
+        #endregion
+
+        #region Tiện ích
         public async Task<List<string>> GetAvailableNamHocAsync()
         {
-            var allTaiNCKH = await _nckhRepository.GetAllTaiNCKHAsync();
-            return allTaiNCKH.Select(t => t.NamHoc).Distinct().OrderByDescending(n => n).ToList();
+            return await _nckhRepository.GetAvailableNamHocAsync();
         }
 
         public async Task<List<string>> GetAvailableVaiTroAsync()
@@ -414,5 +209,72 @@ namespace QuanLyGiaoVienCSDLNC.Services
                 "Tư vấn"
             };
         }
+
+        public async Task<bool> ValidateTaiNCKHAsync(TaiNCKH taiNCKH, bool isUpdate = false)
+        {
+            if (string.IsNullOrWhiteSpace(taiNCKH.TenCongTrinhKhoaHoc))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(taiNCKH.NamHoc))
+                return false;
+
+            if (taiNCKH.SoTacGia <= 0 || taiNCKH.SoTacGia > 20)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(taiNCKH.MaLoaiNCKH))
+                return false;
+
+            // Kiểm tra loại NCKH có tồn tại không
+            var loaiNCKH = await _nckhRepository.GetLoaiNCKHByIdAsync(taiNCKH.MaLoaiNCKH);
+            if (loaiNCKH == null)
+                return false;
+
+            return true;
+        }
+
+        public async Task<bool> ValidateChiTietNCKHAsync(ChiTietNCKH chiTietNCKH, bool isUpdate = false)
+        {
+            if (string.IsNullOrWhiteSpace(chiTietNCKH.MaGV))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(chiTietNCKH.MaTaiNCKH))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(chiTietNCKH.VaiTro))
+                return false;
+
+            if (chiTietNCKH.SoGio <= 0 || chiTietNCKH.SoGio > 500)
+                return false;
+
+            // Kiểm tra giáo viên có tồn tại không
+            var giaoVien = await _giaoVienRepository.GetGiaoVienByIdAsync(chiTietNCKH.MaGV);
+            if (giaoVien == null)
+                return false;
+
+            // Kiểm tra tài NCKH có tồn tại không
+            var taiNCKH = await _nckhRepository.GetTaiNCKHByIdAsync(chiTietNCKH.MaTaiNCKH);
+            if (taiNCKH == null)
+                return false;
+
+            return true;
+        }
+
+        public async Task<bool> CanDeleteTaiNCKHAsync(string maTaiNCKH)
+        {
+            // Kiểm tra có chi tiết NCKH không
+            var chiTietList = await _nckhRepository.GetChiTietNCKHByTaiNCKHAsync(maTaiNCKH);
+            return chiTietList.Count == 0;
+        }
+
+        public async Task<bool> CanAddTacGiaAsync(string maTaiNCKH)
+        {
+            var taiNCKH = await _nckhRepository.GetTaiNCKHByIdAsync(maTaiNCKH);
+            if (taiNCKH == null)
+                return false;
+
+            var soTacGiaHienTai = await _nckhRepository.GetSoTacGiaHienTaiAsync(maTaiNCKH);
+            return soTacGiaHienTai < taiNCKH.SoTacGia;
+        }
+        #endregion
     }
 }

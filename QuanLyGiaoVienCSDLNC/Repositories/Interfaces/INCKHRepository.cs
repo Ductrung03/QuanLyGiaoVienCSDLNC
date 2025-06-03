@@ -1,6 +1,4 @@
-﻿using QuanLyGiaoVienCSDLNC.DTOs.NCKH;
-using QuanLyGiaoVienCSDLNC.DTOs.Common;
-using QuanLyGiaoVienCSDLNC.Models;
+﻿using QuanLyGiaoVienCSDLNC.Models;
 
 namespace QuanLyGiaoVienCSDLNC.Repositories.Interfaces
 {
@@ -9,36 +7,44 @@ namespace QuanLyGiaoVienCSDLNC.Repositories.Interfaces
         // Quản lý loại NCKH
         Task<List<LoaiNCKH>> GetAllLoaiNCKHAsync();
         Task<LoaiNCKH> GetLoaiNCKHByIdAsync(string maLoaiNCKH);
+        Task<(bool success, string message)> AddLoaiNCKHAsync(LoaiNCKH loaiNCKH);
+        Task<(bool success, string message)> UpdateLoaiNCKHAsync(LoaiNCKH loaiNCKH);
+        Task<(bool success, string message)> DeleteLoaiNCKHAsync(string maLoaiNCKH);
 
-        // Quản lý tài NCKH - Sử dụng stored procedures
-        Task<PagedResultDto<TaiNCKHListItemDto>> SearchTaiNCKHAsync(TaiNCKHSearchDto searchDto);
-        Task<List<TaiNCKH>> GetAllTaiNCKHAsync();
-        Task<TaiNCKHDetailDto> GetTaiNCKHDetailAsync(string maTaiNCKH);
-        Task<TaiNCKH> GetTaiNCKHByIdAsync(string maTaiNCKH);
-        Task<List<TaiNCKH>> GetTaiNCKHByNamHocAsync(string namHoc);
-        Task<(bool success, string message, string maTaiNCKH)> AddTaiNCKHAsync(TaiNCKHCreateDto dto);
-        Task<(bool success, string message)> UpdateTaiNCKHAsync(TaiNCKHUpdateDto dto);
-        Task<(bool success, string message)> DeleteTaiNCKHAsync(string maTaiNCKH);
-
-        // Quản lý chi tiết NCKH - Sử dụng stored procedures
-        Task<List<ChiTietNCKH>> GetChiTietNCKHByMaGVAsync(string maGV, string namHoc = null);
-        Task<List<ChiTietNCKH>> GetChiTietNCKHByMaTaiNCKHAsync(string maTaiNCKH);
-        Task<(bool success, string message, string maChiTietNCKH)> PhanCongNCKHAsync(ChiTietNCKHCreateDto dto);
-        Task<(bool success, string message)> UpdateChiTietNCKHAsync(ChiTietNCKHUpdateDto dto);
-        Task<(bool success, string message)> DeleteChiTietNCKHAsync(string maChiTietNCKH);
-
-        // Quy đổi giờ chuẩn
+        // Quản lý quy đổi giờ chuẩn
         Task<List<QuyDoiGioChuanNCKH>> GetAllQuyDoiGioChuanAsync();
         Task<QuyDoiGioChuanNCKH> GetQuyDoiGioChuanByIdAsync(string maQuyDoi);
+        Task<(bool success, string message)> AddQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi);
+        Task<(bool success, string message)> UpdateQuyDoiGioChuanAsync(QuyDoiGioChuanNCKH quyDoi);
+        Task<(bool success, string message)> DeleteQuyDoiGioChuanAsync(string maQuyDoi);
 
-        // Thống kê và báo cáo
-        Task<List<object>> GetThongKeNCKHByGiaoVienAsync(string maGV, string namHoc = null);
-        Task<List<object>> GetThongKeNCKHByBoMonAsync(string maBM, string namHoc = null);
-        Task<List<object>> GetThongKeNCKHByKhoaAsync(string maKhoa, string namHoc = null);
+        // Quản lý tài NCKH
+        Task<List<TaiNCKH>> GetAllTaiNCKHAsync();
+        Task<TaiNCKH> GetTaiNCKHByIdAsync(string maTaiNCKH);
+        Task<List<TaiNCKH>> GetTaiNCKHByNamHocAsync(string namHoc);
+        Task<List<TaiNCKH>> SearchTaiNCKHAsync(string searchTerm = null, string namHoc = null, string maLoaiNCKH = null);
+        Task<(bool success, string message, string maTaiNCKH)> AddTaiNCKHAsync(TaiNCKH taiNCKH);
+        Task<(bool success, string message)> UpdateTaiNCKHAsync(TaiNCKH taiNCKH);
+        Task<(bool success, string message)> DeleteTaiNCKHAsync(string maTaiNCKH);
 
-        // Validation
-        Task<bool> KiemTraTacGiaDayDuAsync(string maTaiNCKH);
-        Task<bool> KiemTraChuNhiemTonTaiAsync(string maTaiNCKH);
-        Task<bool> KiemTraGiaoVienDaThamGiaAsync(string maGV, string maTaiNCKH);
+        // Quản lý chi tiết NCKH
+        Task<List<ChiTietNCKH>> GetChiTietNCKHByTaiNCKHAsync(string maTaiNCKH);
+        Task<List<ChiTietNCKH>> GetChiTietNCKHByGiaoVienAsync(string maGV, string namHoc = null);
+        Task<ChiTietNCKH> GetChiTietNCKHByIdAsync(string maChiTietNCKH);
+        Task<(bool success, string message, string maChiTietNCKH)> AddChiTietNCKHAsync(ChiTietNCKH chiTietNCKH);
+        Task<(bool success, string message)> UpdateChiTietNCKHAsync(ChiTietNCKH chiTietNCKH);
+        Task<(bool success, string message)> DeleteChiTietNCKHAsync(string maChiTietNCKH);
+
+        // Báo cáo và thống kê
+        Task<dynamic> GetThongKeNCKHTongQuanAsync(string namHoc = null, string maKhoa = null, string maBM = null);
+        Task<List<dynamic>> GetTopGiaoVienNCKHXuatSacAsync(string namHoc = null, int topN = 20, string maKhoa = null);
+        Task<List<dynamic>> GetThongKeNCKHTheoKhoaAsync(string namHoc = null);
+        Task<List<dynamic>> GetThongKeNCKHTheoBoMonAsync(string namHoc = null, string maKhoa = null);
+
+        // Tiện ích
+        Task<List<string>> GetAvailableNamHocAsync();
+        Task<bool> CheckTaiNCKHExistsAsync(string maTaiNCKH);
+        Task<bool> CheckChiTietNCKHExistsAsync(string maGV, string maTaiNCKH);
+        Task<int> GetSoTacGiaHienTaiAsync(string maTaiNCKH);
     }
 }
