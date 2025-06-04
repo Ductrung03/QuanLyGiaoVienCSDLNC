@@ -18,7 +18,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 Console.WriteLine($"Connection String: {connectionString}"); // Hoặc dùng logger
 // Thêm kết nối database
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetSection("ConnectionStrings")["DB_Context"]));
+    options.UseSqlServer(connectionString));
+
 
 // Đăng ký các repository
 builder.Services.AddScoped<IGiaoVienRepository, GiaoVienRepository>();

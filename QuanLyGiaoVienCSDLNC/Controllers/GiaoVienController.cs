@@ -680,7 +680,7 @@ namespace QuanLyGiaoVienCSDLNC.Controllers
                 var baoCaoNCKHResult = await _giaoVienService.GetBaoCaoNCKHAsync(id, namHoc);
 
                 ViewBag.GiaoVien = giaoVien;
-                ViewBag.ThongKe = thongKeResult.Success ? thongKeResult.Data : new ThongKeGiaoVien();
+                ViewBag.ThongKe = thongKeResult.Success ? thongKeResult.Data : new QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien(); 
                 ViewBag.BaoCaoGiangDay = baoCaoGiangDayResult.Success ? baoCaoGiangDayResult.Data : null;
                 ViewBag.BaoCaoNCKH = baoCaoNCKHResult.Success ? baoCaoNCKHResult.Data : null;
                 ViewBag.NamHoc = namHoc ?? DateTime.Now.Year + "-" + (DateTime.Now.Year + 1);

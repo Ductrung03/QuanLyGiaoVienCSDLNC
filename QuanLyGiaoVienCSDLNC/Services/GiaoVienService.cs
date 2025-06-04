@@ -485,22 +485,22 @@ namespace QuanLyGiaoVienCSDLNC.Services
 
         #region Statistics and Reports
 
-        public async Task<ApiResponseDto<ThongKeGiaoVien>> GetThongKeGiaoVienAsync(string maGV, string namHoc = null)
+        public async Task<ApiResponseDto<QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien>> GetThongKeGiaoVienAsync(string maGV, string namHoc = null)
         {
             try
             {
                 if (string.IsNullOrEmpty(maGV))
                 {
-                    return ApiResponseDto<ThongKeGiaoVien>.ErrorResult("Mã giáo viên không được để trống");
+                    return ApiResponseDto <QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien>.ErrorResult("Mã giáo viên không được để trống");
                 }
 
                 var result = await _giaoVienRepository.GetThongKeGiaoVienAsync(maGV, namHoc);
-                return ApiResponseDto<ThongKeGiaoVien>.SuccessResult(result);
+                return ApiResponseDto <QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien>.SuccessResult(result);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in GetThongKeGiaoVienAsync: {MaGV}", maGV);
-                return ApiResponseDto<ThongKeGiaoVien>.ErrorResult("Lỗi hệ thống khi lấy thống kê giáo viên");
+                return ApiResponseDto <QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien>.ErrorResult("Lỗi hệ thống khi lấy thống kê giáo viên");
             }
         }
 

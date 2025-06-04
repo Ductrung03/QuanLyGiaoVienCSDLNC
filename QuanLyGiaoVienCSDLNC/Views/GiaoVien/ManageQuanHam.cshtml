@@ -1,0 +1,351 @@
+﻿@model List<QuanLyGiaoVienCSDLNC.Models.QuanHam>
+@{
+    ViewData["Title"] = "Quản lý quân hàm";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="page-body">
+    <div class="container-fluid">
+        <div class="page-title">
+            <div class="row">
+                <div class="col-6">
+                    <h3>Quản lý quân hàm</h3>
+                </div>
+                <div class="col-6">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a asp-controller="Home" asp-action="Index">
+                                <svg class="stroke-icon">
+                                    <use href="../assets/svg/icon-sprite.svg#stroke-home"></use>
+                                </svg>
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Index">Quản lý giáo viên</a></li>
+                        <li class="breadcrumb-item"><a asp-controller="GiaoVien" asp-action="Details" asp-route-id="@ViewBag.GiaoVien?.MaGV">Chi tiết</a></li>
+                        <li class="breadcrumb-item active">Quân hàm</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!-- Thông tin giáo viên -->
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-success">
+                    <h4 class="alert-heading">
+                        <i data-feather="user"></i> @ViewBag.GiaoVien?.HoTen
+                    </h4>
+                    <p class="mb-0">Mã giáo viên: <strong>@ViewBag.GiaoVien?.MaGV</strong></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thông báo -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible">
+                @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Danh sách quân hàm -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>
+                            <i data-feather="star"></i> Danh sách quân hàm
+                        </h5>
+                        <div class="card-header-right">
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#addQuanHamModal">
+                                <i data-feather="plus"></i> Thêm quân hàm
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if (Model?.Any() == true)
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Mã quân hàm</th>
+                                            <th>Tên quân hàm</th>
+                                            <th>Ngày nhận</th>
+                                            <th>Ngày kết thúc</th>
+                                            <th>Trạng thái</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var quanHam in Model)
+                                        {
+                                            <tr>
+                                                <td><span class="badge bg-success">@quanHam.MaQuanHam</span></td>
+                                                <td>@quanHam.TenQuanHam</td>
+                                                <td>@quanHam.NgayNhan.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                    @if (quanHam.NgayKetThuc.HasValue)
+                                                    {
+                                                        @quanHam.NgayKetThuc.Value.ToString("dd/MM/yyyy")
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">Chưa kết thúc</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (quanHam.NgayKetThuc.HasValue)
+                                                    {
+                                                        <span class="badge bg-secondary">Đã kết thúc</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-success">Đang hoạt động</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-warning btn-sm"
+                                                                onclick="editQuanHam('@quanHam.MaQuanHam', '@quanHam.TenQuanHam', '@quanHam.NgayNhan.ToString("yyyy-MM-dd")', '@(quanHam.NgayKetThuc?.ToString("yyyy-MM-dd") ?? "")')">
+                                                            <i data-feather="edit"></i>
+                                                        </button>
+                                                        @if (!quanHam.NgayKetThuc.HasValue)
+                                                        {
+                                                            <button type="button" class="btn btn-info btn-sm"
+                                                                    onclick="endQuanHam('@quanHam.MaQuanHam', '@quanHam.TenQuanHam')">
+                                                                <i data-feather="clock"></i>
+                                                            </button>
+                                                        }
+                                                        <form asp-action="DeleteQuanHam" method="post" style="display: inline;">
+                                                            <input type="hidden" name="maQuanHam" value="@quanHam.MaQuanHam" />
+                                                            <input type="hidden" name="maGV" value="@quanHam.MaGV" />
+                                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                                    onclick="return confirm('Bạn có chắc chắn muốn xóa quân hàm này?')">
+                                                                <i data-feather="trash-2"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i data-feather="star" size="48" class="text-muted mb-3"></i>
+                                <h6 class="text-muted">Chưa có quân hàm nào</h6>
+                                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addQuanHamModal">
+                                    <i data-feather="plus"></i> Thêm quân hàm đầu tiên
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-footer text-center">
+                        <a asp-action="Details" asp-route-id="@ViewBag.GiaoVien?.MaGV" class="btn btn-secondary me-2">
+                            <i data-feather="arrow-left"></i> Quay lại chi tiết
+                        </a>
+                        <a asp-action="ManageHocVi" asp-route-id="@ViewBag.GiaoVien?.MaGV" class="btn btn-primary">
+                            <i data-feather="award"></i> Quản lý học vị
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm quân hàm -->
+<div class="modal fade" id="addQuanHamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="AddQuanHam" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i data-feather="star"></i> Thêm quân hàm mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaGV" value="@ViewBag.GiaoVien?.MaGV" />
+
+                    <div class="mb-3">
+                        <label class="form-label required">Tên quân hàm</label>
+                        <select class="form-select" name="TenQuanHam" required>
+                            <option value="">-- Chọn quân hàm --</option>
+                            <option value="Thiếu úy">Thiếu úy</option>
+                            <option value="Trung úy">Trung úy</option>
+                            <option value="Thượng úy">Thượng úy</option>
+                            <option value="Đại úy">Đại úy</option>
+                            <option value="Thiếu tá">Thiếu tá</option>
+                            <option value="Trung tá">Trung tá</option>
+                            <option value="Thượng tá">Thượng tá</option>
+                            <option value="Đại tá">Đại tá</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">Ngày nhận</label>
+                        <input type="date" class="form-control" name="NgayNhan" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ngày kết thúc</label>
+                        <input type="date" class="form-control" name="NgayKetThuc" />
+                        <div class="form-text">Để trống nếu chưa kết thúc</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-success">
+                        <i data-feather="save"></i> Lưu quân hàm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal sửa quân hàm -->
+<div class="modal fade" id="editQuanHamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateQuanHam" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i data-feather="edit"></i> Cập nhật quân hàm
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaGV" value="@ViewBag.GiaoVien?.MaGV" />
+                    <input type="hidden" name="MaQuanHam" id="edit_MaQuanHam" />
+
+                    <div class="mb-3">
+                        <label class="form-label required">Tên quân hàm</label>
+                        <select class="form-select" name="TenQuanHam" id="edit_TenQuanHam" required>
+                            <option value="">-- Chọn quân hàm --</option>
+                            <option value="Thiếu úy">Thiếu úy</option>
+                            <option value="Trung úy">Trung úy</option>
+                            <option value="Thượng úy">Thượng úy</option>
+                            <option value="Đại úy">Đại úy</option>
+                            <option value="Thiếu tá">Thiếu tá</option>
+                            <option value="Trung tá">Trung tá</option>
+                            <option value="Thượng tá">Thượng tá</option>
+                            <option value="Đại tá">Đại tá</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">Ngày nhận</label>
+                        <input type="date" class="form-control" name="NgayNhan" id="edit_NgayNhan" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ngày kết thúc</label>
+                        <input type="date" class="form-control" name="NgayKetThuc" id="edit_NgayKetThuc" />
+                        <div class="form-text">Để trống nếu chưa kết thúc</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i data-feather="save"></i> Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal kết thúc quân hàm -->
+<div class="modal fade" id="endQuanHamModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="UpdateQuanHam" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i data-feather="clock"></i> Kết thúc quân hàm
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="MaGV" value="@ViewBag.GiaoVien?.MaGV" />
+                    <input type="hidden" name="MaQuanHam" id="end_MaQuanHam" />
+                    <input type="hidden" name="TenQuanHam" id="end_TenQuanHam" />
+                    <input type="hidden" name="NgayNhan" id="end_NgayNhan" />
+
+                    <div class="alert alert-warning">
+                        <h6>Xác nhận kết thúc quân hàm</h6>
+                        <p class="mb-0">Quân hàm: <strong id="end_TenQuanHamDisplay"></strong></p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label required">Ngày kết thúc</label>
+                        <input type="date" class="form-control" name="NgayKetThuc" required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-info">
+                        <i data-feather="clock"></i> Kết thúc quân hàm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Script {
+    <script>
+        $(document).ready(function () {
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        });
+
+        function editQuanHam(maQuanHam, tenQuanHam, ngayNhan, ngayKetThuc) {
+            $('#edit_MaQuanHam').val(maQuanHam);
+            $('#edit_TenQuanHam').val(tenQuanHam);
+            $('#edit_NgayNhan').val(ngayNhan);
+            $('#edit_NgayKetThuc').val(ngayKetThuc);
+            $('#editQuanHamModal').modal('show');
+        }
+
+        function endQuanHam(maQuanHam, tenQuanHam) {
+            $('#end_MaQuanHam').val(maQuanHam);
+            $('#end_TenQuanHam').val(tenQuanHam);
+            $('#end_TenQuanHamDisplay').text(tenQuanHam);
+            $('#endQuanHamModal').modal('show');
+        }
+    </script>
+
+    <style>
+        .required::after {
+            content: " *";
+            color: red;
+        }
+    </style>
+}

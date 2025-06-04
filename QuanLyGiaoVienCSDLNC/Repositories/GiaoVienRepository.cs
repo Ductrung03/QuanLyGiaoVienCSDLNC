@@ -11,6 +11,8 @@ using System.Data;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
 using OfficeOpenXml;
+using DocumentFormat.OpenXml.InkML;
+using Org.BouncyCastle.Tls;
 
 namespace QuanLyGiaoVienCSDLNC.Repositories
 {
@@ -623,45 +625,49 @@ namespace QuanLyGiaoVienCSDLNC.Repositories
 
         #region Statistics and Reports
 
-        public async Task<ThongKeGiaoVien> GetThongKeGiaoVienAsync(string maGV, string namHoc = null)
+        public async Task<QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien> GetThongKeGiaoVienAsync(string maGV, string namHoc = null)
         {
             try
             {
-                using (var connection = _context.Database.GetDbConnection())
+                // Kiểm tra đầu vào cơ bản
+                if (string.IsNullOrWhiteSpace(maGV))
                 {
-                    await connection.OpenAsync();
-                    using (var command = connection.CreateCommand())
-                    {
-                        command.CommandText = "sp_BaoCao_TongHopKhoiLuongCongTac";
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.Add(new SqlParameter("@MaGV", maGV));
-                        command.Parameters.Add(new SqlParameter("@MaBM", DBNull.Value));
-                        command.Parameters.Add(new SqlParameter("@MaKhoa", DBNull.Value));
-                        command.Parameters.Add(new SqlParameter("@NamHoc", namHoc ?? (object)DBNull.Value));
-
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            if (await reader.ReadAsync())
-                            {
-                                return new ThongKeGiaoVien
-                                {
-                                    TongGioGiangDay = Convert.ToInt32(reader["TongGioGiangDay"] ?? 0),
-                                    TongGioNCKH = Convert.ToInt32(reader["TongGioNCKH"] ?? 0),
-                                    TongGioKhaoThi = Convert.ToInt32(reader["TongGioKhaoThi"] ?? 0),
-                                    TongGioHoiDong = Convert.ToInt32(reader["TongGioHoiDong"] ?? 0),
-                                    TongGioHuongDan = Convert.ToInt32(reader["TongGioHuongDan"] ?? 0),
-                                    TongGioQuyChuan = Convert.ToInt32(reader["TongGioQuyChuan"] ?? 0),
-                                    DinhMucGiangDay = Convert.ToInt32(reader["DinhMucGiangDay"] ?? 320),
-                                    DinhMucNCKH = Convert.ToInt32(reader["DinhMucNCKH"] ?? 300),
-                                    PhanTramHoanThanhGiangDay = Convert.ToDecimal(reader["PhanTramGiangDay"] ?? 0),
-                                    PhanTramHoanThanhNCKH = Convert.ToDecimal(reader["PhanTramNCKH"] ?? 0),
-                                    TrangThaiHoanThanh = reader["TrangThai"]?.ToString() ?? "Chưa đạt"
-                                };
-                            }
-                        }
-                    }
+                    throw new ArgumentException("Mã giáo viên không được để trống.", nameof(maGV));
                 }
-                return new ThongKeGiaoVien();
+                
+                var connectionString = "Server=LUCKYBOIZ\\SQLEXPRESS;Database=QLGiaoVienFinal;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true";
+                using var connection = new SqlConnection(connectionString);
+                await connection.OpenAsync();
+
+                using var command = connection.CreateCommand();
+                command.CommandText = "sp_BaoCao_TongHopKhoiLuongCongTac";
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@MaGV", maGV));
+                command.Parameters.Add(new SqlParameter("@MaBM", DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@MaKhoa", DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@NamHoc", namHoc ?? (object)DBNull.Value));
+
+                using var reader = await command.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    return new QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien
+                    {
+                        TongGioGiangDay = reader["TongGioGiangDay"] is DBNull ? 0 : Convert.ToInt32(reader["TongGioGiangDay"]),
+                        TongGioNCKH = reader["TongGioNCKH"] is DBNull ? 0 : Convert.ToInt32(reader["TongGioNCKH"]),
+                        TongGioKhaoThi = reader["TongGioKhaoThi"] is DBNull ? 0 : Convert.ToInt32(reader["TongGioKhaoThi"]),
+                        TongGioHoiDong = reader["TongGioHoiDong"] is DBNull ? 0 : Convert.ToInt32(reader["TongGioHoiDong"]),
+                        TongGioHuongDan = reader["TongGioHuongDan"] is DBNull ? 0 : Convert.ToInt32(reader["TongGioHuongDan"]),
+                        TongGioQuyChuan = reader["TongGioQuyChuan"] is DBNull ? 0 : Convert.ToInt32(reader["TongGioQuyChuan"]),
+                        DinhMucGiangDay = reader["DinhMucGiangDay"] is DBNull ? 320 : Convert.ToInt32(reader["DinhMucGiangDay"]),
+                        DinhMucNCKH = reader["DinhMucNCKH"] is DBNull ? 300 : Convert.ToInt32(reader["DinhMucNCKH"]),
+                        PhanTramHoanThanhGiangDay = reader["PhanTramGiangDay"] is DBNull ? 0 : Convert.ToDecimal(reader["PhanTramGiangDay"]),
+                        PhanTramHoanThanhNCKH = reader["PhanTramNCKH"] is DBNull ? 0 : Convert.ToDecimal(reader["PhanTramNCKH"]),
+                        TrangThaiHoanThanh = reader["TrangThai"] is DBNull ? "Chưa đạt" : reader["TrangThai"].ToString()
+                    };
+                }
+
+                // Trả về đối tượng rỗng nếu không có dữ liệu
+                return new QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien();
             }
             catch (Exception ex)
             {

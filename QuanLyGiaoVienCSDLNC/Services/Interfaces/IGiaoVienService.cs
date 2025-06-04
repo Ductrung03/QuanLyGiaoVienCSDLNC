@@ -45,7 +45,7 @@ namespace QuanLyGiaoVienCSDLNC.Services.Interfaces
         Task<ApiResponseDto<bool>> KetThucChucVuAsync(string maGV, string maChucVu, DateTime? ngayKetThuc = null);
 
         // Statistics and Reports
-        Task<ApiResponseDto<ThongKeGiaoVien>> GetThongKeGiaoVienAsync(string maGV, string namHoc = null);
+        Task<ApiResponseDto<QuanLyGiaoVienCSDLNC.DTOs.GiaoVien.ThongKeGiaoVien>> GetThongKeGiaoVienAsync(string maGV, string namHoc = null);
         Task<ApiResponseDto<DataTable>> GetBaoCaoGiangDayAsync(string maGV, string namHoc = null);
         Task<ApiResponseDto<DataTable>> GetBaoCaoNCKHAsync(string maGV, string namHoc = null);
         Task<ApiResponseDto<DataTable>> GetBaoCaoTongHopAsync(string maGV = null, string maBM = null, string maKhoa = null, string namHoc = null);
